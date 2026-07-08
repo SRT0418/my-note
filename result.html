@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>達成結果</title>
+    <link rel="stylesheet" href="./css/common.css">
+</head>
+
+<body>
+
+    <nav class="topnav">
+        <button id="hamburger-btn" aria-label="メニュー">☰</button>
+        <div id="nav-menu" class="nav-menu">
+            <a href="home.html">HOME</a>
+            <a href="kadai.html">課題締切管理</a>
+            <a href="tasks.html">タスク管理</a>
+            <a href="wishlist.html">やりたいことリスト</a>
+            <a href="ideas.html">アイデア保存</a>
+        </div>
+    </nav>
+
+    <h1>達成結果</h1>
+
+    <h3>未達成課題：<span id="unfinished-count">0</span>件</h3>
+    <h3>達成済み課題：<span id="completed-count">0</span>件</h3>
+    <h3>期限切れ課題：<span id="overdue-count">0</span>件</h3>
+
+    <!-- 達成率表示（統一） -->
+    <div class="rate-box">
+        <div class="rate-label">達成率</div>
+        <div id="rate-text">0%</div>
+
+        <div class="progress-bar">
+            <div id="progress" class="progress-fill"></div>
+        </div>
+    </div>
+
+    <!-- 円グラフ -->
+    <canvas id="pieChart" width="300" height="300"></canvas>
+
+    <!-- 帯グラフ -->
+    <div id="chart"></div>
+
+    <div class="legend">
+        <span><span class="color-box unfinished"></span> 未達成</span>
+        <span><span class="color-box completed"></span> 達成</span>
+        <span><span class="color-box overdue"></span> 期限切れ</span>
+    </div>
+
+    <!-- 締切で見る現在の課題 -->
+    <h2>今週締切の課題</h2>
+    <div id="this-week-list"></div>
+
+    <h2>来週締切の課題</h2>
+    <div id="next-week-list"></div>
+
+    <h2>再来週以降の課題</h2>
+    <div id="later-list"></div>
+
+    <!-- 週次履歴 -->
+    <h2>週ごとの達成履歴</h2>
+    <div id="weekly-history-list"></div>
+
+    <button onclick="location.href='kadai.html'">戻る</button>
+
+    <script src="./js/common.js" defer></script>
+    <script src="./js/result.js"></script>
+</body>
+
+</html>

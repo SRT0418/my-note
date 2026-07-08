@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>したいこと</title>
+    <link rel="stylesheet" href="./css/common.css">
+</head>
+
+<body>
+
+    <nav class="topnav">
+        <button id="hamburger-btn" aria-label="メニュー">☰</button>
+        <div id="nav-menu" class="nav-menu">
+            <a href="home.html">HOME</a>
+            <a href="kadai.html">課題締切管理</a>
+            <a href="tasks.html">タスク管理</a>
+            <a href="ideas.html">アイデア保存</a>
+        </div>
+    </nav>
+    <h1>やりたいことリスト</h1>
+
+    <h1 id="today-date"></h1>
+
+    <div>
+        <button id="add-button">追加</button>
+    </div>
+    
+    <div>
+        <label for="partner-filter">表示：</label>
+        <select id="partner-filter">
+            <option value="__all__">全体表示</option>
+        </select>
+    </div>
+
+    <h2>未達成</h2>
+    <div id="wish-list" class="card">
+
+    </div>
+
+    <h2>達成済み</h2>
+    <div id="wish-achieved-list" class="card">
+
+    </div>
+
+    <h2>削除済み</h2>
+    <div id="wish-deleted-list" class="card">
+
+    </div>
+
+    <script src="./js/common.js" defer></script>
+    <script src="./js/wishlist.js" defer></script>
+</body>
+
+</html>

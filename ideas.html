@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>アイデア保存</title>
+    <link rel="stylesheet" href="./css/common.css">
+</head>
+
+<body>
+
+    <nav class="topnav">
+        <button id="hamburger-btn" aria-label="メニュー">☰</button>
+        <div id="nav-menu" class="nav-menu">
+            <a href="home.html">HOME</a>
+            <a href="kadai.html">課題締切管理</a>
+            <a href="tasks.html">タスク管理</a>
+            <a href="wishlist.html">やりたいことリスト</a>
+        </div>
+    </nav>
+    <h1>アイデア保存</h1>
+
+    <h1 id="today-date"></h1>
+
+    <button id="add-button">追加</button>
+
+    <h2>保存済みアイデア</h2>
+    <div id="idea-list" class="card">
+
+    </div>
+
+    <h2>達成済みアイデア</h2>
+    <div id="idea-achieved-list" class="card">
+
+    </div>
+
+    <h2>削除済みアイデア</h2>
+    <div id="idea-deleted-list" class="card">
+
+    </div>
+
+    <script src="./js/common.js" defer></script>
+    <script src="./js/ideas.js" defer></script>
+</body>
+
+</html>

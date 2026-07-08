@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="stylesheet" href="./css/common.css">
+</head>
+
+<body>
+    <nav class="topnav">
+        <button id="hamburger-btn" aria-label="メニュー">☰</button>
+        <div id="nav-menu" class="nav-menu">
+            <a href="home.html">HOME</a>
+            <a href="tasks.html">タスク管理</a>
+            <a href="wishlist.html">やりたいことリスト</a>
+            <a href="ideas.html">アイデア保存</a>
+        </div>
+    </nav>
+
+    <h1>課題締切管理</h1>
+
+    <h1 id="today-date"></h1>
+
+    <h3>未達成課題：<span id="unfinished-count">0</span>件</h3>
+    <h3>達成済み課題：<span id="completed-count">0</span>件</h3>
+    <h3>期限切れ課題：<span id="overdue-count">0</span>件</h3>
+
+    <button id="add-button">追加</button>
+    <button onclick="location.href='result.html'">これまでの達成率を見る</button>
+
+    <h2>未達成課題</h2>
+    <div id="unfinished-list" class="card">
+
+    </div>
+
+    <h2>達成済み課題</h2>
+    <div id="completed-list" class="card">
+
+    </div>
+
+    <h2>削除済み課題</h2>
+    <div id="deleted-list" class="card">
+
+    </div>
+
+    <script src="./js/common.js" defer></script>
+    <script src="./js/kadai.js" defer></script>
+</body>
+
+</html>

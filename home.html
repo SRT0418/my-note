@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyNote</title>
+    <link rel="stylesheet" href="./css/common.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>MyNote</h1>
+    </header>
+    <h1 id="today-date"></h1>
+
+    <div class="menu-grid">
+
+        <div class="card menu-item" onclick="location.href='kadai.html'">
+            <h2>課題締切管理</h2>
+            <p>課題の締切を管理し、達成率を確認できます</p>
+        </div>
+
+        <div class="card menu-item" onclick="location.href='tasks.html'">
+            <h2>タスク管理</h2>
+            <p>締切のない用事を、優先度をつけて管理します</p>
+        </div>
+
+        <div class="card menu-item" onclick="location.href='wishlist.html'">
+            <h2>やりたいことリスト</h2>
+            <p>やりたいことをリストにして、達成チェックできます</p>
+        </div>
+
+        <div class="card menu-item" onclick="location.href='ideas.html'">
+            <h2>アイデア保存</h2>
+            <p>思いついたアイデアを保存しておけます</p>
+        </div>
+
+    </div>
+
+    <script src="./js/common.js" defer></script>
+
+</body>
+
+</html>
