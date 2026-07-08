@@ -57,19 +57,59 @@ function saveDeleted(tasks) {
     localStorage.setItem("deletedTasks", JSON.stringify(tasks));
 }
 
-// 未完了課題を画面に表示する
+// 未完了課題を「今週締切」「来週締切」「再来週以降」の3グループに分けて表示する
 function renderTasks() {
 
     const tasks = getTasks();
-    const list = document.getElementById("unfinished-list");
 
     // 締切が近い順に並び替える
     tasks.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
 
+    const now = new Date();
+    const currentWeekKey = getWeekKey(now);
+
+    const nextWeekDate = new Date(currentWeekKey);
+    nextWeekDate.setDate(nextWeekDate.getDate() + 7);
+    const nextWeekKey = getWeekKey(nextWeekDate);
+
+    const thisWeek = [];
+    const nextWeek = [];
+    const later = [];
+
+    tasks.forEach(t => {
+        if (!t || !t.deadline || isNaN(new Date(t.deadline).getTime())) {
+            thisWeek.push(t); // 締切が不正なものは見落とさないよう今週に表示
+            return;
+        }
+
+        const wk = getWeekKey(t.deadline);
+
+        if (wk === currentWeekKey) {
+            thisWeek.push(t);
+        } else if (wk === nextWeekKey) {
+            nextWeek.push(t);
+        } else {
+            // wkがcurrentWeekKeyより前になることは通常無い
+            // （archiveFinishedDeadlineWeeksで既に片付けられているため）
+            later.push(t);
+        }
+    });
+
+    renderTaskGroup("unfinished-this-week", thisWeek, "今週締切の未達成課題はありません");
+    renderTaskGroup("unfinished-next-week", nextWeek, "来週締切の未達成課題はありません");
+    renderTaskGroup("unfinished-later", later, "再来週以降の未達成課題はありません");
+}
+
+// 未達成課題1グループ分をカード表示する共通処理
+function renderTaskGroup(elementId, tasks, emptyText) {
+
+    const list = document.getElementById(elementId);
+    if (!list) return;
+
     list.innerHTML = "";
 
     if (tasks.length === 0) {
-        list.innerHTML = "<p>未完了の課題はありません</p>";
+        list.innerHTML = `<p>${emptyText}</p>`;
         return;
     }
 
