@@ -117,24 +117,24 @@ function renderTaskGroup(elementId, tasks, emptyText) {
         const now = new Date();
         const deadline = new Date(task.deadline);
 
-        // 締切までの残り日数を計算
+        // 期限切れかどうかを締切日時と現在時刻を直接比較して判定
+        const isOverdue = deadline <= now;
+
+        // 残り日数を表示用に計算（切り上げ）
         const remainingDays = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
 
         const div = document.createElement("div");
         div.className = "card";
 
-        // 期限切れの場合は赤色表示
-        if (remainingDays < 0) div.style.color = "red";
-
         div.innerHTML = `
             <p>科目：${task.subject}</p>
             <p>課題：${task.title}</p>
             <p>締切：${deadline.toLocaleString("ja-JP")}</p>
-            <p>残り：${remainingDays < 0 ? "期限切れ" : `残り${remainingDays}日`}</p>
+            <p>${isOverdue ? '<span style="color:red;font-weight:bold">⚠ 期限切れ</span>' : `残り${remainingDays}日`}</p>
 
             <button class="edit-btn" data-id="${task.id}">編集</button>
             <button class="delete-btn" data-id="${task.id}">削除</button>
-            ${remainingDays >= 0 ? `<button class="complete-btn" data-id="${task.id}">完了</button>` : ""}
+            ${!isOverdue ? `<button class="complete-btn" data-id="${task.id}">完了</button>` : ""}
         `;
 
         list.appendChild(div);
@@ -255,6 +255,13 @@ function completeTask(id) {
 
     const kadai = tasks.findIndex(t => t.id == id);
     if (kadai === -1) return;
+
+    // 期限切れの課題は完了にできない（二重チェック）
+    const target = tasks[kadai];
+    if (new Date(target.deadline) <= new Date()) {
+        alert("期限切れの課題は達成にできません。");
+        return;
+    }
 
     const task = tasks.splice(kadai, 1)[0];
     task.completedAt = new Date().toISOString();
