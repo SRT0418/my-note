@@ -358,3 +358,29 @@ label {
     font-weight: bold;
     margin-bottom: 4px;
 }
+
+/* ===== 履歴詳細：タスク一覧 ===== */
+.history-task-lists {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.history-list-heading {
+    font-weight: bold;
+    font-size: 0.9em;
+    margin: 0 0 4px 0;
+}
+
+.history-task-list {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 0.88em;
+    color: #444;
+}
+
+.history-task-list li {
+    margin-bottom: 2px;
+}
+

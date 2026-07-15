@@ -3,12 +3,12 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>達成結果</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>習慣タスク達成結果</title>
     <link rel="stylesheet" href="./css/common.css">
 </head>
 
 <body>
-
     <nav class="topnav">
         <button id="hamburger-btn" aria-label="メニュー">☰</button>
         <div id="nav-menu" class="nav-menu">
@@ -21,17 +21,17 @@
         </div>
     </nav>
 
-    <h1>達成結果</h1>
+    <h1>習慣タスク 達成結果</h1>
 
-    <h3>未達成課題：<span id="unfinished-count">0</span>件</h3>
-    <h3>達成済み課題：<span id="completed-count">0</span>件</h3>
-    <h3>期限切れ課題：<span id="overdue-count">0</span>件</h3>
+    <!-- 今日の集計 -->
+    <h2>今日の状況</h2>
+    <h3>未達成：<span id="today-unfinished-count">0</span>件</h3>
+    <h3>達成済み：<span id="today-completed-count">0</span>件</h3>
 
-    <!-- 達成率表示（統一） -->
+    <!-- 達成率バー -->
     <div class="rate-box">
         <div class="rate-label">達成率</div>
         <div id="rate-text">0%</div>
-
         <div class="progress-bar">
             <div id="progress" class="progress-fill"></div>
         </div>
@@ -40,33 +40,27 @@
     <!-- 円グラフ -->
     <canvas id="pieChart" width="300" height="300"></canvas>
 
-    <!-- 帯グラフ -->
-    <div id="chart"></div>
-
     <div class="legend">
-        <span><span class="color-box unfinished"></span> 未達成</span>
         <span><span class="color-box completed"></span> 達成</span>
-        <span><span class="color-box overdue"></span> 期限切れ</span>
+        <span><span class="color-box unfinished"></span> 未達成</span>
     </div>
 
-    <!-- 締切で見る現在の課題 -->
-    <h2>今週締切の課題</h2>
-    <div id="this-week-list"></div>
+    <!-- 今日の未達成タスク一覧 -->
+    <h2>未達成タスク一覧</h2>
+    <div id="today-unfinished-list"></div>
 
-    <h2>来週締切の課題</h2>
-    <div id="next-week-list"></div>
+    <!-- 今日の達成タスク一覧 -->
+    <h2>達成タスク一覧</h2>
+    <div id="today-completed-list"></div>
 
-    <h2>再来週以降の課題</h2>
-    <div id="later-list"></div>
+    <!-- 日ごとの達成履歴 -->
+    <h2>日ごとの達成履歴</h2>
+    <div id="daily-history-list"></div>
 
-    <!-- 週次履歴 -->
-    <h2>週ごとの達成履歴</h2>
-    <div id="weekly-history-list"></div>
-
-    <button onclick="location.href='kadai.html'">戻る</button>
+    <button onclick="location.href='everydayTask.html'">戻る</button>
 
     <script src="./js/common.js" defer></script>
-    <script src="./js/result.js"></script>
+    <script src="./js/edTaskResult.js"></script>
 </body>
 
 </html>

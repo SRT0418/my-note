@@ -4,46 +4,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>タスク管理</title>
+    <title>毎日習慣タスク</title>
     <link rel="stylesheet" href="./css/common.css">
 </head>
 
 <body>
-
     <nav class="topnav">
         <button id="hamburger-btn" aria-label="メニュー">☰</button>
         <div id="nav-menu" class="nav-menu">
             <a href="index.html">HOME</a>
             <a href="kadai.html">課題締切管理</a>
+            <a href="tasks.html">タスク管理</a>
             <a href="wishlist.html">やりたいことリスト</a>
             <a href="ideas.html">アイデア保存</a>
-            <a href="everydayTask.html">毎日習慣タスク</a>
         </div>
     </nav>
 
-    <h1>タスク管理</h1>
+    <h1>毎日習慣タスク</h1>
 
     <h1 id="today-date"></h1>
 
+    <h3>未達成：<span id="unfinished-count">0</span>件</h3>
+    <h3>達成済み：<span id="completed-count">0</span>件</h3>
+
     <button id="add-button">追加</button>
+    <button onclick="location.href='edTaskResult.html'">達成履歴を見る</button>
 
-    <h2>未完了タスク</h2>
-    <div id="task-list" class="card">
+    <h2>未達成タスク</h2>
+    <div id="habit-unfinished-list" class="card"></div>
 
-    </div>
-
-    <h2>完了済みタスク</h2>
-    <div id="task-completed-list" class="card">
-
-    </div>
+    <h2>達成済みタスク</h2>
+    <div id="habit-completed-list" class="card"></div>
 
     <h2>削除済みタスク</h2>
-    <div id="task-deleted-list" class="card">
-
-    </div>
+    <div id="habit-deleted-list" class="card"></div>
 
     <script src="./js/common.js" defer></script>
-    <script src="./js/tasks.js" defer></script>
+    <script src="./js/everydayTask.js" defer></script>
 </body>
 
 </html>
