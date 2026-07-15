@@ -40,7 +40,7 @@ function renderTodaySummary() {
     const unfinishedListEl = document.getElementById("today-unfinished-list");
     if (unfinishedListEl) {
         if (tasks.length === 0) {
-            unfinishedListEl.innerHTML = "<p>未達成のタスクはありません 🎉</p>";
+            unfinishedListEl.innerHTML = "<p>未達成のタスクはありません</p>";
         } else {
             unfinishedListEl.innerHTML = tasks.map(t => `
                 <div class="card">
@@ -59,7 +59,7 @@ function renderTodaySummary() {
         } else {
             completedListEl.innerHTML = completed.map(t => `
                 <div class="card">
-                    <p><strong>${t.title}</strong> <span style="color:#2ecc71">✅</span></p>
+                    <p><strong>${t.title}</strong></p>
                     ${t.detail ? `<p style="color:#666;font-size:0.92em">${t.detail}</p>` : ""}
                     <p style="font-size:0.85em;color:#aaa">達成：${new Date(t.completedAt).toLocaleString("ja-JP")}</p>
                 </div>
