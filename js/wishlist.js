@@ -95,7 +95,7 @@ function renderWishes() {
             ${item.detail ? `<p>${item.detail}</p>` : ""}
             <p>作成日：${new Date(item.createdAt).toLocaleString("ja-JP")}</p>
 
-            <button class="wish-achieve-btn" data-id="${item.id}">達成にする</button>
+            <button class="wish-achieve-btn" data-id="${item.id}">達成</button>
             <button class="wish-edit-btn" data-id="${item.id}">編集</button>
             <button class="wish-delete-btn" data-id="${item.id}">削除</button>
         `;

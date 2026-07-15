@@ -49,7 +49,7 @@ function renderIdeas() {
             ${item.detail ? `<p>${item.detail}</p>` : ""}
             <p>作成日：${new Date(item.createdAt).toLocaleString("ja-JP")}</p>
 
-            <button class="idea-achieve-btn" data-id="${item.id}">達成にする</button>
+            <button class="idea-achieve-btn" data-id="${item.id}">達成</button>
             <button class="idea-edit-btn" data-id="${item.id}">編集</button>
             <button class="idea-delete-btn" data-id="${item.id}">削除</button>
         `;

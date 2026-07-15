@@ -132,9 +132,9 @@ function renderTaskGroup(elementId, tasks, emptyText) {
             <p>締切：${deadline.toLocaleString("ja-JP")}</p>
             <p>${isOverdue ? '<span style="color:red;font-weight:bold">⚠ 期限切れ</span>' : `残り${remainingDays}日`}</p>
 
+            ${!isOverdue ? `<button class="complete-btn" data-id="${task.id}">達成</button>` : ""}
             <button class="edit-btn" data-id="${task.id}">編集</button>
             <button class="delete-btn" data-id="${task.id}">削除</button>
-            ${!isOverdue ? `<button class="complete-btn" data-id="${task.id}">完了</button>` : ""}
         `;
 
         list.appendChild(div);

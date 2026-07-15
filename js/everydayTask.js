@@ -211,14 +211,14 @@ function renderHabitTasks() {
 
         const streak = task.streak || 0;
         const streakBadge = streak > 0
-            ? `<span class="streak-badge">🔥 ${streak}日継続中</span>`
+            ? `<span class="streak-badge">${streak}日継続中</span>`
             : `<span class="streak-badge streak-zero">─ 未継続</span>`;
 
         div.innerHTML = `
             <p><strong>${task.title}</strong> ${streakBadge}</p>
             ${task.detail ? `<p style="color:#666;font-size:0.92em">${task.detail}</p>` : ""}
             <p style="font-size:0.85em;color:#aaa">追加日：${new Date(task.createdAt).toLocaleDateString("ja-JP")}</p>
-            <button class="habit-complete-btn" data-id="${task.id}">✅ 達成</button>
+            <button class="habit-complete-btn" data-id="${task.id}">達成</button>
             <button class="habit-edit-btn" data-id="${task.id}">編集</button>
             <button class="habit-delete-btn" data-id="${task.id}">削除</button>
         `;
@@ -246,10 +246,10 @@ function renderCompletedHabitTasks() {
 
         const streak = task.streak || 0;
         const nextStreak = streak + 1;
-        const streakBadge = `<span class="streak-badge streak-completed">🔥 ${streak}日継続 → 達成で${nextStreak}日目</span>`;
+        const streakBadge = `<span class="streak-badge streak-completed">${streak}日継続 → 達成で${nextStreak}日目</span>`;
 
         div.innerHTML = `
-            <p><strong>${task.title}</strong> <span style="color:#2ecc71">✅</span> ${streakBadge}</p>
+            <p><strong>${task.title}</strong> <span style="color:#2ecc71"></span> ${streakBadge}</p>
             ${task.detail ? `<p style="color:#666;font-size:0.92em">${task.detail}</p>` : ""}
             <p style="font-size:0.85em;color:#aaa">達成：${new Date(task.completedAt).toLocaleString("ja-JP")}</p>
             <button class="habit-undo-btn" data-id="${task.id}">取り消し</button>

@@ -82,9 +82,9 @@ function renderTasks() {
             </p>
             <p>作成日：${new Date(task.createdAt).toLocaleString("ja-JP")}</p>
 
+            <button class="task-complete-btn" data-id="${task.id}">達成</button>
             <button class="task-edit-btn" data-id="${task.id}">編集</button>
             <button class="task-delete-btn" data-id="${task.id}">削除</button>
-            <button class="task-complete-btn" data-id="${task.id}">完了</button>
         `;
 
         list.appendChild(div);
