@@ -214,11 +214,12 @@ function renderHabitTasks() {
             ? `<span class="streak-badge">${streak}日継続中</span>`
             : `<span class="streak-badge streak-zero">─ 未継続</span>`;
         const completedCount = task.completedCount || 0;
-        const countBadge = `<span class="count-badge" style="font-size:0.85em;color:#888;margin-left:6px">達成回数：${completedCount}回</span>`;
+        const countBadge = `<span class="count-badge" style="font-size:0.85em;color:#888">達成回数：${completedCount}回</span>`;
 
         div.innerHTML = `
-            <p><strong>${task.title}</strong> ${streakBadge}${countBadge}</p>
+            <p><strong>${task.title}</strong> ${streakBadge}</p>
             ${task.detail ? `<p style="color:#666;font-size:0.92em">${task.detail}</p>` : ""}
+            <p>${countBadge}</p>
             <p style="font-size:0.85em;color:#aaa">追加日：${new Date(task.createdAt).toLocaleDateString("ja-JP")}</p>
             <button class="habit-complete-btn" data-id="${task.id}">達成</button>
             <button class="habit-edit-btn" data-id="${task.id}">編集</button>
@@ -250,11 +251,12 @@ function renderCompletedHabitTasks() {
         const nextStreak = streak + 1;
         const streakBadge = `<span class="streak-badge streak-completed">${streak}日継続 → 達成で${nextStreak}日目</span>`;
         const completedCount = task.completedCount || 0;
-        const countBadge = `<span class="count-badge" style="font-size:0.85em;color:#888;margin-left:6px">達成回数：${completedCount}回</span>`;
+        const countBadge = `<span class="count-badge" style="font-size:0.85em;color:#888">達成回数：${completedCount}回</span>`;
 
         div.innerHTML = `
-            <p><strong>${task.title}</strong> <span style="color:#2ecc71"></span> ${streakBadge}${countBadge}</p>
+            <p><strong>${task.title}</strong> <span style="color:#2ecc71"></span> ${streakBadge}</p>
             ${task.detail ? `<p style="color:#666;font-size:0.92em">${task.detail}</p>` : ""}
+            <p>${countBadge}</p>
             <p style="font-size:0.85em;color:#aaa">達成：${new Date(task.completedAt).toLocaleString("ja-JP")}</p>
             <button class="habit-undo-btn" data-id="${task.id}">取り消し</button>
             <button class="habit-delete-completed-btn" data-id="${task.id}">削除</button>
