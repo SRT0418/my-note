@@ -120,6 +120,25 @@ function archivePreviousDay(dateKey) {
         history.unshift(entry); // 新しい日が先頭
         saveDailyHistory(history);
     }
+
+    // ストリーク更新：達成済みは +1、未達成は 0 にリセット
+    const completedIds = new Set(getHabitCompleted().map(t => t.id));
+
+    let tasks2 = getHabitTasks();
+    let completed2 = getHabitCompleted();
+
+    // 達成済みタスク：streak を +1
+    completed2.forEach(t => {
+        t.streak = (t.streak || 0) + 1;
+    });
+
+    // 未達成タスク：streak を 0 にリセット
+    tasks2.forEach(t => {
+        t.streak = 0;
+    });
+
+    saveHabitTasks(tasks2);
+    saveHabitCompleted(completed2);
 }
 
 // 毎日0:00にリセット：達成済みを全て「未達成」に戻す
@@ -127,7 +146,7 @@ function resetDailyCompletion() {
     const completed = getHabitCompleted();
     const tasks = getHabitTasks();
 
-    // 達成済みを未達成に戻す（completedAtを削除）
+    // 達成済みを未達成に戻す（completedAtを削除、streakは保持）
     completed.forEach(t => {
         delete t.completedAt;
     });
@@ -190,8 +209,13 @@ function renderHabitTasks() {
         const div = document.createElement("div");
         div.className = "card";
 
+        const streak = task.streak || 0;
+        const streakBadge = streak > 0
+            ? `<span class="streak-badge">🔥 ${streak}日継続中</span>`
+            : `<span class="streak-badge streak-zero">─ 未継続</span>`;
+
         div.innerHTML = `
-            <p><strong>${task.title}</strong></p>
+            <p><strong>${task.title}</strong> ${streakBadge}</p>
             ${task.detail ? `<p style="color:#666;font-size:0.92em">${task.detail}</p>` : ""}
             <p style="font-size:0.85em;color:#aaa">追加日：${new Date(task.createdAt).toLocaleDateString("ja-JP")}</p>
             <button class="habit-complete-btn" data-id="${task.id}">✅ 達成</button>
@@ -220,8 +244,12 @@ function renderCompletedHabitTasks() {
         const div = document.createElement("div");
         div.className = "card";
 
+        const streak = task.streak || 0;
+        const nextStreak = streak + 1;
+        const streakBadge = `<span class="streak-badge streak-completed">🔥 ${streak}日継続 → 達成で${nextStreak}日目</span>`;
+
         div.innerHTML = `
-            <p><strong>${task.title}</strong> <span style="color:#2ecc71">✅</span></p>
+            <p><strong>${task.title}</strong> <span style="color:#2ecc71">✅</span> ${streakBadge}</p>
             ${task.detail ? `<p style="color:#666;font-size:0.92em">${task.detail}</p>` : ""}
             <p style="font-size:0.85em;color:#aaa">達成：${new Date(task.completedAt).toLocaleString("ja-JP")}</p>
             <button class="habit-undo-btn" data-id="${task.id}">取り消し</button>
