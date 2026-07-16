@@ -16,23 +16,82 @@ function renderToday() {
     });
 }
 
-// ハンバーガーメニューの開閉を制御する（全ページ共通）
+// ドロワーメニューの開閉を制御する（全ページ共通）
 document.addEventListener("DOMContentLoaded", () => {
 
-    const btn = document.getElementById("hamburger-btn");
-    const menu = document.getElementById("nav-menu");
+    const openBtn    = document.getElementById("drawer-btn");
+    const closeBtn   = document.getElementById("drawer-close-btn");
+    const menu       = document.getElementById("nav-menu");
+    const overlay    = document.getElementById("drawer-overlay");
+    const sideTrigger = document.querySelector(".side-trigger");
 
-    if (!btn || !menu) return;
+    if (!menu) return;
 
-    btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        menu.classList.toggle("open");
-    });
+    let closeTimer = null;
 
-    // メニュー外をクリックしたら閉じる
-    document.addEventListener("click", (e) => {
-        if (!menu.contains(e.target) && e.target !== btn) {
-            menu.classList.remove("open");
+    // ── 開く ──────────────────────────────
+    // withOverlay=true のとき背景暗幕・スクロールロックあり（クリック用）
+    function openDrawer(withOverlay = false) {
+        cancelClose();
+        menu.classList.add("open");
+        if (withOverlay && overlay) {
+            overlay.classList.add("open");
+            document.body.style.overflow = "hidden";
         }
+    }
+
+    // ── 閉じる ────────────────────────────
+    function closeDrawer() {
+        menu.classList.remove("open");
+        if (overlay) overlay.classList.remove("open");
+        document.body.style.overflow = "";
+    }
+
+    // ── タイマー制御（ホバー離脱後の遅延閉じ） ─────────
+    function scheduleClose() {
+        closeTimer = setTimeout(closeDrawer, 250);
+    }
+
+    function cancelClose() {
+        if (closeTimer) {
+            clearTimeout(closeTimer);
+            closeTimer = null;
+        }
+    }
+
+    // ── クリックで開閉（オーバーレイあり） ────────────
+    if (openBtn) {
+        openBtn.addEventListener("click", () => {
+            if (menu.classList.contains("open")) {
+                closeDrawer();
+            } else {
+                openDrawer(true);
+            }
+        });
+    }
+
+    // ── ホバーで自動開閉 ──────────────────────────
+    if (sideTrigger) {
+        sideTrigger.addEventListener("mouseenter", () => openDrawer(false));
+        sideTrigger.addEventListener("mouseleave", scheduleClose);
+    }
+
+    // ドロワー上にいる間は閉じない
+    menu.addEventListener("mouseenter", cancelClose);
+    menu.addEventListener("mouseleave", scheduleClose);
+
+    // ── 閉じるボタン ─────────────────────────────
+    if (closeBtn) {
+        closeBtn.addEventListener("click", closeDrawer);
+    }
+
+    // ── オーバーレイをクリックしたら閉じる ───────────
+    if (overlay) {
+        overlay.addEventListener("click", closeDrawer);
+    }
+
+    // ── ESCキーでも閉じる ─────────────────────────
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeDrawer();
     });
 });

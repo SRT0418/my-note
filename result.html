@@ -9,19 +9,27 @@
 
 <body>
 
-    <nav class="topnav">
-        <button id="hamburger-btn" aria-label="メニュー">☰</button>
-        <div id="nav-menu" class="nav-menu">
-            <a href="index.html">HOME</a>
-            <a href="kadai.html">課題締切管理</a>
-            <a href="tasks.html">タスク管理</a>
-            <a href="everydayTask.html">毎日習慣タスク</a>
-            <a href="wishlist.html">やりたいことリスト</a>
-            <a href="ideas.html">アイデア保存</a>
+    <div id="drawer-overlay" class="drawer-overlay"></div>
+    <div id="nav-menu" class="nav-menu">
+        <div class="nav-menu-header">
+            <span>メニュー</span>
+            <button id="drawer-close-btn" aria-label="閉じる">&times;</button>
         </div>
-    </nav>
+        <a href="index.html">HOME</a>
+        <a href="kadai.html">課題締切管理</a>
+        <a href="tasks.html">タスク管理</a>
+        <a href="everydayTask.html">毎日習慣タスク</a>
+        <a href="wishlist.html">やりたいことリスト</a>
+        <a href="ideas.html">アイデア保存</a>
+    </div>
 
-    <h1>達成結果</h1>
+    <div class="side-trigger">
+        <button id="drawer-btn" aria-label="メニューを開く">☰</button>
+    </div>
+
+    <header>
+        <h1>達成結果</h1>
+    </header>
 
     <h3>未達成課題：<span id="unfinished-count">0</span>件</h3>
     <h3>達成済み課題：<span id="completed-count">0</span>件</h3>
