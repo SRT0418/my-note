@@ -40,13 +40,13 @@ function renderTodaySummary() {
     const unfinishedListEl = document.getElementById("today-unfinished-list");
     if (unfinishedListEl) {
         if (tasks.length === 0) {
-            unfinishedListEl.innerHTML = "<p>未達成のタスクはありません 🎉</p>";
+            unfinishedListEl.innerHTML = "<p>未達成のタスクはありません</p>";
         } else {
             unfinishedListEl.innerHTML = tasks.map(t => `
                 <div class="card">
                     <p><strong>${t.title}</strong></p>
                     ${t.detail ? `<p style="color:#666;font-size:0.92em">${t.detail}</p>` : ""}
-                    <p style="font-size:0.85em;color:#888">達成回数：${t.completedCount || 0}回</p>
+                    <p style="font-size:0.85em;color:#000000">達成回数：${t.completedCount || 0}回</p>
                 </div>
             `).join("");
         }
@@ -62,8 +62,8 @@ function renderTodaySummary() {
                 <div class="card">
                     <p><strong>${t.title}</strong></p>
                     ${t.detail ? `<p style="color:#666;font-size:0.92em">${t.detail}</p>` : ""}
-                    <p style="font-size:0.85em;color:#888">達成回数：${t.completedCount || 0}回</p>
-                    <p style="font-size:0.85em;color:#aaa">達成：${new Date(t.completedAt).toLocaleString("ja-JP")}</p>
+                    <p style="font-size:0.85em;color:#000000">達成回数：${t.completedCount || 0}回</p>
+                    <p style="font-size:0.85em;color:#000000">達成：${new Date(t.completedAt).toLocaleString("ja-JP")}</p>
                 </div>
             `).join("");
         }
