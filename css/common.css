@@ -19,6 +19,13 @@ body {
     padding: 20px 20px 20px 60px;
 }
 
+body.add {
+    background-color: whitesmoke;
+    color: #333333;
+    margin: 0;
+    padding: 20px 20px 20px 20px;
+}
+
 .card {
     border: 1px solid #ccc;
     margin: 5px;
@@ -326,12 +333,12 @@ label {
     margin: 8px 0;
     overflow: hidden;
     background: #fff;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
     transition: box-shadow 0.2s;
 }
 
 .history-card:hover {
-    box-shadow: 0 3px 10px rgba(0,0,0,0.13);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.13);
 }
 
 .history-summary {
@@ -460,7 +467,7 @@ label {
     vertical-align: middle;
     background: linear-gradient(90deg, #ff8c00, #ff4500);
     color: #fff;
-    box-shadow: 0 1px 4px rgba(255,100,0,0.25);
+    box-shadow: 0 1px 4px rgba(255, 100, 0, 0.25);
     letter-spacing: 0.03em;
 }
 
@@ -474,6 +481,5 @@ label {
 .streak-badge.streak-completed {
     background: linear-gradient(90deg, #27ae60, #2ecc71);
     color: #fff;
-    box-shadow: 0 1px 4px rgba(46,204,113,0.25);
+    box-shadow: 0 1px 4px rgba(46, 204, 113, 0.25);
 }
-
