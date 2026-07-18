@@ -57,7 +57,7 @@ window.addEventListener("load", function () {
     const overdueCountEl = document.getElementById("overdue-count");
     const rateTextEl = document.getElementById("rate-text");
     const progressEl = document.getElementById("progress");
-    const chartEl = document.getElementById("chart");
+    // const chartEl = document.getElementById("chart");
 
     // 数値を画面に反映
     if (unfinishedCountEl) unfinishedCountEl.textContent = unfinished;
@@ -119,22 +119,22 @@ window.addEventListener("load", function () {
         ctx.fillText(`${completedRateFix}%`, centerX, centerY + 20);
     }
 
-    // 棒グラフ（HTML）表示
-    if (chartEl) {
-        chartEl.innerHTML = `
-            <div class="bar-container">
-                <div class="bar unfinished" style="width:${unfinishedRate}%"></div>
-                <div class="bar completed" style="width:${completedRate}%"></div>
-                <div class="bar overdue" style="width:${overdueRate}%"></div>
-            </div>
+    // // 棒グラフ（HTML）表示
+    // if (chartEl) {
+    //     chartEl.innerHTML = `
+    //         <div class="bar-container">
+    //             <div class="bar unfinished" style="width:${unfinishedRate}%"></div>
+    //             <div class="bar completed" style="width:${completedRate}%"></div>
+    //             <div class="bar overdue" style="width:${overdueRate}%"></div>
+    //         </div>
 
-            <p>
-                🟡 未達成：${unfinishedRateFix}%　
-                🟢 達成：${completedRateFix}%　
-                🔴 期限切れ：${overdueRateFix}%
-            </p>
-        `;
-    }
+    //         <p>
+    //             🟡 未達成：${unfinishedRateFix}%　
+    //             🟢 達成：${completedRateFix}%　
+    //             🔴 期限切れ：${overdueRateFix}%
+    //         </p>
+    //     `;
+    // }
 
     // 週次履歴を表示
     renderWeeklyHistory();
