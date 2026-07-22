@@ -13,15 +13,17 @@
     <h1>タスク追加</h1>
 
     <div id="add-task-center">
-        <input id="content" placeholder="内容">
+        <label for="content">内容：</label><br>
+        <input id="content" placeholder="内容"><br>
 
+        <label for="priority">優先度：</label><br>
         <select id="priority">
             <option value="高">優先度：高</option>
             <option value="中" selected>優先度：中</option>
             <option value="低">優先度：低</option>
-        </select>
+        </select><br>
 
-        <label for="detail">詳細</label><br>
+        <label for="detail">詳細：</label><br>
         <textarea id="detail" rows="10" placeholder="詳細"></textarea><br>
 
         <br>
