@@ -148,8 +148,12 @@ function deleteIdea(id) {
     const idx = items.findIndex(i => i.id == id);
     if (idx === -1) return;
 
+    const reason = prompt("削除理由を入力してください（任意）:");
+    if (reason === null) return;
+
     const item = items.splice(idx, 1)[0];
     item.deletedAt = new Date().toISOString();
+    item.deleteReason = reason.trim();
 
     deleted.push(item);
 
@@ -172,6 +176,7 @@ function restoreIdea(id) {
 
     const item = deleted.splice(idx, 1)[0];
     delete item.deletedAt;
+    delete item.deleteReason;
 
     items.push(item);
 
@@ -239,6 +244,7 @@ function renderDeletedIdeas() {
             <p><strong>${item.title}</strong></p>
             <p>${item.content}</p>
             ${item.detail ? `<p>${item.detail}</p>` : ""}
+            ${item.deleteReason ? `<p>削除理由：${item.deleteReason}</p>` : "<p>削除理由：（なし）</p>"}
             <p>作成日：${new Date(item.createdAt).toLocaleString("ja-JP")}</p>
             <p>削除：${new Date(item.deletedAt).toLocaleString("ja-JP")}</p>
             <p>あと${remainingDays}日で自動的に完全削除されます</p>
