@@ -7,6 +7,17 @@ header {
     z-index: 60;
 }
 
+#add-kadai-center,
+#add-task-center,
+#add-habit-center,
+#add-wish-center,
+#add-idea-center,
+#add-schedule-center {
+    width: 90%;
+    max-width: 400px;
+    margin: 0 auto 40px auto;
+}
+
 header h1 {
     font-size: 40px;
     margin: 0;
@@ -18,6 +29,7 @@ body {
     margin: 0;
     padding: 20px 20px 20px 60px;
 }
+
 
 body.add {
     background-color: whitesmoke;
@@ -611,8 +623,8 @@ label {
 }
 
 .schedule-datetime-row {
-    display: flex;
-    align-items: center;
+    display: inline;
+    /* align-items: center; */
     gap: 8px;
     margin: 4px 0;
 }

@@ -13,12 +13,17 @@
 
     <h1>課題追加</h1>
 
-    <input id="subject" placeholder="科目名">
-    <input id="title" placeholder="課題名"><br>
-    <input id="deadline" type="datetime-local"><br>
+    <div id="add-kadai-center">
+        <input id="subject" placeholder="科目名">
+        <input id="title" placeholder="課題名"><br>
+        <label for="deadline">締め切り</label><br>
+        <input id="deadline" type="datetime-local"><br>
+        <label for="detail">詳細</label><br>
+        <textarea id="detail" rows="10" placeholder="詳細"></textarea><br>
 
-    <button id="save-button">保存</button>
-    <button id="cancel-button">キャンセル</button>
+        <button id="save-button">保存</button>
+        <button id="cancel-button">キャンセル</button>
+    </div>
 
     <script src="./js/kadai-add.js"></script>
 

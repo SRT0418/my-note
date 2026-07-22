@@ -9,38 +9,43 @@
 </head>
 
 <body class="add">
-
     <h1 id="form-heading">予定追加</h1>
 
-    <label for="title">予定</label><br>
-    <input id="title" placeholder="例：勉強会"><br>
+    <div id="add-schedule-center">
+        <label for="title">予定</label><br>
+        <input id="title" placeholder="例：勉強会"><br>
 
-    <label for="partner">相手</label><br>
-    <input id="partner" placeholder="例：彼女"><br>
+        <label for="partner">相手</label><br>
+        <input id="partner" placeholder="例：彼女"><br>
 
-    <label>日時</label><br>
+        <label for="location">場所</label><br>
+        <input type="text" id="location" placeholder="例: ○○カフェ、原宿"><br>
 
-    <div class="schedule-datetime-row">
-        <input id="start-date" type="date">
-        <span>～</span>
-        <input id="end-date" type="date">
+        <label>日時</label><br>
+
+        <div class="schedule-datetime-row">
+            <input id="start-date" type="date">
+            <span>～</span>
+            <input id="end-date" type="date">
+        </div>
+        <br>
+
+        <div class="schedule-datetime-row">
+            <input id="start-time" type="time">
+            <span>～</span>
+            <input id="end-time" type="time">
+        </div>
+        <br>
+
+        <label for="description">詳細：</label><br>
+        <textarea id="description" rows="4"></textarea>
+
+        <br>
+        <button id="save-button">保存</button>
+        <button id="cancel-button">キャンセル</button>
     </div>
-
-    <div class="schedule-datetime-row">
-        <input id="start-time" type="time">
-        <span>～</span>
-        <input id="end-time" type="time">
-    </div>
-
-    <label for="description">詳細：</label><br>
-    <textarea id="description" rows="4"></textarea>
-
-    <br>
-    <button id="save-button">保存</button>
-    <button id="cancel-button">キャンセル</button>
 
     <script src="./js/schedule-add.js"></script>
-
 </body>
 
 </html>

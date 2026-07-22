@@ -1,5 +1,15 @@
 // ===== 予定データの読み書き =====
 
+function escapeHtml(str) {
+    if (!str) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 // localStorageから予定一覧を取得する
 function getSchedules() {
     return JSON.parse(localStorage.getItem("schedules")) || [];
@@ -238,10 +248,11 @@ function renderEventList() {
         div.className = "card schedule-card";
 
         div.innerHTML = `
-            <p class="schedule-title">${schedule.title}</p>
-            ${schedule.partner ? `<p>相手：${schedule.partner}</p>` : ""}
+            <p class="schedule-title">${escapeHtml(schedule.title)}</p>
+            ${schedule.partner ? `<p>相手：${escapeHtml(schedule.partner)}</p>` : ""}
+            ${schedule.location ? `<p>場所：${escapeHtml(schedule.location)}</p>` : ""}
             <p>日時：${formatScheduleDateTime(schedule)}</p>
-            ${schedule.description ? `<p>詳細：${schedule.description.replace(/\n/g, "<br>")}</p>` : ""}
+            ${schedule.description ? `<p>詳細：${escapeHtml(schedule.description).replace(/\n/g, "<br>")}</p>` : ""}
 
             <button class="schedule-edit-btn" data-id="${schedule.id}">編集</button>
             <button class="schedule-delete-btn" data-id="${schedule.id}">削除</button>
@@ -300,10 +311,11 @@ function renderHistoryList() {
             const div = document.createElement("div");
             div.className = "card schedule-card";
             div.innerHTML = `
-                <p class="schedule-title">${schedule.title}</p>
-                ${schedule.partner ? `<p>相手：${schedule.partner}</p>` : ""}
+                <p class="schedule-title">${escapeHtml(schedule.title)}</p>
+                ${schedule.partner ? `<p>相手：${escapeHtml(schedule.partner)}</p>` : ""}
+                ${schedule.location ? `<p>場所：${escapeHtml(schedule.location)}</p>` : ""}
                 <p>日時：${formatScheduleDateTime(schedule)}</p>
-                ${schedule.description ? `<p>詳細：${schedule.description.replace(/\n/g, "<br>")}</p>` : ""}
+                ${schedule.description ? `<p>詳細：${escapeHtml(schedule.description).replace(/\n/g, "<br>")}</p>` : ""}
 
                 <button class="schedule-edit-btn" data-id="${schedule.id}">編集</button>
                 <button class="schedule-delete-btn" data-id="${schedule.id}">削除</button>
@@ -342,10 +354,11 @@ function renderDeletedList() {
         const remainingDays = Math.max(0, Math.ceil((purgeDate - new Date()) / (1000 * 60 * 60 * 24)));
 
         div.innerHTML = `
-            <p class="schedule-title">${schedule.title}</p>
-            ${schedule.partner ? `<p>相手：${schedule.partner}</p>` : ""}
+            <p class="schedule-title">${escapeHtml(schedule.title)}</p>
+            ${schedule.partner ? `<p>相手：${escapeHtml(schedule.partner)}</p>` : ""}
+            ${schedule.location ? `<p>場所：${escapeHtml(schedule.location)}</p>` : ""}
             <p>日時：${formatScheduleDateTime(schedule)}</p>
-            ${schedule.description ? `<p>詳細：${schedule.description.replace(/\n/g, "<br>")}</p>` : ""}
+            ${schedule.description ? `<p>詳細：${escapeHtml(schedule.description).replace(/\n/g, "<br>")}</p>` : ""}
             <p>削除：${new Date(schedule.deletedAt).toLocaleString("ja-JP")}</p>
             <p>あと${remainingDays}日で自動的に完全削除されます</p>
 
@@ -442,4 +455,63 @@ function purgeOldDeletedSchedules() {
     if (remaining.length !== deleted.length) {
         saveDeletedSchedules(remaining);
     }
+}
+
+// --- カードエレメントの共通生成関数 ---
+function createScheduleCard(s, isTrash) {
+    const card = document.createElement("div");
+    card.className = "schedule-card";
+
+    const timeStr = (s.startTime || s.endTime) ? ` ${s.startTime || ""}～${s.endTime || ""}` : "";
+    const dateDisplay = (s.startDate === s.endDate) ? `${s.startDate}${timeStr}` : `${s.startDate} ～ ${s.endDate}`;
+
+    // ★場所と相手を表示用テキストに構築★
+    let metaText = `📅 ${dateDisplay}`;
+    if (s.partner) metaText += ` | 👤 ${escapeHtml(s.partner)}`;
+    if (s.location) metaText += ` | 📍 ${escapeHtml(s.location)}`;
+
+    let actionButtons = "";
+
+    if (isTrash) {
+        actionButtons = `
+                <div class="card-actions">
+                    <button class="btn-restore" data-id="${s.id}">復元</button>
+                    <button class="btn-delete-perm" data-id="${s.id}">完全に削除</button>
+                </div>
+            `;
+    } else {
+        actionButtons = `
+                <div class="card-actions">
+                    <button class="btn-edit" data-id="${s.id}">編集</button>
+                    <button class="btn-delete" data-id="${s.id}">削除</button>
+                </div>
+            `;
+    }
+
+    card.innerHTML = `
+            <div class="card-info">
+                <div class="card-title">${escapeHtml(s.title)}</div>
+                <div class="card-meta">${metaText}</div>
+                ${s.description ? `<div class="card-desc">${escapeHtml(s.description)}</div>` : ""}
+            </div>
+            ${actionButtons}
+        `;
+
+    if (!isTrash) {
+        card.querySelector(".btn-edit").addEventListener("click", () => {
+            location.href = `add-schedule.html?id=${s.id}`;
+        });
+        card.querySelector(".btn-delete").addEventListener("click", () => {
+            moveToTrash(s.id);
+        });
+    } else {
+        card.querySelector(".btn-restore").addEventListener("click", () => {
+            restoreFromTrash(s.id);
+        });
+        card.querySelector(".btn-delete-perm").addEventListener("click", () => {
+            deletePermanently(s.id);
+        });
+    }
+
+    return card;
 }

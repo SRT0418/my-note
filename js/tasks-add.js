@@ -11,8 +11,10 @@ window.addEventListener("load", () => {
         const task = tasks.find(t => t.id == editId);
 
         if (task) {
-            document.getElementById("content").value = task.content;
-            document.getElementById("priority").value = task.priority;
+            document.getElementById("content").value = task.content || "";
+            document.getElementById("priority").value = task.priority || "中";
+            const detailEl = document.getElementById("detail");
+            if (detailEl) detailEl.value = task.detail || "";
 
             document.getElementById("save-button").textContent = "更新";
             document.getElementById("save-button").dataset.editId = editId;
@@ -27,6 +29,8 @@ window.addEventListener("load", () => {
 
         const content = document.getElementById("content").value.trim();
         const priority = document.getElementById("priority").value;
+        const detailEl = document.getElementById("detail");
+        const detail = detailEl ? detailEl.value : "";
 
         // 入力チェック：内容が未入力なら保存しない
         if (!content) {
@@ -40,6 +44,7 @@ window.addEventListener("load", () => {
             id: editId ? Number(editId) : Date.now(),
             content: content,
             priority: priority,
+            detail: detail,
             createdAt: (existingTask && existingTask.createdAt) || new Date().toISOString()
         };
 

@@ -3,6 +3,16 @@ document.getElementById("add-button").addEventListener("click", () => {
     window.location.href = "./add-task.html";
 });
 
+function escapeHtml(str) {
+    if (!str) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 // ページ読み込み時に一覧を表示する
 window.addEventListener("load", () => {
     purgeOldDeletedTodoTasks();
@@ -77,10 +87,11 @@ function renderTasks() {
         div.className = "card";
 
         div.innerHTML = `
-            <p>${task.content}
+            <p>${escapeHtml(task.content)}
                 <span class="priority-badge ${priorityClass(task.priority)}">優先度：${task.priority}</span>
             </p>
             <p>作成日：${new Date(task.createdAt).toLocaleString("ja-JP")}</p>
+            ${task.detail ? `<p>詳細：${escapeHtml(task.detail).replace(/\n/g, "<br>")}</p>` : ""}
 
             <button class="task-complete-btn" data-id="${task.id}">達成</button>
             <button class="task-edit-btn" data-id="${task.id}">編集</button>
@@ -110,11 +121,12 @@ function renderCompletedTasks() {
         div.className = "card";
 
         div.innerHTML = `
-            <p>${task.content}
+            <p>${escapeHtml(task.content)}
                 <span class="priority-badge ${priorityClass(task.priority)}">優先度：${task.priority}</span>
             </p>
             <p>作成日：${new Date(task.createdAt).toLocaleString("ja-JP")}</p>
             <p>完了：${new Date(task.completedAt).toLocaleString("ja-JP")}</p>
+            ${task.detail ? `<p>詳細：${escapeHtml(task.detail).replace(/\n/g, "<br>")}</p>` : ""}
 
             <button class="task-delete-completed-btn" data-id="${task.id}">削除</button>
         `;
@@ -304,13 +316,14 @@ function renderDeletedTasks() {
         const remainingDays = Math.max(0, Math.ceil((purgeDate - new Date()) / (1000 * 60 * 60 * 24)));
 
         div.innerHTML = `
-            <p>${task.content}
+            <p>${escapeHtml(task.content)}
                 <span class="priority-badge ${priorityClass(task.priority)}">優先度：${task.priority}</span>
             </p>
             <p>作成日：${new Date(task.createdAt).toLocaleString("ja-JP")}</p>
             ${task.completedAt ? `<p>完了日：${new Date(task.completedAt).toLocaleString("ja-JP")}</p>` : ""}
             <p>削除：${new Date(task.deletedAt).toLocaleString("ja-JP")}</p>
             <p>あと${remainingDays}日で自動的に完全削除されます</p>
+            ${task.detail ? `<p>詳細：${escapeHtml(task.detail).replace(/\n/g, "<br>")}</p>` : ""}
 
             <button class="task-restore-btn" data-id="${task.id}">元に戻す</button>
             <button class="task-delete-forever-btn" data-id="${task.id}">完全に削除</button>

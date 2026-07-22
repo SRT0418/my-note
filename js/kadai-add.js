@@ -12,9 +12,11 @@ window.addEventListener("load", () => {
         const task = tasks.find(t => t.id == editId);
 
         if (task) {
-            document.getElementById("subject").value = task.subject;
-            document.getElementById("title").value = task.title;
-            document.getElementById("deadline").value = task.deadline;
+            document.getElementById("subject").value = task.subject || "";
+            document.getElementById("title").value = task.title || "";
+            document.getElementById("deadline").value = task.deadline || "";
+            const detailEl = document.getElementById("detail");
+            if (detailEl) detailEl.value = task.detail || "";
 
             document.getElementById("save-button").textContent = "更新";
             document.getElementById("save-button").dataset.editId = editId;
@@ -30,6 +32,8 @@ window.addEventListener("load", () => {
         const subject = document.getElementById("subject").value.trim();
         const title = document.getElementById("title").value.trim();
         const deadline = document.getElementById("deadline").value;
+        const detailEl = document.getElementById("detail");
+        const detail = detailEl ? detailEl.value : "";
 
         // 入力チェック：未入力や不正な日時があれば保存せず知らせる
         if (!subject || !title || !deadline) {
@@ -47,7 +51,8 @@ window.addEventListener("load", () => {
             id: editId ? Number(editId) : Date.now(),
             subject: subject,
             title: title,
-            deadline: deadline
+            deadline: deadline,
+            detail: detail
         };
 
         // 編集か新規かで処理を分岐

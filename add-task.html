@@ -12,17 +12,22 @@
 
     <h1>タスク追加</h1>
 
-    <input id="content" placeholder="内容">
+    <div id="add-task-center">
+        <input id="content" placeholder="内容">
 
-    <select id="priority">
-        <option value="高">優先度：高</option>
-        <option value="中" selected>優先度：中</option>
-        <option value="低">優先度：低</option>
-    </select>
+        <select id="priority">
+            <option value="高">優先度：高</option>
+            <option value="中" selected>優先度：中</option>
+            <option value="低">優先度：低</option>
+        </select>
 
-    <br>
-    <button id="save-button">保存</button>
-    <button id="cancel-button">キャンセル</button>
+        <label for="detail">詳細</label><br>
+        <textarea id="detail" rows="10" placeholder="詳細"></textarea><br>
+
+        <br>
+        <button id="save-button">保存</button>
+        <button id="cancel-button">キャンセル</button>
+    </div>
 
     <script src="./js/tasks-add.js"></script>
 

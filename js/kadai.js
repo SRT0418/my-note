@@ -3,6 +3,16 @@ document.getElementById("add-button").addEventListener("click", () => {
     window.location.href = "./add-kadai.html";
 });
 
+function escapeHtml(str) {
+    if (!str) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 // ページ読み込み時に課題一覧・完了一覧・件数を表示する
 window.addEventListener("load", () => {
     renderToday();
@@ -127,10 +137,11 @@ function renderTaskGroup(elementId, tasks, emptyText) {
         div.className = "card";
 
         div.innerHTML = `
-            <p>科目：${task.subject}</p>
-            <p>課題：${task.title}</p>
+            <p>科目：${escapeHtml(task.subject)}</p>
+            <p>課題：${escapeHtml(task.title)}</p>
             <p>締切：${deadline.toLocaleString("ja-JP")}</p>
             <p>${isOverdue ? '<span style="color:red;font-weight:bold">⚠ 期限切れ</span>' : `残り${remainingDays}日`}</p>
+            ${task.detail ? `<p>詳細：${escapeHtml(task.detail).replace(/\n/g, "<br>")}</p>` : ""}
 
             ${!isOverdue ? `<button class="complete-btn" data-id="${task.id}">達成</button>` : ""}
             <button class="edit-btn" data-id="${task.id}">編集</button>
@@ -160,10 +171,11 @@ function renderCompletedTasks() {
         div.className = "card";
 
         div.innerHTML = `
-            <p>科目：${task.subject}</p>
-            <p>課題：${task.title}</p>
+            <p>科目：${escapeHtml(task.subject)}</p>
+            <p>課題：${escapeHtml(task.title)}</p>
             <p>締切：${new Date(task.deadline).toLocaleString("ja-JP")}</p>
             <p>完了：${new Date(task.completedAt).toLocaleString("ja-JP")}</p>
+            ${task.detail ? `<p>詳細：${escapeHtml(task.detail).replace(/\n/g, "<br>")}</p>` : ""}
 
             <button class="delete-completed-btn" data-id="${task.id}">削除</button>
         `;
@@ -199,11 +211,12 @@ function renderDeletedTasks() {
         const remainingDays = Math.max(0, Math.ceil((purgeDate - new Date()) / (1000 * 60 * 60 * 24)));
 
         div.innerHTML = `
-            <p>科目：${task.subject}</p>
-            <p>課題：${task.title}</p>
+            <p>科目：${escapeHtml(task.subject)}</p>
+            <p>課題：${escapeHtml(task.title)}</p>
             <p>締切：${new Date(task.deadline).toLocaleString("ja-JP")}</p>
             <p>削除：${new Date(task.deletedAt).toLocaleString("ja-JP")}</p>
             <p>あと${remainingDays}日で自動的に完全削除されます</p>
+            ${task.detail ? `<p>詳細：${escapeHtml(task.detail).replace(/\n/g, "<br>")}</p>` : ""}
 
             <button class="restore-btn" data-id="${task.id}">元に戻す</button>
             <button class="delete-forever-btn" data-id="${task.id}">完全に削除</button>
