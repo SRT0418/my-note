@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>予定追加</title>
+    <link rel="stylesheet" href="./css/common.css">
+</head>
+
+<body class="add">
+
+    <h1 id="form-heading">予定追加</h1>
+
+    <label for="title">題</label><br>
+    <input id="title" placeholder="例：勉強会"><br>
+
+    <label for="partner">相手</label><br>
+    <input id="partner" placeholder="例：彼女"><br>
+
+    <label>日時</label><br>
+
+    <div class="schedule-datetime-row">
+        <input id="start-date" type="date">
+        <span>～</span>
+        <input id="end-date" type="date">
+    </div>
+
+    <div class="schedule-datetime-row">
+        <input id="start-time" type="time">
+        <span>～</span>
+        <input id="end-time" type="time">
+    </div>
+
+    <label for="description">詳細：</label>
+    <textarea id="description" rows="4"></textarea>
+
+    <br>
+    <button id="save-button">保存</button>
+    <button id="cancel-button">キャンセル</button>
+
+    <script src="./js/schedule-add.js"></script>
+
+</body>
+
+</html>

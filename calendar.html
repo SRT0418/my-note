@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>したいこと</title>
+    <title>カレンダー</title>
     <link rel="stylesheet" href="./css/common.css">
 </head>
 
@@ -20,6 +20,7 @@
         <a href="kadai.html">課題締切管理</a>
         <a href="tasks.html">タスク管理</a>
         <a href="everydayTask.html">毎日習慣タスク</a>
+        <a href="wishlist.html">やりたいことリスト</a>
         <a href="ideas.html">アイデア保存</a>
         <a href="calendar.html">カレンダー</a>
     </div>
@@ -28,38 +29,35 @@
         <button id="drawer-btn" aria-label="メニューを開く">☰</button>
     </div>
 
-    <h1>やりたいことリスト</h1>
+    <h1>カレンダー</h1>
 
     <h1 id="today-date"></h1>
 
-    <div>
-        <button id="add-button">追加</button>
+    <button id="add-button">予定を追加</button>
+
+    <div class="calendar-nav">
+        <button id="prev-month-btn" aria-label="前の月">&lt;</button>
+        <h2 id="calendar-month-label"></h2>
+        <button id="next-month-btn" aria-label="次の月">&gt;</button>
     </div>
 
-    <div>
-        <label for="partner-filter">表示：</label>
-        <select id="partner-filter">
-            <option value="__all__">全体表示</option>
-        </select>
+    <div id="calendar-grid" class="calendar-grid"></div>
+
+    <div class="calendar-list-header">
+        <h2 id="event-list-heading">すべての予定</h2>
+        <button id="show-all-btn" class="show-all-btn" style="display:none;">すべて表示</button>
     </div>
 
-    <h2>未達成</h2>
-    <div id="wish-list" class="card">
+    <div id="event-list"></div>
 
-    </div>
+    <h2>過去の予定（履歴）</h2>
+    <div id="history-list"></div>
 
-    <h2>達成済み</h2>
-    <div id="wish-achieved-list" class="card">
-
-    </div>
-
-    <h2>削除済み</h2>
-    <div id="wish-deleted-list" class="card">
-
-    </div>
+    <h2>削除済みの予定</h2>
+    <div id="deleted-schedule-list"></div>
 
     <script src="./js/common.js" defer></script>
-    <script src="./js/wishlist.js" defer></script>
+    <script src="./js/calendar.js" defer></script>
 </body>
 
 </html>

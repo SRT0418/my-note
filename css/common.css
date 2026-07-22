@@ -457,6 +457,166 @@ label {
     margin-bottom: 2px;
 }
 
+/* ===== カレンダー ===== */
+.calendar-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 10px;
+}
+
+.calendar-nav h2 {
+    border-left: none;
+    padding-left: 0;
+    margin: 0;
+    min-width: 140px;
+    text-align: center;
+}
+
+.calendar-nav button {
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-weight: bold;
+}
+
+.calendar-nav button:hover {
+    background-color: lightgray;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    max-width: 700px;
+    margin: 16px auto;
+}
+
+.calendar-weekday {
+    text-align: center;
+    font-weight: bold;
+    font-size: 0.85em;
+    color: #555;
+    padding: 4px 0;
+}
+
+.calendar-weekday.sunday {
+    color: #e74c3c;
+}
+
+.calendar-weekday.saturday {
+    color: #3498db;
+}
+
+.calendar-day {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    min-height: 60px;
+    padding: 4px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: background 0.15s, box-shadow 0.15s;
+}
+
+.calendar-day:hover {
+    background: whitesmoke;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-day.empty {
+    background: transparent;
+    border: none;
+    cursor: default;
+}
+
+.calendar-day-number {
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.calendar-day.sunday .calendar-day-number {
+    color: #e74c3c;
+}
+
+.calendar-day.saturday .calendar-day-number {
+    color: #3498db;
+}
+
+.calendar-day.today {
+    border: 2px solid #333;
+}
+
+.calendar-day.selected {
+    background: #eaf4ff;
+    border-color: #3498db;
+}
+
+.calendar-dots {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 3px;
+    margin-top: 4px;
+}
+
+.calendar-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #e74c3c;
+    display: inline-block;
+}
+
+.calendar-dot-more {
+    font-size: 0.7em;
+    color: #555;
+    line-height: 8px;
+}
+
+.calendar-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.calendar-list-header h2 {
+    margin-top: 20px;
+}
+
+.show-all-btn {
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.show-all-btn:hover {
+    background-color: lightgray;
+}
+
+#event-list {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.schedule-card .schedule-title {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin: 0 0 4px 0;
+}
+
+.schedule-datetime-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0;
+}
+
 /* ===== 継続日数（ストリーク）バッジ ===== */
 .streak-badge {
     display: inline-block;
@@ -482,4 +642,23 @@ label {
     background: linear-gradient(90deg, #27ae60, #2ecc71);
     color: #fff;
     box-shadow: 0 1px 4px rgba(46, 204, 113, 0.25);
+}
+
+.history-month-group {
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.history-month-group summary {
+    background-color: #f0f0f0;
+    padding: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+}
+
+.history-month-content {
+    padding: 10px;
 }
