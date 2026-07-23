@@ -278,21 +278,21 @@
         bindLogoutButton("account-bar-logout");
     }
 
-    // ---------- ユーザー情報表示（ログイン中のページに共通表示） ----------
-    function renderAccountBar() {
-        const page = currentPageName();
-        if (page === "login.html") return;
+    // // ---------- ユーザー情報表示（ログイン中のページに共通表示） ----------
+    // function renderAccountBar() {
+    //     const page = currentPageName();
+    //     if (page === "login.html") return;
 
-        const user = getCurrentUser();
-        if (!user) return;
+    //     const user = getCurrentUser();
+    //     if (!user) return;
 
-        const navMenu = document.getElementById("nav-menu");
-        if (navMenu) {
-            renderNavMenuAccount(navMenu, user);
-        } else {
-            renderFloatingBar(user);
-        }
-    }
+    //     const navMenu = document.getElementById("nav-menu");
+    //     if (navMenu) {
+    //         renderNavMenuAccount(navMenu, user);
+    //     } else {
+    //         renderFloatingBar(user);
+    //     }
+    // }
 
     // 公開API（他のスクリプトから利用できるようにwindowへ公開）
     window.MyNoteAuth = {
