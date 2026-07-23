@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ログイン - MyNote</title>
+    <link rel="stylesheet" href="./css/common.css">
+    <script src="./js/auth.js"></script>
+</head>
+
+<body class="auth-page">
+
+    <div class="auth-card">
+        <img src="./MyNote.png" alt="MyNote" class="logo">
+        <h1 style="text-align:center;">MyNote</h1>
+
+        <div class="auth-tabs">
+            <div id="tab-login" class="auth-tab active">ログイン</div>
+            <div id="tab-register" class="auth-tab">新規登録</div>
+        </div>
+
+        <!-- ログインフォーム -->
+        <div id="panel-login" class="auth-panel active">
+            <div class="auth-field">
+                <label for="login-username">ユーザー名</label>
+                <input id="login-username" autocomplete="username" placeholder="ユーザー名">
+            </div>
+            <div class="auth-field">
+                <label for="login-password">パスワード</label>
+                <input id="login-password" type="password" autocomplete="current-password" placeholder="パスワード">
+            </div>
+            <button id="login-submit" class="auth-submit">ログイン</button>
+            <p id="login-message" class="auth-message"></p>
+        </div>
+
+        <!-- 新規登録フォーム -->
+        <div id="panel-register" class="auth-panel">
+            <div class="auth-field">
+                <label for="register-username">ユーザー名</label>
+                <input id="register-username" autocomplete="username" placeholder="ユーザー名（20文字以内）">
+            </div>
+            <div class="auth-field">
+                <label for="register-email">メールアドレス</label>
+                <input id="register-email" type="email" autocomplete="email" placeholder="例：taro@example.com">
+            </div>
+            <div class="auth-field">
+                <label for="register-password">パスワード</label>
+                <input id="register-password" type="password" autocomplete="new-password" placeholder="パスワード（4文字以上）">
+            </div>
+            <div class="auth-field">
+                <label for="register-password2">パスワード（確認）</label>
+                <input id="register-password2" type="password" autocomplete="new-password" placeholder="もう一度入力">
+            </div>
+            <button id="register-submit" class="auth-submit">登録してはじめる</button>
+            <p id="register-message" class="auth-message"></p>
+        </div>
+    </div>
+
+    <script src="./js/auth-page.js" defer></script>
+
+</body>
+
+</html>

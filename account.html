@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>アカウント設定</title>
+    <link rel="stylesheet" href="./css/common.css">
+    <script src="./js/auth.js"></script>
+</head>
+
+<body class="add">
+
+    <h1>アカウント設定</h1>
+
+    <div id="account-page-center">
+
+        <div class="account-section">
+            <h2>ログイン中のユーザー</h2>
+            <p id="account-current-user" class="card"></p>
+            <button id="logout-button">ログアウト</button>
+            <button id="back-button">HOMEへ戻る</button>
+        </div>
+
+        <div class="account-section">
+            <h2>メールアドレスの変更</h2>
+            <label for="new-email">メールアドレス：</label><br>
+            <input id="new-email" type="email" placeholder="例：taro@example.com"><br><br>
+
+            <button id="change-email-button">メールアドレスを変更</button>
+            <p id="change-email-message" class="auth-message"></p>
+        </div>
+
+        <div class="account-section">
+            <h2>パスワードの変更</h2>
+            <label for="current-password">現在のパスワード：</label><br>
+            <input id="current-password" type="password" placeholder="現在のパスワード"><br><br>
+
+            <label for="new-password">新しいパスワード：</label><br>
+            <input id="new-password" type="password" placeholder="新しいパスワード（4文字以上）"><br><br>
+
+            <label for="new-password2">新しいパスワード（確認）：</label><br>
+            <input id="new-password2" type="password" placeholder="もう一度入力"><br><br>
+
+            <button id="change-password-button">パスワードを変更</button>
+            <p id="change-password-message" class="auth-message"></p>
+        </div>
+
+        <div class="account-section">
+            <h2>アカウントの削除</h2>
+            <div class="danger-zone">
+                <p>アカウントを削除すると、このユーザーに保存されたタスク・アイデア・カレンダーなどのデータも全て完全に削除されます。元に戻せません。</p>
+                <button id="delete-account-button" class="delete-button">アカウントを削除する</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="./js/account-page.js" defer></script>
+
+</body>
+
+</html>

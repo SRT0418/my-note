@@ -674,3 +674,228 @@ label {
 .history-month-content {
     padding: 10px;
 }
+/* =========================================================
+   アカウント機能 (auth)
+   ========================================================= */
+
+#account-bar {
+    position: fixed;
+    top: 10px;
+    right: 12px;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 13px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+#account-bar-user {
+    white-space: nowrap;
+}
+
+#account-bar a {
+    color: #333;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+#account-bar a:hover {
+    text-decoration: underline;
+}
+
+#account-bar-logout {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    margin: 0;
+}
+
+#account-bar-logout:hover {
+    background-color: #c0392b;
+}
+
+/* ドロワーメニュー上部のアカウント表示 */
+.nav-menu-account {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    padding: 14px 16px;
+    background: whitesmoke;
+    border-bottom: 1px solid #eee;
+    font-size: 13px;
+}
+
+#nav-menu-account-user {
+    font-weight: bold;
+    color: #333;
+    width: 100%;
+}
+
+.nav-menu-account a {
+    padding: 0;
+    border-bottom: none;
+    color: #333;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.nav-menu-account a:hover {
+    text-decoration: underline;
+}
+
+#nav-menu-account-logout {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    margin: 0;
+}
+
+#nav-menu-account-logout:hover {
+    background-color: #c0392b;
+}
+
+.auth-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+    background-color: whitesmoke;
+    color: #333333;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 360px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    padding: 28px 24px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+}
+
+.auth-card h1 {
+    font-size: 26px;
+    margin-top: 0;
+}
+
+.auth-card .logo {
+    display: block;
+    width: 56px;
+    margin: 0 auto 8px auto;
+}
+
+.auth-tabs {
+    display: flex;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #ccc;
+}
+
+.auth-tab {
+    flex: 1;
+    text-align: center;
+    padding: 8px 0;
+    cursor: pointer;
+    background: whitesmoke;
+    font-weight: bold;
+    color: #666;
+}
+
+.auth-tab.active {
+    background: #333;
+    color: white;
+}
+
+.auth-field {
+    margin-bottom: 14px;
+}
+
+.auth-field label {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.auth-field input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.auth-submit {
+    width: 100%;
+    padding: 10px;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1em;
+    margin: 6px 0 0 0;
+}
+
+.auth-submit:hover {
+    background-color: #555;
+}
+
+.auth-message {
+    min-height: 20px;
+    font-size: 13px;
+    color: #e74c3c;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.auth-message.success {
+    color: #27ae60;
+}
+
+.auth-panel {
+    display: none;
+}
+
+.auth-panel.active {
+    display: block;
+}
+
+#account-page-center {
+    width: 90%;
+    max-width: 400px;
+    margin: 0 auto 40px auto;
+}
+
+.account-section {
+    margin-bottom: 28px;
+}
+
+.account-section h2 {
+    font-size: 1.1em;
+}
+
+.danger-zone {
+    border: 1px solid #e74c3c;
+    border-radius: 8px;
+    padding: 14px;
+}
+
+.danger-zone p {
+    font-size: 13px;
+    color: #666;
+}
