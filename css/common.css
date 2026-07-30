@@ -12,7 +12,8 @@ header {
 #add-habit-center,
 #add-wish-center,
 #add-idea-center,
-#add-schedule-center {
+#add-schedule-center,
+#schedule-center {
     width: 90%;
     max-width: 400px;
     margin: 0 auto 40px auto;
