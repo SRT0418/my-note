@@ -498,11 +498,50 @@ label {
     background-color: lightgray;
 }
 
+/* ===== カレンダー2カラムレイアウト ===== */
+.calendar-page-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    max-width: 1100px;
+    margin: 0 auto 40px auto;
+    align-items: flex-start;
+}
+
+.calendar-left-section {
+    flex: 1 1 500px;
+    min-width: 300px;
+}
+
+.calendar-right-section {
+    flex: 1 1 400px;
+    min-width: 300px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.calendar-right-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 16px;
+}
+
+.calendar-right-section h2 {
+    margin-top: 24px;
+}
+
+.calendar-right-section h2:first-of-type {
+    margin-top: 0;
+}
+
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 4px;
-    max-width: 700px;
+    max-width: 100%;
     margin: 16px auto;
 }
 
@@ -594,12 +633,12 @@ label {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    max-width: 700px;
-    margin: 0 auto;
+    width: 100%;
+    margin: 0;
 }
 
 .calendar-list-header h2 {
-    margin-top: 20px;
+    margin-top: 0;
 }
 
 .show-all-btn {
@@ -613,8 +652,8 @@ label {
 }
 
 #event-list {
-    max-width: 700px;
-    margin: 0 auto;
+    width: 100%;
+    margin: 0;
 }
 
 .schedule-card .schedule-title {
