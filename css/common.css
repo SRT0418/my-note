@@ -523,6 +523,18 @@ label {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
+.calendar-left-top-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.calendar-left-top-header h1 {
+    margin: 0;
+    font-size: 1.8em;
+}
+
 .calendar-right-header {
     display: flex;
     justify-content: flex-end;
@@ -530,7 +542,7 @@ label {
 }
 
 .calendar-right-section h2 {
-    margin-top: 24px;
+    margin: 0;
 }
 
 .calendar-right-section h2:first-of-type {
