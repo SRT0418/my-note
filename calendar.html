@@ -35,10 +35,7 @@
     <div class="calendar-page-container">
         <!-- 左側：カレンダー表示エリア -->
         <div class="calendar-left-section">
-            <div class="calendar-left-top-header">
-                <h1 id="today-date"></h1>
-                <button id="add-button">予定を追加</button>
-            </div>
+            <h1 id="today-date"></h1>
 
             <div class="calendar-nav">
                 <button id="prev-month-btn" aria-label="前の月">&lt;</button>
@@ -51,6 +48,10 @@
 
         <!-- 右側：予定操作・各種リストエリア -->
         <div class="calendar-right-section">
+            <div class="calendar-right-header">
+                <button id="add-button">予定を追加</button>
+            </div>
+
             <div class="calendar-list-header">
                 <h2 id="event-list-heading">すべての予定</h2>
                 <button id="show-all-btn" class="show-all-btn" style="display:none;">すべて表示</button>
@@ -58,14 +59,10 @@
 
             <div id="event-list"></div>
 
-            <div class="calendar-list-header" style="margin-top: 24px;">
-                <h2>過去の予定（履歴）</h2>
-            </div>
+            <h2>過去の予定（履歴）</h2>
             <div id="history-list"></div>
 
-            <div class="calendar-list-header" style="margin-top: 24px;">
-                <h2>削除済みの予定</h2>
-            </div>
+            <h2>削除済みの予定</h2>
             <div id="deleted-schedule-list"></div>
         </div>
     </div>
