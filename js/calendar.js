@@ -171,29 +171,30 @@ function renderCalendar() {
         dayNumber.textContent = day;
         cell.appendChild(dayNumber);
 
-        // 印の表示
-        const dotsOnDay = getSchedulesOnDate(schedules, dateKey);
-        if (dotsOnDay.length > 0) {
-            const dotsWrap = document.createElement("div");
-            dotsWrap.className = "calendar-dots";
+        // バナー表示（スマホカレンダー風）
+        const bannersOnDay = getSchedulesOnDate(schedules, dateKey);
+        if (bannersOnDay.length > 0) {
+            const bannersWrap = document.createElement("div");
+            bannersWrap.className = "calendar-banners";
 
-            const maxDots = 4;
-            const visibleCount = Math.min(dotsOnDay.length, maxDots);
+            const maxBanners = 3;
+            const visibleCount = Math.min(bannersOnDay.length, maxBanners);
 
             for (let i = 0; i < visibleCount; i++) {
-                const dot = document.createElement("span");
-                dot.className = "calendar-dot";
-                dotsWrap.appendChild(dot);
+                const banner = document.createElement("span");
+                banner.className = `calendar-banner color-${i % 4}`;
+                banner.textContent = bannersOnDay[i].title || "予定";
+                bannersWrap.appendChild(banner);
             }
 
-            if (dotsOnDay.length > maxDots) {
+            if (bannersOnDay.length > maxBanners) {
                 const more = document.createElement("span");
-                more.className = "calendar-dot-more";
-                more.textContent = `+${dotsOnDay.length - maxDots}`;
-                dotsWrap.appendChild(more);
+                more.className = "calendar-banner-more";
+                more.textContent = `+${bannersOnDay.length - maxBanners}`;
+                bannersWrap.appendChild(more);
             }
 
-            cell.appendChild(dotsWrap);
+            cell.appendChild(bannersWrap);
         }
 
         cell.addEventListener("click", () => {

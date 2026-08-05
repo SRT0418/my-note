@@ -562,13 +562,14 @@ label {
     background: white;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
-    min-height: 60px;
+    min-height: 64px;
     padding: 4px;
     cursor: pointer;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     transition: background 0.15s, box-shadow 0.15s;
+    overflow: hidden;
 }
 
 .calendar-day:hover {
@@ -585,6 +586,8 @@ label {
 .calendar-day-number {
     font-size: 0.9em;
     font-weight: bold;
+    text-align: center;
+    flex-shrink: 0;
 }
 
 .calendar-day.sunday .calendar-day-number {
@@ -604,26 +607,43 @@ label {
     border-color: #3498db;
 }
 
-.calendar-dots {
+/* ===== カレンダー バナー形式（スマホ風） ===== */
+.calendar-banners {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 3px;
-    margin-top: 4px;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 3px;
+    width: 100%;
 }
 
-.calendar-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #e74c3c;
-    display: inline-block;
+.calendar-banner {
+    display: block;
+    width: 100%;
+    background: #4a90e2;
+    color: #fff;
+    border-radius: 3px;
+    font-size: 0.65em;
+    font-weight: 600;
+    padding: 1px 4px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+    line-height: 1.5;
+    letter-spacing: 0.01em;
 }
 
-.calendar-dot-more {
-    font-size: 0.7em;
-    color: #555;
-    line-height: 8px;
+.calendar-banner.color-0 { background: #4a90e2; }
+.calendar-banner.color-1 { background: #e25c4a; }
+.calendar-banner.color-2 { background: #4abf82; }
+.calendar-banner.color-3 { background: #c97de0; }
+
+.calendar-banner-more {
+    font-size: 0.62em;
+    color: #666;
+    padding: 0 3px;
+    line-height: 1.4;
+    font-weight: bold;
 }
 
 .calendar-list-header {
