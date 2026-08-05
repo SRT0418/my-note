@@ -456,7 +456,7 @@ label {
 .history-list-heading {
     font-weight: bold;
     font-size: 0.9em;
-    margin: 4px 4px 4px 4px;
+    margin: 0 0 4px 0;
 }
 
 .history-task-list {
