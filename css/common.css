@@ -456,7 +456,7 @@ label {
 .history-list-heading {
     font-weight: bold;
     font-size: 0.9em;
-    margin: 0 0 4px 0;
+    margin: 4px 4px 4px 4px;
 }
 
 .history-task-list {
@@ -633,10 +633,21 @@ label {
     letter-spacing: 0.01em;
 }
 
-.calendar-banner.color-0 { background: #4a90e2; }
-.calendar-banner.color-1 { background: #e25c4a; }
-.calendar-banner.color-2 { background: #4abf82; }
-.calendar-banner.color-3 { background: #c97de0; }
+.calendar-banner.color-0 {
+    background: #4a90e2;
+}
+
+.calendar-banner.color-1 {
+    background: #e25c4a;
+}
+
+.calendar-banner.color-2 {
+    background: #4abf82;
+}
+
+.calendar-banner.color-3 {
+    background: #c97de0;
+}
 
 .calendar-banner-more {
     font-size: 0.62em;
@@ -731,6 +742,7 @@ label {
 .history-month-content {
     padding: 10px;
 }
+
 /* =========================================================
    アカウント機能 (auth)
    ========================================================= */
