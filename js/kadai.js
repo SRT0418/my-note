@@ -177,6 +177,7 @@ function renderCompletedTasks() {
             <p>完了：${new Date(task.completedAt).toLocaleString("ja-JP")}</p>
             ${task.detail ? `<p>詳細：${escapeHtml(task.detail).replace(/\n/g, "<br>")}</p>` : ""}
 
+            <button class="revert-btn" data-id="${task.id}">未達成に戻す</button>
             <button class="delete-completed-btn" data-id="${task.id}">削除</button>
         `;
 
@@ -247,6 +248,10 @@ document.addEventListener("click", e => {
         completeTask(id);
     }
 
+    if (btn.classList.contains("revert-btn")) {
+        revertTask(id);
+    }
+
     if (btn.classList.contains("delete-completed-btn")) {
         deleteCompletedTask(id);
     }
@@ -312,6 +317,28 @@ function deleteTask(id) {
     updateCounts();
 }
 
+
+// 完了済み課題を未達成に戻す（completedTasks → tasks）
+function revertTask(id) {
+
+    let completed = getCompletedTasks();
+    let tasks = getTasks();
+
+    const index = completed.findIndex(t => t.id == id);
+    if (index === -1) return;
+
+    const task = completed.splice(index, 1)[0];
+    delete task.completedAt;
+
+    tasks.push(task);
+
+    saveCompleted(completed);
+    saveTasks(tasks);
+
+    renderTasks();
+    renderCompletedTasks();
+    updateCounts();
+}
 
 // 完了済み課題を削除し、削除済み一覧に退避する
 function deleteCompletedTask(id) {
