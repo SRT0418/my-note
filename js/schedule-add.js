@@ -2,6 +2,7 @@ window.addEventListener("load", () => {
 
     const params = new URLSearchParams(location.search);
     const editId = params.get("id");
+    const presetDate = params.get("date"); // カレンダーから渡された日付
 
     const getStoredSchedules = () => {
         const primary = localStorage.getItem("schedules");
@@ -15,10 +16,37 @@ window.addEventListener("load", () => {
         return [];
     };
 
-    let schedules = getStoredSchedules();
+    // ===== 終日トグルの制御 =====
+    let isAllDay = false;
+    const alldayBtn = document.getElementById("allday-btn");
+    const timeRow = document.getElementById("time-row");
+
+    function setAllDay(value) {
+        isAllDay = value;
+        if (isAllDay) {
+            alldayBtn.classList.add("allday-toggle-on");
+            timeRow.style.display = "none";
+            document.getElementById("start-time").value = "";
+            document.getElementById("end-time").value = "";
+        } else {
+            alldayBtn.classList.remove("allday-toggle-on");
+            timeRow.style.display = "";
+        }
+    }
+
+    alldayBtn.addEventListener("click", () => {
+        setAllDay(!isAllDay);
+    });
+
+    // ===== 日付プリセット（カレンダーから遷移した場合） =====
+    if (presetDate && !editId) {
+        document.getElementById("start-date").value = presetDate;
+        document.getElementById("end-date").value = presetDate;
+    }
 
     // 編集モードの場合、該当データをフォームに表示
     if (editId) {
+        const schedules = getStoredSchedules();
         const schedule = schedules.find(s => s.id == editId);
 
         if (schedule) {
@@ -35,6 +63,11 @@ window.addEventListener("load", () => {
 
             const descEl = document.getElementById("description");
             if (descEl) descEl.value = schedule.description || "";
+
+            // 終日状態の復元
+            if (schedule.allDay) {
+                setAllDay(true);
+            }
 
             document.getElementById("form-heading").textContent = "予定編集";
             document.getElementById("save-button").textContent = "更新";
@@ -55,8 +88,8 @@ window.addEventListener("load", () => {
 
         const startDate = document.getElementById("start-date").value;
         const endDate = document.getElementById("end-date").value || startDate;
-        const startTime = document.getElementById("start-time").value;
-        const endTime = document.getElementById("end-time").value;
+        const startTime = isAllDay ? "" : document.getElementById("start-time").value;
+        const endTime = isAllDay ? "" : document.getElementById("end-time").value;
         
         const descEl = document.getElementById("description");
         const description = descEl ? descEl.value : "";
@@ -85,6 +118,7 @@ window.addEventListener("load", () => {
             endDate: endDate,
             startTime: startTime,
             endTime: endTime,
+            allDay: isAllDay,
             description: description
         };
 

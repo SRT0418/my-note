@@ -52,6 +52,11 @@ function formatScheduleDateTime(schedule) {
         ? startDateLabel
         : `${startDateLabel} ～ ${endDateLabel}`;
 
+    // 終日フラグがある場合は「終日」と表示
+    if (schedule.allDay) {
+        return `${dateRange} ： 終日`;
+    }
+
     const hasStartTime = !!schedule.startTime;
     const hasEndTime = !!schedule.endTime;
 
@@ -90,7 +95,11 @@ window.addEventListener("load", () => {
     renderDeletedList();
 
     document.getElementById("add-button").addEventListener("click", () => {
-        window.location.href = "./add-schedule.html";
+        // 日付が選択されている場合はURLパラメータに付与
+        const url = selectedDateKey
+            ? `./add-schedule.html?date=${selectedDateKey}`
+            : `./add-schedule.html`;
+        window.location.href = url;
     });
 
     document.getElementById("prev-month-btn").addEventListener("click", () => {
@@ -183,7 +192,8 @@ function renderCalendar() {
             for (let i = 0; i < visibleCount; i++) {
                 const banner = document.createElement("span");
                 banner.className = `calendar-banner color-${i % 4}`;
-                banner.textContent = bannersOnDay[i].title || "予定";
+                const s = bannersOnDay[i];
+                banner.textContent = (s.allDay ? "終日 " : "") + (s.title || "予定");
                 bannersWrap.appendChild(banner);
             }
 
