@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>誕生日管理</title>
+    <meta name="description" content="自分や友人・家族の誕生日を登録してカレンダーに表示します">
+    <link rel="stylesheet" href="./css/common.css">
+    <script src="./js/auth.js"></script>
+</head>
+
+<body>
+
+    <div id="drawer-overlay" class="drawer-overlay"></div>
+    <div id="nav-menu" class="nav-menu">
+        <div class="nav-menu-header">
+            <span>メニュー</span>
+            <button id="drawer-close-btn" aria-label="閉じる">&times;</button>
+        </div>
+        <a href="index.html">HOME</a>
+        <a href="kadai.html">課題締切管理</a>
+        <a href="tasks.html">タスク管理</a>
+        <a href="everydayTask.html">毎日習慣タスク</a>
+        <a href="wishlist.html">やりたいことリスト</a>
+        <a href="ideas.html">アイデア保存</a>
+        <a href="calendar.html">カレンダー</a>
+        <a href="birthdays.html">誕生日管理</a>
+    </div>
+
+    <div class="side-trigger">
+        <button id="drawer-btn" aria-label="メニューを開く">☰</button>
+    </div>
+
+    <h1>誕生日管理</h1>
+
+    <div id="birthday-page-container">
+
+        <!-- 追加・編集フォーム -->
+        <div class="birthday-form-card" id="bd-form-card">
+            <h2 id="bd-form-heading">誕生日を追加</h2>
+
+            <!-- 自分 / 他の人 切り替え -->
+            <div class="birthday-type-row">
+                <label class="birthday-type-label selected-mine" for="bd-type-mine">
+                    <input type="radio" id="bd-type-mine" name="bd-type" value="mine" checked>
+                    自分
+                </label>
+                <label class="birthday-type-label" for="bd-type-other">
+                    <input type="radio" id="bd-type-other" name="bd-type" value="other">
+                    他の人
+                </label>
+            </div>
+
+            <!-- 名前（他の人のみ表示） -->
+            <div class="birthday-form-row" id="bd-name-row" style="display:none;">
+                <label for="bd-name">名前</label>
+                <input type="text" id="bd-name" placeholder="例：田中さん、お母さん">
+            </div>
+
+            <!-- 誕生日（月/日） -->
+            <div class="birthday-form-row">
+                <label>誕生日</label>
+                <div class="birthday-month-day-wrap">
+                    <select id="bd-month" aria-label="月"></select>
+                    <select id="bd-day" aria-label="日"></select>
+                </div>
+            </div>
+
+            <!-- メモ -->
+            <div class="birthday-form-row">
+                <label for="bd-note">メモ</label>
+                <input type="text" id="bd-note" placeholder="例：プレゼントは○○">
+            </div>
+
+            <div class="birthday-form-actions">
+                <button class="birthday-save-btn" id="bd-save-btn">追加</button>
+                <button class="birthday-cancel-btn" id="bd-cancel-btn" style="display:none;">キャンセル</button>
+            </div>
+        </div>
+
+        <!-- 誕生日一覧 -->
+        <div class="birthday-list-section">
+            <h2>登録済みの誕生日</h2>
+            <div id="bd-list"></div>
+        </div>
+
+        <!-- カレンダーへ戻る -->
+        <div style="text-align:center; margin-top:24px;">
+            <button id="bd-back-btn" class="birthday-cancel-btn">← カレンダーに戻る</button>
+        </div>
+
+    </div>
+
+    <script src="./js/common.js" defer></script>
+    <script src="./js/birthdays.js"></script>
+</body>
+
+</html>

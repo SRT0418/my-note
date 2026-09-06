@@ -997,3 +997,321 @@ label {
     font-size: 13px;
     color: #666;
 }
+
+/* =========================================================
+   誕生日機能
+   ========================================================= */
+
+/* カレンダーバナー：自分の誕生日（ピンク） */
+.calendar-banner.birthday-mine {
+    background: linear-gradient(90deg, #e91e8c, #f06292);
+    color: #fff;
+    font-weight: 700;
+}
+
+/* カレンダーバナー：他の人の誕生日（紫） */
+.calendar-banner.birthday-other {
+    background: linear-gradient(90deg, #7b1fa2, #ab47bc);
+    color: #fff;
+    font-weight: 700;
+}
+
+/* 誕生日管理ページのコンテナ */
+#birthday-page-container {
+    max-width: 600px;
+    margin: 0 auto 40px auto;
+    padding: 0 16px;
+}
+
+/* 誕生日追加フォームカード */
+.birthday-form-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 28px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.birthday-form-card h2 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-size: 1.1em;
+    border-left: 4px solid #e91e8c;
+    padding-left: 10px;
+}
+
+/* 自分・他人の切り替えラジオ */
+.birthday-type-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.birthday-type-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 0.95em;
+    padding: 6px 14px;
+    border: 1.5px solid #ccc;
+    border-radius: 20px;
+    transition: border-color 0.15s, background 0.15s;
+    user-select: none;
+}
+
+.birthday-type-label input[type="radio"] {
+    display: none;
+}
+
+.birthday-type-label.selected-mine {
+    border-color: #e91e8c;
+    background: #fce4ec;
+    color: #c2185b;
+    font-weight: bold;
+}
+
+.birthday-type-label.selected-other {
+    border-color: #7b1fa2;
+    background: #f3e5f5;
+    color: #6a1b9a;
+    font-weight: bold;
+}
+
+.birthday-form-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.birthday-form-row label {
+    width: 60px;
+    flex-shrink: 0;
+}
+
+.birthday-form-row input[type="text"],
+.birthday-form-row input[type="number"],
+.birthday-form-row select {
+    flex: 1;
+    min-width: 0;
+    padding: 7px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 0.95em;
+    font-family: inherit;
+}
+
+.birthday-month-day-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+}
+
+.birthday-month-day-wrap select {
+    flex: 1;
+}
+
+.birthday-form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.birthday-save-btn {
+    background: linear-gradient(135deg, #e91e8c, #f06292);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 22px;
+    font-size: 0.95em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.birthday-save-btn:hover {
+    opacity: 0.85;
+}
+
+.birthday-cancel-btn {
+    background: #f5f5f5;
+    color: #555;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 0.95em;
+    cursor: pointer;
+}
+
+.birthday-cancel-btn:hover {
+    background: #e0e0e0;
+}
+
+/* 誕生日一覧セクション */
+.birthday-list-section {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 20px 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.birthday-list-section h2 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-size: 1.1em;
+    border-left: 4px solid #7b1fa2;
+    padding-left: 10px;
+}
+
+/* 誕生日カード */
+.birthday-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    background: #fafafa;
+    transition: box-shadow 0.15s;
+}
+
+.birthday-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.birthday-card-icon {
+    font-size: 1.8em;
+    flex-shrink: 0;
+}
+
+.birthday-card-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.birthday-card-name {
+    font-weight: bold;
+    font-size: 1em;
+    color: #333;
+}
+
+.birthday-card-date {
+    font-size: 0.88em;
+    color: #888;
+    margin-top: 2px;
+}
+
+.birthday-card-note {
+    font-size: 0.85em;
+    color: #aaa;
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.birthday-card-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.birthday-edit-btn {
+    background: #f0f0f0;
+    color: #333;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 0.82em;
+    cursor: pointer;
+}
+
+.birthday-edit-btn:hover {
+    background: #e0e0e0;
+}
+
+.birthday-delete-btn {
+    background: #fff0f0;
+    color: #c0392b;
+    border: 1px solid #e74c3c;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 0.82em;
+    cursor: pointer;
+}
+
+.birthday-delete-btn:hover {
+    background: #ffd5d5;
+}
+
+/* 誕生日バッジ（今日が誕生日の人） */
+.birthday-today-badge {
+    display: inline-block;
+    background: linear-gradient(90deg, #e91e8c, #f06292);
+    color: #fff;
+    font-size: 0.72em;
+    font-weight: bold;
+    padding: 1px 7px;
+    border-radius: 10px;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+/* カレンダーの誕生日カード（イベントリスト） */
+.birthday-event-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    font-size: 0.95em;
+}
+
+.birthday-event-card.mine {
+    background: #fce4ec;
+    border: 1px solid #f48fb1;
+}
+
+.birthday-event-card.other {
+    background: #f3e5f5;
+    border: 1px solid #ce93d8;
+}
+
+.birthday-event-icon {
+    font-size: 1.4em;
+}
+
+.birthday-event-name {
+    font-weight: bold;
+    color: #333;
+}
+
+.birthday-event-meta {
+    font-size: 0.85em;
+    color: #888;
+}
+
+/* 誕生日管理ボタン（カレンダー画面） */
+.birthday-manage-btn {
+    background: linear-gradient(135deg, #e91e8c, #ab47bc);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 0.88em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+}
+
+.birthday-manage-btn:hover {
+    opacity: 0.85;
+}

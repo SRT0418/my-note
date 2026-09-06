@@ -1,5 +1,16 @@
 // ===== 予定データの読み書き =====
 
+// localStorageから誕生日一覧を取得する
+function getBirthdays() {
+    return JSON.parse(localStorage.getItem("birthdays")) || [];
+}
+
+// 指定した日付キー(YYYY-MM-DD)に該当する誕生日を返す
+function getBirthdaysOnDate(dateKey) {
+    const [, m, d] = dateKey.split("-").map(Number);
+    return getBirthdays().filter(b => b.month === m && b.day === d);
+}
+
 function escapeHtml(str) {
     if (!str) return "";
     return String(str)
@@ -182,12 +193,23 @@ function renderCalendar() {
 
         // バナー表示（スマホカレンダー風）
         const bannersOnDay = getSchedulesOnDate(schedules, dateKey);
-        if (bannersOnDay.length > 0) {
+        const birthdaysOnDay = getBirthdaysOnDate(dateKey);
+
+        const hasAnyBanner = bannersOnDay.length > 0 || birthdaysOnDay.length > 0;
+        if (hasAnyBanner) {
             const bannersWrap = document.createElement("div");
             bannersWrap.className = "calendar-banners";
 
-            const maxBanners = 3;
-            const visibleCount = Math.min(bannersOnDay.length, maxBanners);
+            // 誕生日バナーを先に表示
+            birthdaysOnDay.forEach(b => {
+                const banner = document.createElement("span");
+                banner.className = "calendar-banner " + (b.isMine ? "birthday-mine" : "birthday-other");
+                banner.textContent = (b.isMine ? "🎂" : "🎁") + " " + (b.isMine ? "自分" : b.name);
+                bannersWrap.appendChild(banner);
+            });
+
+            const maxScheduleBanners = Math.max(0, 3 - birthdaysOnDay.length);
+            const visibleCount = Math.min(bannersOnDay.length, maxScheduleBanners);
 
             for (let i = 0; i < visibleCount; i++) {
                 const banner = document.createElement("span");
@@ -197,10 +219,11 @@ function renderCalendar() {
                 bannersWrap.appendChild(banner);
             }
 
-            if (bannersOnDay.length > maxBanners) {
+            const totalMore = bannersOnDay.length - visibleCount;
+            if (totalMore > 0) {
                 const more = document.createElement("span");
                 more.className = "calendar-banner-more";
-                more.textContent = `+${bannersOnDay.length - maxBanners}`;
+                more.textContent = `+${totalMore}`;
                 bannersWrap.appendChild(more);
             }
 
@@ -249,7 +272,23 @@ function renderEventList() {
 
     list.innerHTML = "";
 
-    if (targetSchedules.length === 0) {
+    // 誕生日を先に表示（日付選択時のみ）
+    if (selectedDateKey) {
+        const birthdaysOnDay = getBirthdaysOnDate(selectedDateKey);
+        birthdaysOnDay.forEach(b => {
+            const card = document.createElement("div");
+            card.className = "birthday-event-card " + (b.isMine ? "mine" : "other");
+            card.innerHTML =
+                '<span class="birthday-event-icon">' + (b.isMine ? "🎂" : "🎁") + '</span>' +
+                '<div>' +
+                    '<div class="birthday-event-name">' + escapeHtml(b.name) + 'の誕生日</div>' +
+                    (b.note ? '<div class="birthday-event-meta">' + escapeHtml(b.note) + '</div>' : '') +
+                '</div>';
+            list.appendChild(card);
+        });
+    }
+
+    if (targetSchedules.length === 0 && (!selectedDateKey || getBirthdaysOnDate(selectedDateKey).length === 0)) {
         list.innerHTML = "<p>該当する予定はありません</p>";
         return;
     }
