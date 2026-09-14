@@ -65,6 +65,11 @@ CREATE POLICY "Users can update own profile"
 ON public.profiles FOR UPDATE 
 USING (auth.uid() = id);
 
+-- ユーザー本人は自身のプロフィールを削除可能
+CREATE POLICY "Users can delete own profile" 
+ON public.profiles FOR DELETE 
+USING (auth.uid() = id);
+
 -- 管理者(admin)はプロフィールを削除可能
 CREATE POLICY "Admins can delete profiles" 
 ON public.profiles FOR DELETE 

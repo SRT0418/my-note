@@ -403,7 +403,7 @@
         const users = getUsers().filter(u => u.username.toLowerCase() !== username.toLowerCase());
         saveUsers(users);
 
-        logout();
+        await logout();
     }
 
     // ---------- ログアウト ----------
