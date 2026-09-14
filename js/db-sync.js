@@ -53,13 +53,28 @@
             }
 
             if (data && data.length > 0) {
+                let updatedAny = false;
                 data.forEach(item => {
                     if (item.data_key && item.content !== undefined) {
                         const valStr = typeof item.content === "string" ? item.content : JSON.stringify(item.content);
-                        localStorage.setItem(item.data_key, valStr);
+                        if (localStorage.getItem(item.data_key) !== valStr) {
+                            localStorage.setItem(item.data_key, valStr);
+                            updatedAny = true;
+                        }
                     }
                 });
                 console.log("クラウドデータの同期が完了しました。");
+
+                // クラウドデータの引き込みによってデータが更新された場合、画面を自動再描画
+                if (updatedAny) {
+                    window.dispatchEvent(new CustomEvent("myNoteDataSynced"));
+                    // 各ページの初期表示関数が存在すれば再呼び出し
+                    if (typeof window.renderAll === "function") window.renderAll();
+                    else if (typeof window.renderTasks === "function") window.renderTasks();
+                    else if (typeof window.renderIdeas === "function") window.renderIdeas();
+                    else if (typeof window.renderKadai === "function") window.renderKadai();
+                    else if (typeof window.renderCalendar === "function") window.renderCalendar();
+                }
             }
         } catch (e) {
             console.error("データ引き込み中の例外:", e);
