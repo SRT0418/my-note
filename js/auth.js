@@ -246,7 +246,7 @@
                     .maybeSingle();
 
                 if (!profile) {
-                    // プロフィールが存在しない場合、作成
+                    // プロフィールが存在しない場合、作成 (1人目のみadmin, 2人目以降はuser)
                     const uname = authData.user.user_metadata?.username || (isValidEmail(usernameOrEmail) ? usernameOrEmail.split("@")[0] : usernameOrEmail);
                     const { data: countData } = await client.from("profiles").select("id", { count: "exact" });
                     const isFirst = !countData || countData.length === 0;
@@ -594,16 +594,49 @@
         bindLogoutButton("nav-menu-account-logout");
     }
 
-    function renderAccountBar() {
+    async function renderAccountBar() {
         const page = currentPageName();
         if (page === "login.html") return;
 
-        const user = getCurrentUser();
+        let user = getCurrentUser();
         if (!user) return;
 
         const navMenu = document.getElementById("nav-menu");
         if (navMenu) {
+            // 既存のナビアカウント領域があれば一度除去して再描画
+            const existing = navMenu.querySelector(".nav-menu-account");
+            if (existing) existing.remove();
             renderNavMenuAccount(navMenu, user);
+        }
+
+        // Supabaseから最新のプロフィール(role)を非同期でチェックして同期
+        const client = window.MyNoteSupabase && window.MyNoteSupabase.isConfigured()
+            ? window.MyNoteSupabase.getClient()
+            : null;
+
+        const userId = getCurrentUserId();
+        if (client && userId && !userId.startsWith("local-")) {
+            try {
+                const { data: latestProf } = await client
+                    .from("profiles")
+                    .select("*")
+                    .eq("id", userId)
+                    .maybeSingle();
+
+                if (latestProf) {
+                    const currentProf = getSessionProfile();
+                    if (!currentProf || currentProf.role !== latestProf.role) {
+                        setSessionProfile(latestProf.username || user, latestProf);
+                        if (navMenu) {
+                            const existing = navMenu.querySelector(".nav-menu-account");
+                            if (existing) existing.remove();
+                            renderNavMenuAccount(navMenu, latestProf.username || user);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn("最新プロフィール読み込み待機:", e);
+            }
         }
     }
 
