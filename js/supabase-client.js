@@ -9,8 +9,8 @@
     "use strict";
 
     // 以下の設定項目をご自身のSupabaseプロジェクトのURLとAnon Keyに置き換えてください
-    const SUPABASE_URL = window.MYNOTE_SUPABASE_URL || "YOUR_SUPABASE_PROJECT_URL";
-    const SUPABASE_ANON_KEY = window.MYNOTE_SUPABASE_ANON_KEY || "YOUR_SUPABASE_ANON_KEY";
+    const SUPABASE_URL = window.MYNOTE_SUPABASE_URL || "https://oalbriraykbaftxcznjx.supabase.co";
+    const SUPABASE_ANON_KEY = window.MYNOTE_SUPABASE_ANON_KEY || "sb_publishable_pD_-4S0VWqb6ErDB1-Eong_6u8SnfEB";
 
     let supabaseInstance = null;
 
