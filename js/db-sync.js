@@ -92,7 +92,22 @@
 
         const payload = [];
         keysToPush.forEach(key => {
-            const rawVal = localStorage.getItem(key);
+            let rawVal = localStorage.getItem(key);
+
+            // もし現在の名前空間に無い場合、素のキーまたは端末内の過去プレフィックスキーから検索
+            if (rawVal === null) {
+                rawVal = Storage.prototype.getItem.call(localStorage, key);
+                if (rawVal === null) {
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const lKey = localStorage.key(i);
+                        if (lKey && lKey.endsWith(":" + key)) {
+                            rawVal = Storage.prototype.getItem.call(localStorage, lKey);
+                            if (rawVal !== null) break;
+                        }
+                    }
+                }
+            }
+
             if (rawVal !== null) {
                 let parsed;
                 try {
