@@ -1505,4 +1505,183 @@ label {
 .btn-delete-user {
     background: #e74c3c;
     color: white;
+}
+
+/* =========================================================
+   レスポンシブ対応（スマホ画面）
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+    /* ===== 全体レイアウト ===== */
+    body {
+        padding: 12px 10px 12px 50px;
+        font-size: 15px;
+    }
+
+    body.add {
+        padding: 12px 10px 12px 12px;
+    }
+
+    header h1 {
+        font-size: 26px;
+    }
+
+    h1 {
+        font-size: 1.5em;
+    }
+
+    h2 {
+        font-size: 1em;
+    }
+
+    /* ===== サイドトリガー（引き出しボタン） ===== */
+    .side-trigger {
+        width: 36px;
+    }
+
+    /* ===== アカウントバー（右上のバー）===== */
+    #account-bar {
+        top: 6px;
+        right: 8px;
+        padding: 4px 10px;
+        font-size: 11px;
+        gap: 6px;
+    }
+
+    #account-bar-user {
+        max-width: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* ===== カード ===== */
+    .card {
+        margin: 4px 0;
+        padding: 8px;
+    }
+
+    /* ===== メニューグリッド（index.html） ===== */
+    .menu-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    /* ===== フォーム要素 ===== */
+    textarea {
+        max-width: 100%;
+    }
+
+    button {
+        padding: 8px 12px;
+        font-size: 0.95em;
+    }
+
+    /* ===== カレンダー ===== */
+    .calendar-day {
+        min-height: 44px;
+        padding: 2px;
+    }
+
+    .calendar-day-number {
+        font-size: 0.78em;
+    }
+
+    .calendar-banner {
+        font-size: 0.55em;
+        padding: 1px 2px;
+    }
+
+    .calendar-nav {
+        gap: 8px;
+    }
+
+    .calendar-nav h2 {
+        min-width: 100px;
+        font-size: 0.95em;
+    }
+
+    .calendar-page-container {
+        gap: 16px;
+    }
+
+    /* ===== 履歴タスクリスト（1カラム） ===== */
+    .history-task-lists {
+        grid-template-columns: 1fr;
+    }
+
+    /* ===== 誕生日管理ページ ===== */
+    #birthday-page-container {
+        padding: 0 8px;
+    }
+
+    .birthday-form-card,
+    .birthday-list-section {
+        padding: 14px 14px;
+    }
+
+    .birthday-card {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    /* ===== 中央コンテナ系 ===== */
+    #add-kadai-center,
+    #add-task-center,
+    #add-habit-center,
+    #add-wish-center,
+    #add-idea-center,
+    #add-schedule-center,
+    #schedule-center {
+        width: 100%;
+    }
+
+    /* ===== マスターアカウントページ ===== */
+    .master-container {
+        margin: 10px;
+        padding: 14px;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .master-toolbar input[type="text"] {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .master-table th,
+    .master-table td {
+        padding: 8px 10px;
+        font-size: 0.82em;
+    }
+
+    .master-header h2 {
+        font-size: 1.2em;
+    }
+
+    /* ===== アカウントページ ===== */
+    #account-page-center {
+        width: 100%;
+        padding: 0 8px;
+        box-sizing: border-box;
+    }
+
+    /* ===== スケジュール追加フォーム ===== */
+    .schedule-allday-row {
+        margin: 4px 0;
+    }
+
+    /* ===== 結果ページ ===== */
+    .bar-container {
+        height: 24px;
+    }
+
+    /* ===== ログインカード ===== */
+    .auth-card {
+        padding: 20px 16px;
+    }
 }

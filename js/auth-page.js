@@ -26,18 +26,18 @@ window.addEventListener("load", () => {
     const loginMessage = document.getElementById("login-message");
 
     document.getElementById("login-submit").addEventListener("click", async () => {
-        const username = document.getElementById("login-username").value;
+        const email = document.getElementById("login-email").value;
         const password = document.getElementById("login-password").value;
 
         loginMessage.textContent = "";
         loginMessage.classList.remove("success");
 
-        if (!username || !password) {
-            loginMessage.textContent = "ユーザー名とパスワードを入力してください。";
+        if (!email || !password) {
+            loginMessage.textContent = "メールアドレスとパスワードを入力してください。";
             return;
         }
 
-        const result = await window.MyNoteAuth.loginUser(username, password);
+        const result = await window.MyNoteAuth.loginUser(email, password);
         if (result.ok) {
             location.href = "index.html";
         } else {
@@ -73,7 +73,7 @@ window.addEventListener("load", () => {
         }
 
         // 登録後、自動的にログインする
-        const loginResult = await window.MyNoteAuth.loginUser(username, password);
+        const loginResult = await window.MyNoteAuth.loginUser(email, password);
         if (loginResult.ok) {
             location.href = "index.html";
         } else {
