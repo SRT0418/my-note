@@ -14,19 +14,23 @@
         "todoDeleted",
         "schedules",
         "deletedSchedules",
-        "ideas",
-        "deletedIdeas",
+        "secret_base_schedules",
+        "ideaItems",
+        "ideaDeleted",
         "habitTasks",
         "habitCompleted",
         "habitDeleted",
         "habitDailyHistory",
         "habitLastDate",
-        "wishlist",
-        "completedWishlist",
-        "deletedWishlist",
+        "wishItems",
+        "wishDeleted",
+        "wishPartnerFilter",
         "birthdays",
         "deletedBirthdays",
-        "kadaiList"
+        "tasks",
+        "completedTasks",
+        "deletedTasks",
+        "weeklyHistory"
     ];
 
     let syncTimer = null;
