@@ -32,10 +32,14 @@
     let syncTimer = null;
     const pendingKeys = new Set();
 
+    function isValidUUID(uuid) {
+        return typeof uuid === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uuid);
+    }
+
     // Supabaseからユーザーデータを取得してlocalStorageに反映
     async function pullCloudData(userId) {
         const client = window.MyNoteSupabase ? window.MyNoteSupabase.getClient() : null;
-        if (!client || !userId) return;
+        if (!client || !isValidUUID(userId)) return;
 
         try {
             const { data, error } = await client
@@ -65,7 +69,7 @@
     // 特定のキー、または変更のあったキーをSupabaseへプッシュ
     async function pushCloudData(userId, keysToPush) {
         const client = window.MyNoteSupabase ? window.MyNoteSupabase.getClient() : null;
-        if (!client || !userId || keysToPush.length === 0) return;
+        if (!client || !isValidUUID(userId) || keysToPush.length === 0) return;
 
         const payload = [];
         keysToPush.forEach(key => {
@@ -121,7 +125,7 @@
     // 初回移行: localDataにデータがあってSupabaseにまだ無い場合一括プッシュ
     async function migrateLocalDataToCloud(userId) {
         const client = window.MyNoteSupabase ? window.MyNoteSupabase.getClient() : null;
-        if (!client || !userId) return;
+        if (!client || !isValidUUID(userId)) return;
 
         const keysToMigrate = [];
         DATA_KEYS.forEach(key => {
