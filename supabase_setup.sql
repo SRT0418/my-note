@@ -30,17 +30,18 @@ ALTER TABLE public.user_data ENABLE ROW LEVEL SECURITY;
 
 
 -- =========================================================
--- RLS (Row Level Security) ポリシー設定
+-- RLS (Row Level Security) ポリシー設定 (既存があれば一度削除して作成)
 -- =========================================================
 
 -- ----- profiles テーブルのポリシー -----
 
--- ユーザープロフィールを閲覧可能 (ログイン前のユーザー名検索・一覧用)
+DROP POLICY IF EXISTS "Anyone can view profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
 CREATE POLICY "Anyone can view profiles" 
 ON public.profiles FOR SELECT 
 USING (true);
 
--- 管理者(admin)はすべてのプロフィールを閲覧可能
+DROP POLICY IF EXISTS "Admins can view all profiles" ON public.profiles;
 CREATE POLICY "Admins can view all profiles" 
 ON public.profiles FOR SELECT 
 USING (
@@ -50,7 +51,7 @@ USING (
     )
 );
 
--- 管理者(admin)はプロフィールの更新(ロール変更やアカウント状態変更)が可能
+DROP POLICY IF EXISTS "Admins can update all profiles" ON public.profiles;
 CREATE POLICY "Admins can update all profiles" 
 ON public.profiles FOR UPDATE 
 USING (
@@ -60,17 +61,17 @@ USING (
     )
 );
 
--- ユーザー本人は自身の基本情報(email等)を更新可能
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 CREATE POLICY "Users can update own profile" 
 ON public.profiles FOR UPDATE 
 USING (auth.uid() = id);
 
--- ユーザー本人は自身のプロフィールを削除可能
+DROP POLICY IF EXISTS "Users can delete own profile" ON public.profiles;
 CREATE POLICY "Users can delete own profile" 
 ON public.profiles FOR DELETE 
 USING (auth.uid() = id);
 
--- 管理者(admin)はプロフィールを削除可能
+DROP POLICY IF EXISTS "Admins can delete profiles" ON public.profiles;
 CREATE POLICY "Admins can delete profiles" 
 ON public.profiles FOR DELETE 
 USING (
@@ -83,13 +84,13 @@ USING (
 
 -- ----- user_data テーブルのポリシー -----
 
--- ユーザー本人は自分のデータのみアクセス可能 (SELECT, INSERT, UPDATE, DELETE)
+DROP POLICY IF EXISTS "Users can manage own data" ON public.user_data;
 CREATE POLICY "Users can manage own data" 
 ON public.user_data FOR ALL 
 USING (auth.uid() = user_id)
 WITH CHECK (auth.uid() = user_id);
 
--- 管理者(admin)は削除時にアクセス可能
+DROP POLICY IF EXISTS "Admins can manage all user data" ON public.user_data;
 CREATE POLICY "Admins can manage all user data" 
 ON public.user_data FOR ALL 
 USING (
