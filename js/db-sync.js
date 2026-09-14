@@ -139,11 +139,33 @@
         }
     }
 
+    // ページ読み込み時に全自動でクラウド同期(引き込み&全キー送信)を行う
+    async function autoSync() {
+        const auth = window.MyNoteAuth;
+        if (!auth) return;
+        const userId = auth.getCurrentUserId();
+        if (userId && isValidUUID(userId)) {
+            await pullCloudData(userId);
+            // 存在する全データキーをクラウドへプッシュ
+            const keysToPush = DATA_KEYS.filter(k => localStorage.getItem(k) !== null);
+            if (keysToPush.length > 0) {
+                await pushCloudData(userId, keysToPush);
+            }
+        }
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", autoSync);
+    } else {
+        autoSync();
+    }
+
     window.MyNoteDBSync = {
         pullCloudData,
         pushCloudData,
         queueSync,
         migrateLocalDataToCloud,
+        autoSync,
         DATA_KEYS
     };
 })();
