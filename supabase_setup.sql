@@ -35,10 +35,10 @@ ALTER TABLE public.user_data ENABLE ROW LEVEL SECURITY;
 
 -- ----- profiles テーブルのポリシー -----
 
--- 自分のプロフィールを閲覧可能
-CREATE POLICY "Users can view own profile" 
+-- ユーザープロフィールを閲覧可能 (ログイン前のユーザー名検索・一覧用)
+CREATE POLICY "Anyone can view profiles" 
 ON public.profiles FOR SELECT 
-USING (auth.uid() = id);
+USING (true);
 
 -- 管理者(admin)はすべてのプロフィールを閲覧可能
 CREATE POLICY "Admins can view all profiles" 

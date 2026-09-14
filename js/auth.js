@@ -247,7 +247,7 @@
 
                 if (!profile) {
                     // プロフィールが存在しない場合、作成
-                    const uname = authData.user.user_metadata?.username || usernameOrEmail;
+                    const uname = authData.user.user_metadata?.username || (isValidEmail(usernameOrEmail) ? usernameOrEmail.split("@")[0] : usernameOrEmail);
                     const { data: countData } = await client.from("profiles").select("id", { count: "exact" });
                     const isFirst = !countData || countData.length === 0;
                     const { data: newProf } = await client.from("profiles").insert({
@@ -265,7 +265,12 @@
                     return { ok: false, message: "このアカウントは管理者により一時凍結されています。" };
                 }
 
-                const displayUsername = profile ? profile.username : (authData.user.user_metadata?.username || usernameOrEmail);
+                // ユーザー名を優先して取得 (メールアドレスが表示されないように制御)
+                let displayUsername = profile && profile.username ? profile.username : (authData.user.user_metadata?.username || "");
+                if (!displayUsername || isValidEmail(displayUsername)) {
+                    displayUsername = (!isValidEmail(usernameOrEmail) ? usernameOrEmail : (authData.user.email ? authData.user.email.split("@")[0] : usernameOrEmail));
+                }
+
                 setSessionProfile(displayUsername, profile || {
                     id: userId,
                     username: displayUsername,
