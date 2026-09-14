@@ -14,6 +14,19 @@ window.addEventListener("load", () => {
         "👤 " + info.username + " さん" + (info.email ? "（" + info.email + "）" : "");
     document.getElementById("new-email").value = info.email || "";
 
+    // 管理者の場合、マスターページへのボタンを表示
+    if (auth.isAdmin()) {
+        const currentUserSec = document.getElementById("account-current-user").parentNode;
+        const masterBtn = document.createElement("button");
+        masterBtn.id = "master-page-button";
+        masterBtn.style.cssText = "background: linear-gradient(135deg, #8e44ad, #9b59b6); color: white; border: none; font-weight: bold;";
+        masterBtn.textContent = "⚙️ 管理者ページ（アカウント管理マスター）";
+        masterBtn.addEventListener("click", () => {
+            location.href = "master-account.html";
+        });
+        currentUserSec.insertBefore(masterBtn, document.getElementById("logout-button"));
+    }
+
     // ---------- メールアドレス変更 ----------
     const changeEmailMessage = document.getElementById("change-email-message");
 

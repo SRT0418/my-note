@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>アカウント管理マスター - MyNote</title>
+    <link rel="stylesheet" href="./css/common.css">
+    <!-- Supabase Client JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./js/supabase-client.js"></script>
+    <script src="./js/db-sync.js"></script>
+    <script src="./js/auth.js"></script>
+</head>
+
+<body class="add">
+
+    <div class="master-container">
+
+        <div class="master-header">
+            <h2>⚙️ アカウント管理マスター</h2>
+            <div>
+                <button id="btn-back-home">HOMEへ戻る</button>
+            </div>
+        </div>
+
+        <!-- 統計サマリーカード -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-num" id="stat-total-users">0</div>
+                <div class="stat-label">総アカウント数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num" id="stat-admin-users">0</div>
+                <div class="stat-label">管理者アカウント</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num" id="stat-active-users">0</div>
+                <div class="stat-label">アクティブユーザー</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num" id="stat-suspended-users">0</div>
+                <div class="stat-label">凍結アカウント</div>
+            </div>
+        </div>
+
+        <!-- 検索・フィルターツールバー -->
+        <div class="master-toolbar">
+            <input type="text" id="master-search-input" placeholder="🔍 ユーザー名・メールアドレスで検索...">
+            
+            <select id="master-role-filter">
+                <option value="all">すべての権限</option>
+                <option value="admin">管理者 (admin)</option>
+                <option value="user">一般ユーザー (user)</option>
+            </select>
+
+            <select id="master-status-filter">
+                <option value="all">すべてのステータス</option>
+                <option value="active">アクティブ (active)</option>
+                <option value="suspended">一時凍結 (suspended)</option>
+            </select>
+
+            <button id="btn-reload-users" style="margin-left: auto;">🔄 更新</button>
+        </div>
+
+        <!-- ユーザー一覧テーブル -->
+        <div class="master-table-wrapper">
+            <table class="master-table">
+                <thead>
+                    <tr>
+                        <th>ユーザー名</th>
+                        <th>メールアドレス</th>
+                        <th>権限</th>
+                        <th>ステータス</th>
+                        <th>登録日時</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="master-user-tbody">
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 20px; color: #888;">
+                            ユーザー情報を読み込み中...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script src="./js/master-account.js" defer></script>
+</body>
+
+</html>
