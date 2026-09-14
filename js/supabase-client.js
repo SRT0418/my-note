@@ -10,7 +10,7 @@
 
     // 以下の設定項目をご自身のSupabaseプロジェクトのURLとAnon Keyに置き換えてください
     const SUPABASE_URL = window.MYNOTE_SUPABASE_URL || "https://oalbriraykbaftxcznjx.supabase.co";
-    const SUPABASE_ANON_KEY = window.MYNOTE_SUPABASE_ANON_KEY || "sb_publishable_pD_-4S0VWqb6ErDB1-Eong_6u8SnfEB";
+    const SUPABASE_ANON_KEY = window.MYNOTE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hbGJyaXJheWtiYWZ0eGN6bmp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzNzAxNTYsImV4cCI6MjEwNDk0NjE1Nn0.t-n_MygaJb_RgLfDVAZjagUr8RKjsHEpv0dNuAGea2E";
 
     let supabaseInstance = null;
 
