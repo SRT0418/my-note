@@ -107,7 +107,23 @@
     }
 
     function getCurrentUserId() {
+        const client = window.MyNoteSupabase && window.MyNoteSupabase.isConfigured()
+            ? window.MyNoteSupabase.getClient()
+            : null;
+
+        if (client && client.auth) {
+            // Supabaseのセッションから本物のUUIDを取得
+            const sessionUser = client.auth.user ? client.auth.user() : null;
+            if (sessionUser && sessionUser.id) {
+                return sessionUser.id;
+            }
+        }
+
         const prof = getSessionProfile();
+        if (prof && prof.id && !prof.id.startsWith("local-")) {
+            return prof.id;
+        }
+
         return prof ? prof.id : null;
     }
 

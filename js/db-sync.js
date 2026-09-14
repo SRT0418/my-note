@@ -177,7 +177,23 @@
     async function autoSync() {
         const auth = window.MyNoteAuth;
         if (!auth) return;
-        const userId = auth.getCurrentUserId();
+        let userId = auth.getCurrentUserId();
+
+        const client = window.MyNoteSupabase && window.MyNoteSupabase.isConfigured()
+            ? window.MyNoteSupabase.getClient()
+            : null;
+
+        if (client && client.auth && (!userId || !isValidUUID(userId))) {
+            try {
+                const { data } = await client.auth.getUser();
+                if (data && data.user && data.user.id) {
+                    userId = data.user.id;
+                }
+            } catch (e) {
+                console.warn("SupabaseユーザーID取得スキップ:", e);
+            }
+        }
+
         if (userId && isValidUUID(userId)) {
             await pullCloudData(userId);
             // 存在する全データキーをクラウドへプッシュ
