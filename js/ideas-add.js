@@ -19,7 +19,7 @@ window.addEventListener("load", () => {
         }
     }
 
-    document.getElementById("save-button").addEventListener("click", () => {
+    document.getElementById("save-button").addEventListener("click", async () => {
 
         let items = JSON.parse(localStorage.getItem("ideaItems")) || [];
         const editId = document.getElementById("save-button").dataset.editId;
@@ -52,6 +52,9 @@ window.addEventListener("load", () => {
         }
 
         localStorage.setItem("ideaItems", JSON.stringify(items));
+        if (window.MyNoteDBSync && typeof window.MyNoteDBSync.flushSync === "function") {
+            await window.MyNoteDBSync.flushSync("ideaItems");
+        }
         location.href = "ideas.html";
     });
 

@@ -76,7 +76,7 @@ window.addEventListener("load", () => {
     }
 
     // 保存ボタンのイベント
-    document.getElementById("save-button").addEventListener("click", () => {
+    document.getElementById("save-button").addEventListener("click", async () => {
 
         let schedules = getStoredSchedules();
         const editId = document.getElementById("save-button").dataset.editId;
@@ -135,6 +135,10 @@ window.addEventListener("load", () => {
 
         localStorage.setItem("schedules", JSON.stringify(schedules));
         localStorage.setItem("secret_base_schedules", JSON.stringify(schedules));
+
+        if (window.MyNoteDBSync && typeof window.MyNoteDBSync.flushSync === "function") {
+            await window.MyNoteDBSync.flushSync("schedules");
+        }
 
         location.href = "calendar.html";
     });

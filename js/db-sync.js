@@ -157,6 +157,23 @@
         }, 1000);
     }
 
+    // キューを待たずに指定したキー（または蓄積中のキー）を即時Supabaseへ送信する
+    async function flushSync(key) {
+        if (key && DATA_KEYS.indexOf(key) !== -1) {
+            pendingKeys.add(key);
+        }
+        if (syncTimer) {
+            clearTimeout(syncTimer);
+            syncTimer = null;
+        }
+        const userId = window.MyNoteAuth ? window.MyNoteAuth.getCurrentUserId() : null;
+        if (userId && pendingKeys.size > 0) {
+            const keys = Array.from(pendingKeys);
+            pendingKeys.clear();
+            await pushCloudData(userId, keys);
+        }
+    }
+
     // 初回移行: localDataにデータがあってSupabaseにまだ無い場合一括プッシュ
     async function migrateLocalDataToCloud(userId) {
         const client = window.MyNoteSupabase ? window.MyNoteSupabase.getClient() : null;
@@ -215,6 +232,7 @@
         pullCloudData,
         pushCloudData,
         queueSync,
+        flushSync,
         migrateLocalDataToCloud,
         autoSync,
         DATA_KEYS

@@ -20,7 +20,7 @@ window.addEventListener("load", () => {
         }
     }
 
-    document.getElementById("save-button").addEventListener("click", () => {
+    document.getElementById("save-button").addEventListener("click", async () => {
 
         let items = JSON.parse(localStorage.getItem("wishItems")) || [];
         const editId = document.getElementById("save-button").dataset.editId;
@@ -59,6 +59,9 @@ window.addEventListener("load", () => {
         }
 
         localStorage.setItem("wishItems", JSON.stringify(items));
+        if (window.MyNoteDBSync && typeof window.MyNoteDBSync.flushSync === "function") {
+            await window.MyNoteDBSync.flushSync("wishItems");
+        }
         location.href = "wishlist.html";
     });
 

@@ -24,7 +24,7 @@ window.addEventListener("load", () => {
     }
 
     // 保存ボタン：新規追加 or 編集更新を切り替える
-    document.getElementById("save-button").addEventListener("click", () => {
+    document.getElementById("save-button").addEventListener("click", async () => {
 
         let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
         const editId = document.getElementById("save-button").dataset.editId;
@@ -65,6 +65,9 @@ window.addEventListener("load", () => {
 
         // localStorageに保存して一覧画面へ戻る
         localStorage.setItem("tasks", JSON.stringify(tasks));
+        if (window.MyNoteDBSync && typeof window.MyNoteDBSync.flushSync === "function") {
+            await window.MyNoteDBSync.flushSync("tasks");
+        }
         location.href = "kadai.html";
     });
 

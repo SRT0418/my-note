@@ -19,7 +19,7 @@ if (editId) {
 }
 
 // 「保存」ボタン
-document.getElementById("save-button").addEventListener("click", () => {
+document.getElementById("save-button").addEventListener("click", async () => {
     const title = document.getElementById("habit-title").value.trim();
     const detail = document.getElementById("habit-detail").value.trim();
 
@@ -50,6 +50,10 @@ document.getElementById("save-button").addEventListener("click", () => {
 
         tasks.push(newTask);
         localStorage.setItem("habitTasks", JSON.stringify(tasks));
+    }
+
+    if (window.MyNoteDBSync && typeof window.MyNoteDBSync.flushSync === "function") {
+        await window.MyNoteDBSync.flushSync("habitTasks");
     }
 
     window.location.href = "everydayTask.html";

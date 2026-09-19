@@ -22,7 +22,7 @@ window.addEventListener("load", () => {
     }
 
     // 保存ボタン：新規追加 or 編集更新を切り替える
-    document.getElementById("save-button").addEventListener("click", () => {
+    document.getElementById("save-button").addEventListener("click", async () => {
 
         let tasks = JSON.parse(localStorage.getItem("todoTasks")) || [];
         const editId = document.getElementById("save-button").dataset.editId;
@@ -56,6 +56,9 @@ window.addEventListener("load", () => {
         }
 
         localStorage.setItem("todoTasks", JSON.stringify(tasks));
+        if (window.MyNoteDBSync && typeof window.MyNoteDBSync.flushSync === "function") {
+            await window.MyNoteDBSync.flushSync("todoTasks");
+        }
         location.href = "tasks.html";
     });
 
