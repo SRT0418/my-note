@@ -1,35 +1,56 @@
-window.addEventListener("load", () => {
+function initAddTaskForm() {
+    const saveBtn = document.getElementById("save-button");
+    const cancelBtn = document.getElementById("cancel-button");
+
+    if (!saveBtn || saveBtn.dataset.initialized) return;
+    saveBtn.dataset.initialized = "true";
 
     const params = new URLSearchParams(location.search);
     const editId = params.get("id");
 
-    let tasks = JSON.parse(localStorage.getItem("todoTasks")) || [];
+    let tasks = [];
+    try {
+        const raw = JSON.parse(localStorage.getItem("todoTasks"));
+        tasks = Array.isArray(raw) ? raw.filter(t => t && typeof t === "object") : [];
+    } catch (e) {
+        tasks = [];
+    }
 
     // 編集モードの場合、該当データをフォームに表示する
     if (editId) {
-
-        const task = tasks.find(t => t.id == editId);
+        const task = tasks.find(t => t && t.id == editId);
 
         if (task) {
-            document.getElementById("content").value = task.content || "";
-            document.getElementById("priority").value = task.priority || "中";
+            const contentEl = document.getElementById("content");
+            const priorityEl = document.getElementById("priority");
             const detailEl = document.getElementById("detail");
+
+            if (contentEl) contentEl.value = task.content || "";
+            if (priorityEl) priorityEl.value = task.priority || "中";
             if (detailEl) detailEl.value = task.detail || "";
 
-            document.getElementById("save-button").textContent = "更新";
-            document.getElementById("save-button").dataset.editId = editId;
+            saveBtn.textContent = "更新";
+            saveBtn.dataset.editId = editId;
         }
     }
 
     // 保存ボタン：新規追加 or 編集更新を切り替える
-    document.getElementById("save-button").addEventListener("click", async () => {
+    saveBtn.addEventListener("click", async () => {
+        let currentTasks = [];
+        try {
+            const raw = JSON.parse(localStorage.getItem("todoTasks"));
+            currentTasks = Array.isArray(raw) ? raw.filter(t => t && typeof t === "object") : [];
+        } catch (e) {
+            currentTasks = [];
+        }
 
-        let tasks = JSON.parse(localStorage.getItem("todoTasks")) || [];
-        const editId = document.getElementById("save-button").dataset.editId;
-
-        const content = document.getElementById("content").value.trim();
-        const priority = document.getElementById("priority").value;
+        const currentEditId = saveBtn.dataset.editId;
+        const contentEl = document.getElementById("content");
+        const priorityEl = document.getElementById("priority");
         const detailEl = document.getElementById("detail");
+
+        const content = contentEl ? contentEl.value.trim() : "";
+        const priority = priorityEl ? priorityEl.value : "中";
         const detail = detailEl ? detailEl.value : "";
 
         // 入力チェック：内容が未入力なら保存しない
@@ -38,24 +59,28 @@ window.addEventListener("load", () => {
             return;
         }
 
-        const existingTask = editId ? tasks.find(t => t.id == editId) : null;
+        const existingTask = currentEditId ? currentTasks.find(t => t && t.id == currentEditId) : null;
 
         const taskData = {
-            id: editId ? Number(editId) : Date.now(),
+            id: currentEditId ? (isNaN(currentEditId) ? currentEditId : Number(currentEditId)) : Date.now(),
             content: content,
             priority: priority,
             detail: detail,
             createdAt: (existingTask && existingTask.createdAt) || new Date().toISOString()
         };
 
-        if (editId) {
-            const kadai = tasks.findIndex(t => t.id == editId);
-            if (kadai !== -1) tasks[kadai] = taskData;
+        if (currentEditId) {
+            const idx = currentTasks.findIndex(t => t && t.id == currentEditId);
+            if (idx !== -1) {
+                currentTasks[idx] = taskData;
+            } else {
+                currentTasks.push(taskData);
+            }
         } else {
-            tasks.push(taskData);
+            currentTasks.push(taskData);
         }
 
-        localStorage.setItem("todoTasks", JSON.stringify(tasks));
+        localStorage.setItem("todoTasks", JSON.stringify(currentTasks));
         if (window.MyNoteDBSync && typeof window.MyNoteDBSync.flushSync === "function") {
             await window.MyNoteDBSync.flushSync("todoTasks");
         }
@@ -63,7 +88,12 @@ window.addEventListener("load", () => {
     });
 
     // キャンセルボタン：一覧画面へ戻る
-    document.getElementById("cancel-button").addEventListener("click", () => {
-        location.href = "tasks.html";
-    });
-});
+    if (cancelBtn) {
+        cancelBtn.addEventListener("click", () => {
+            location.href = "tasks.html";
+        });
+    }
+}
+
+document.addEventListener("DOMContentLoaded", initAddTaskForm);
+window.addEventListener("load", initAddTaskForm);
