@@ -9,6 +9,13 @@ window.addEventListener("load", () => {
     renderDeletedIdeas();
 });
 
+// クラウド同期後に db-sync.js から呼び出されるグローバル再描画関数
+window.renderIdeasAll = function () {
+    renderIdeas();
+    renderAchievedIdeas();
+    renderDeletedIdeas();
+};
+
 function getIdeas() {
     return JSON.parse(localStorage.getItem("ideaItems")) || [];
 }

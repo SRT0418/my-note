@@ -73,11 +73,12 @@
                 if (updatedAny) {
                     window.dispatchEvent(new CustomEvent("myNoteDataSynced"));
                     // 各ページの初期表示関数が存在すれば再呼び出し
-                    if (typeof window.renderAll === "function") window.renderAll();
-                    else if (typeof window.renderTasks === "function") window.renderTasks();
-                    else if (typeof window.renderIdeas === "function") window.renderIdeas();
-                    else if (typeof window.renderKadai === "function") window.renderKadai();
-                    else if (typeof window.renderCalendar === "function") window.renderCalendar();
+                    if (typeof window.renderAll === "function") window.renderAll();           // everydayTask
+                    else if (typeof window.renderTodoAll === "function") window.renderTodoAll();  // tasks
+                    else if (typeof window.renderKadai === "function") window.renderKadai();  // kadai
+                    else if (typeof window.renderIdeasAll === "function") window.renderIdeasAll(); // ideas
+                    else if (typeof window.renderWishAll === "function") window.renderWishAll();   // wishlist
+                    else if (typeof window.renderCalendar === "function") window.renderCalendar(); // calendar
                 }
             }
         } catch (e) {

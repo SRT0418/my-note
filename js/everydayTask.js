@@ -19,6 +19,14 @@ window.addEventListener("load", () => {
     scheduleMidnightReset();
 });
 
+// クラウド同期後に db-sync.js から呼び出されるグローバル再描画関数
+window.renderAll = function () {
+    renderHabitTasks();
+    renderCompletedHabitTasks();
+    renderDeletedHabitTasks();
+    updateHabitCounts();
+};
+
 // ===================================================
 // localStorage ヘルパー
 // ===================================================

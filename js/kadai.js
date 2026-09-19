@@ -24,6 +24,15 @@ window.addEventListener("load", () => {
     updateCounts();
 });
 
+// クラウド同期後に db-sync.js から呼び出されるグローバル再描画関数
+window.renderKadai = function () {
+    renderToday();
+    renderTasks();
+    renderCompletedTasks();
+    renderDeletedTasks();
+    updateCounts();
+};
+
 // 今日の日付を見出しに表示する
 function renderToday() {
     const el = document.getElementById("today-date");

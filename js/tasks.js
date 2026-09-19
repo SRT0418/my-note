@@ -21,6 +21,13 @@ window.addEventListener("load", () => {
     renderDeletedTasks();
 });
 
+// クラウド同期後に db-sync.js から呼び出されるグローバル再描画関数
+window.renderTodoAll = function () {
+    renderTasks();
+    renderCompletedTasks();
+    renderDeletedTasks();
+};
+
 // 優先度を並び替え用の数値に変換する（高いほど小さい数字＝先頭）
 function priorityOrder(p) {
     if (p === "高") return 0;

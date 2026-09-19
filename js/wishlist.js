@@ -9,6 +9,12 @@ window.addEventListener("load", () => {
     renderDeletedWishes();
 });
 
+// クラウド同期後に db-sync.js から呼び出されるグローバル再描画関数
+window.renderWishAll = function () {
+    renderWishes();
+    renderDeletedWishes();
+};
+
 // 項目の「相手」を取得する（未設定の場合は自分扱い）
 function getPartnerLabel(item) {
     const p = (item && item.partner) ? String(item.partner).trim() : "";
