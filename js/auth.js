@@ -575,10 +575,11 @@
         const adminBadge = isAdmin() ? ' <span class="badge-admin">👑 管理者</span>' : '';
         const masterLink = isAdmin() ? '<a href="master-account.html" class="nav-admin-link">⚙️ アカウント管理マスター</a>' : '';
         return (
-            '<span id="' + idPrefix + '-user">👤 ' + escapeHtml(user) + ' さん' + adminBadge + '</span>' +
-            '<a href="account.html">アカウント設定</a>' +
+            '<div class="nav-account-user-info"><span id="' + idPrefix + '-user">👤 ' + escapeHtml(user) + ' さん' + adminBadge + '</span></div>' +
+            '<div id="nav-notification-container"></div>' +
+            '<a href="account.html" class="nav-account-link">👤 アカウント設定</a>' +
             masterLink +
-            '<button id="' + idPrefix + '-logout">ログアウト</button>'
+            '<button id="' + idPrefix + '-logout" class="nav-logout-btn">ログアウト</button>'
         );
     }
 
@@ -608,6 +609,10 @@
         }
 
         bindLogoutButton("nav-menu-account-logout");
+
+        if (window.setupNotificationUI && typeof window.setupNotificationUI === "function") {
+            window.setupNotificationUI();
+        }
     }
 
     async function renderAccountBar() {

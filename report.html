@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>報告書作成 - MyNote</title>
+    <link rel="stylesheet" href="./css/common.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./js/supabase-client.js"></script>
+    <script src="./js/db-sync.js"></script>
+    <script src="./js/auth.js"></script>
+</head>
+
+<body>
+
+    <div id="drawer-overlay" class="drawer-overlay"></div>
+    <div id="nav-menu" class="nav-menu">
+        <div class="nav-menu-header">
+            <span>メニュー</span>
+            <button id="drawer-close-btn" aria-label="閉じる">&times;</button>
+        </div>
+        <a href="index.html">HOME</a>
+        <a href="kadai.html">課題締切管理</a>
+        <a href="tasks.html">タスク管理</a>
+        <a href="everydayTask.html">毎日習慣タスク</a>
+        <a href="wishlist.html">やりたいことリスト</a>
+        <a href="ideas.html">アイデア保存</a>
+        <a href="calendar.html">カレンダー</a>
+        <a href="report.html" class="active">報告書作成</a>
+        <a href="birthdays.html">誕生日管理</a>
+    </div>
+
+    <div class="side-trigger">
+        <button id="drawer-btn" aria-label="メニューを開く">☰</button>
+    </div>
+
+    <header>
+        <h1>MyNote</h1>
+    </header>
+
+    <div class="report-container">
+        <h1>📄 報告書作成 (過去の予定履歴)</h1>
+        <p class="report-subtitle">過去の予定一覧から報告したい項目を選択し、定型テンプレートの報告書を作成します。</p>
+
+        <!-- 1. 期間設定エリア -->
+        <div class="card report-section">
+            <h2>1. 対象期間の選択</h2>
+            <div class="period-selection-group">
+                <div class="period-type-picker">
+                    <label class="radio-label">
+                        <input type="radio" name="period-type" value="1month" checked> 1か月間
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="period-type" value="3month"> 3か月間
+                    </label>
+                </div>
+                <div class="period-date-picker">
+                    <label for="report-target-month">基準年月：</label>
+                    <input type="month" id="report-target-month" class="form-control">
+                </div>
+            </div>
+            <div id="selected-period-display" class="period-display-badge"></div>
+        </div>
+
+        <!-- 2. 過去の予定選択エリア -->
+        <div class="card report-section">
+            <div class="section-header-flex">
+                <h2>2. 報告する予定（題）の選択</h2>
+                <div class="selection-action-btns">
+                    <button id="btn-select-all" class="btn-sub-sm">全選択</button>
+                    <button id="btn-deselect-all" class="btn-sub-sm">選択解除</button>
+                    <span id="selected-count-badge" class="selected-count-badge">0件 選択中</span>
+                </div>
+            </div>
+
+            <div id="past-schedule-checklist" class="past-schedule-checklist">
+                <!-- JavaScriptで動的描画 -->
+            </div>
+        </div>
+
+        <!-- 3. テンプレート＆詳細設定エリア -->
+        <div class="card report-section">
+            <h2>3. 報告書テンプレートと詳細情報</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="report-template">報告書テンプレート：</label>
+                    <select id="report-template" class="form-control">
+                        <option value="business">🏢 業務活動報告書 (標準フォーマット)</option>
+                        <option value="worklog">📋 月次作業実績書 (詳細時系列ログ)</option>
+                        <option value="summary">📝 簡潔サマリー報告書 (要約フォーマット)</option>
+                        <option value="custom">✏️ カスタム報告書 (自由フォーマット)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="report-title">報告書タイトル：</label>
+                    <input type="text" id="report-title" class="form-control" placeholder="例：業務活動報告書">
+                </div>
+
+                <div class="form-group">
+                    <label for="report-author">報告者名：</label>
+                    <input type="text" id="report-author" class="form-control" placeholder="例：山田 太郎">
+                </div>
+
+                <div class="form-group">
+                    <label for="report-dept">所属・部署：</label>
+                    <input type="text" id="report-dept" class="form-control" placeholder="例：開発チーム">
+                </div>
+
+                <div class="form-group">
+                    <label for="report-date">作成日：</label>
+                    <input type="date" id="report-date" class="form-control">
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="report-notes">総評・所感・特記事項：</label>
+                    <textarea id="report-notes" class="form-control" rows="4" placeholder="今期の活動についての総評や成果、特記事項を入力してください。"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. プレビュー＆出力エリア -->
+        <div class="card report-section">
+            <div class="section-header-flex">
+                <h2>4. 報告書プレビュー</h2>
+                <div class="export-actions">
+                    <button id="btn-copy-report" class="btn-primary">📋 コピー</button>
+                    <button id="btn-download-txt" class="btn-secondary">💾 .txt保存</button>
+                    <button id="btn-download-md" class="btn-secondary">💾 .md保存</button>
+                    <button id="btn-print-report" class="btn-secondary">🖨️ 印刷 / PDF</button>
+                </div>
+            </div>
+
+            <div id="report-preview-container" class="report-preview-container">
+                <!-- リアルタイムプレビュー表示 -->
+            </div>
+        </div>
+    </div>
+
+    <script src="./js/common.js" defer></script>
+    <script src="./js/notification.js" defer></script>
+    <script src="./js/report.js" defer></script>
+</body>
+
+</html>

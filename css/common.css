@@ -1684,4 +1684,737 @@ label {
     .auth-card {
         padding: 20px 16px;
     }
+}
+
+/* ===================================================
+   通知センター・ベルアイコン スタイリング
+   =================================================== */
+header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    padding: 16px 20px;
+}
+
+header h1 {
+    margin: 0;
+}
+
+/* ===================================================
+   ドロワーメニュー内 アカウント ＆ 通知センター スタイル
+   =================================================== */
+.nav-menu-account {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 12px;
+    margin: 10px 16px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.nav-account-user-info {
+    font-size: 14px;
+    font-weight: bold;
+    color: #ffffff;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.nav-account-link {
+    display: block;
+    color: #e2e8f0;
+    text-decoration: none;
+    font-size: 13px;
+    padding: 4px 0;
+    transition: color 0.2s;
+}
+
+.nav-account-link:hover {
+    color: #ffffff;
+}
+
+.nav-notification-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: #333333;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+    box-sizing: border-box;
+    margin: 4px 0;
+}
+
+.nav-notification-btn:hover {
+    background: #555555;
+}
+
+.notification-badge {
+    position: relative;
+    top: auto;
+    right: auto;
+    background: #e74c3c;
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+    height: 18px;
+    min-width: 18px;
+    padding: 0 6px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    border: 1px solid white;
+}
+
+.nav-logout-btn {
+    background: #475569;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    margin-top: 4px;
+    transition: background 0.2s;
+}
+
+.nav-logout-btn:hover {
+    background: #334155;
+}
+
+/* 通知モーダル */
+.notification-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
+    z-index: 1000;
+    display: flex;
+    justify-content: flex-end;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.notification-modal-overlay.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.notification-modal-content {
+    width: 100%;
+    max-width: 440px;
+    height: 100vh;
+    background: #ffffff;
+    box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.notification-modal-overlay.open .notification-modal-content {
+    transform: translateX(0);
+}
+
+.notification-modal-header {
+    padding: 16px 20px;
+    background: #222222;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notification-modal-header h2 {
+    border: none;
+    padding: 0;
+    margin: 0;
+    font-size: 18px;
+    color: white;
+}
+
+.notification-close-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 4px;
+}
+
+.notification-modal-toolbar {
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.notification-tabs {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.notification-tab {
+    padding: 5px 12px;
+    background: #e9ecef;
+    border: 1px solid #ced4da;
+    border-radius: 16px;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.notification-tab.active {
+    background: #333333;
+    color: white;
+    border-color: #333333;
+}
+
+.notification-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-sub-sm {
+    background: #e2e8f0;
+    border: 1px solid #cbd5e1;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-sub-sm:hover {
+    background: #cbd5e1;
+}
+
+.notification-settings-bar {
+    padding: 8px 16px;
+    background: #f1f5f9;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 13px;
+}
+
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.notification-list-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.notification-empty {
+    text-align: center;
+    color: #888;
+    padding: 40px 0;
+    font-size: 14px;
+}
+
+.notification-item {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: all 0.2s ease;
+}
+
+.notification-item.unread {
+    border-left: 4px solid #333333;
+    background: #f8fafc;
+}
+
+.notification-item.priority-high.unread {
+    border-left: 4px solid #e74c3c;
+    background: #fff5f5;
+}
+
+.notification-item-content {
+    flex: 1;
+}
+
+.notification-item-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.notification-badge-tag {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: white;
+    font-weight: bold;
+}
+
+.notification-badge-tag.cat-schedule { background: #475569; }
+.notification-badge-tag.cat-kadai { background: #e74c3c; }
+.notification-badge-tag.cat-habit { background: #333333; }
+.notification-badge-tag.cat-birthday { background: #64748b; }
+
+.notification-item-title {
+    font-weight: bold;
+    font-size: 14px;
+    color: #222222;
+}
+
+.notification-item-msg {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.4;
+}
+
+.notification-item-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-end;
+}
+
+.notification-go-btn {
+    display: inline-block;
+    padding: 3px 8px;
+    background: #333333;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 11px;
+}
+
+.notification-read-btn {
+    background: #edf2f7;
+    border: 1px solid #cbd5e1;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    cursor: pointer;
+}
+
+/* ===================================================
+   報告書作成 (report.html) スタイリング
+   =================================================== */
+.report-container {
+    max-width: 900px;
+    margin: 0 auto 60px auto;
+    padding: 0 10px;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.report-subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 24px;
+}
+
+.report-section {
+    margin-bottom: 24px;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.section-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.section-header-flex h2 {
+    margin-top: 0;
+}
+
+.period-selection-group {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin: 16px 0 12px 0;
+}
+
+.period-type-picker {
+    display: flex;
+    gap: 16px;
+    background: #f8fafc;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.period-date-picker {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.period-display-badge {
+    display: inline-block;
+    background: #f1f5f9;
+    color: #333333;
+    border: 1px solid #cbd5e1;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 13px;
+    margin-top: 6px;
+}
+
+.selection-action-btns {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.selected-count-badge {
+    background: #edf2f7;
+    color: #4a5568;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.past-schedule-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 360px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.schedule-check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.schedule-check-item:hover {
+    background: #edf2f7;
+}
+
+.schedule-check-item.checked {
+    background: #f1f5f9;
+    border-color: #475569;
+}
+
+.schedule-check-item input[type="checkbox"] {
+    margin-top: 3px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.check-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.check-item-title {
+    font-weight: bold;
+    font-size: 15px;
+    color: #1e293b;
+}
+
+.check-item-meta {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.check-item-desc {
+    font-size: 12px;
+    color: #475569;
+    margin-top: 2px;
+}
+
+.no-schedules-msg {
+    text-align: center;
+    padding: 30px 0;
+    color: #94a3b8;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 14px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-control {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 14px;
+    background-color: #ffffff;
+    color: #222222;
+    text-overflow: ellipsis;
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+}
+
+@media screen and (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.export-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-primary {
+    background: #333333;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    background: #555555;
+}
+
+.btn-secondary {
+    background: #475569;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.btn-secondary:hover {
+    background: #334155;
+}
+
+.btn-primary-sm {
+    background: #333333;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.btn-primary-sm:hover {
+    background: #555555;
+}
+
+.report-preview-container {
+    background: #f1f5f9;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.report-paper {
+    background: white;
+    padding: 30px;
+    border-radius: 4px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    color: #1e293b;
+    font-family: system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+}
+
+.preview-h1 {
+    font-size: 22px;
+    border-bottom: 2px solid #333333;
+    padding-bottom: 8px;
+    margin-top: 0;
+    margin-bottom: 16px;
+    color: #111111;
+    text-align: left;
+}
+
+.preview-h2 {
+    font-size: 17px;
+    border-left: 4px solid #333333;
+    padding-left: 10px;
+    margin-top: 20px;
+    margin-bottom: 12px;
+    color: #222222;
+}
+
+.preview-h3 {
+    font-size: 15px;
+    margin-top: 14px;
+    margin-bottom: 6px;
+    color: #334155;
+}
+
+.preview-meta {
+    margin: 4px 0;
+    font-size: 13px;
+}
+
+.preview-li {
+    margin: 4px 0;
+    margin-left: 20px;
+}
+
+/* 印刷用スタイル */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #report-preview-container, #report-preview-container * {
+        visibility: visible;
+    }
+    #report-preview-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: white;
+        padding: 0;
+        margin: 0;
+    }
+    .report-paper {
+        box-shadow: none;
+        padding: 0;
+    }
+}
+
+/* ===================================================
+   ホーム画面 (index.html) メニューグリッド・カードレイアウト
+   =================================================== */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* PCフル画面: 横3列 */
+    gap: 24px;
+    max-width: 1140px;
+    margin: 28px auto 50px auto;
+    padding: 0 16px;
+    box-sizing: border-box;
+}
+
+.menu-grid .menu-item {
+    cursor: pointer;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 28px 24px;
+    margin: 0;
+    min-height: 140px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    box-sizing: border-box;
+}
+
+.menu-grid .menu-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+    border-color: #333333;
+}
+
+.menu-grid .menu-item h2 {
+    margin: 0 0 12px 0;
+    font-size: 21px;
+    color: #222222;
+    border-left: 6px solid #333333;
+    padding-left: 12px;
+    line-height: 1.3;
+}
+
+.menu-grid .menu-item p {
+    margin: 0;
+    color: #64748b;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+/* スマホ版（幅899px以下）またはウィンドウが縦長（orientation: portrait）の場合は縦一列（1列） */
+@media screen and (max-width: 899px), screen and (orientation: portrait) {
+    .menu-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
 }
