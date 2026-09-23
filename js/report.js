@@ -261,7 +261,7 @@
             lines.push(``);
             lines.push(`---`);
             lines.push(``);
-            lines.push(`## 1. 業務活動・実施予定一覧`);
+            lines.push(`## 1. 業務活動・実施内容一覧`);
             lines.push(``);
 
             if (selectedItems.length === 0) {
