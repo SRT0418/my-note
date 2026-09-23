@@ -2417,4 +2417,571 @@ textarea.form-control {
         grid-template-columns: 1fr;
         gap: 16px;
     }
-}
+}
+
+/* ============================================================
+   報告書作成ページ
+   ============================================================ */
+
+.report-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 8px 60px 8px;
+}
+
+.report-container > h1 {
+    font-size: 26px;
+    text-align: center;
+    margin-bottom: 4px;
+}
+
+.report-subtitle {
+    text-align: center;
+    color: #64748b;
+    font-size: 14px;
+    margin: 0 0 28px 0;
+}
+
+/* ---- ステップカード共通 ---- */
+.report-section {
+    margin-bottom: 24px;
+    padding: 20px 24px;
+    border: none;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.report-section h2 {
+    font-size: 17px;
+    margin: 0 0 14px 0;
+    padding-left: 12px;
+    border-left: 4px solid #333;
+    line-height: 1.4;
+}
+
+/* ---- 1. 期間選択 ---- */
+.period-selection-group {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.period-type-picker {
+    display: flex;
+    gap: 12px;
+}
+
+.radio-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid #d1d5db;
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.radio-label:has(input:checked) {
+    background: #333;
+    color: #fff;
+    border-color: #333;
+}
+
+.radio-label input[type="radio"] {
+    accent-color: #333;
+    margin: 0;
+}
+
+.period-date-picker {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.period-display-badge {
+    margin-top: 12px;
+    display: inline-block;
+    padding: 6px 14px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #475569;
+    font-weight: 500;
+}
+
+/* ---- 2. 予定選択チェックリスト ---- */
+.section-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.section-header-flex h2 {
+    flex: 1;
+    min-width: 180px;
+}
+
+.selection-action-btns {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.btn-sub-sm {
+    background: #e2e8f0;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.15s;
+}
+
+.btn-sub-sm:hover {
+    background: #cbd5e1;
+}
+
+.selected-count-badge {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 600;
+    padding: 4px 10px;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.past-schedule-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 380px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.schedule-check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: #fafafa;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 13px;
+}
+
+.schedule-check-item:hover {
+    border-color: #94a3b8;
+    background: #f1f5f9;
+}
+
+.schedule-check-item.checked {
+    background: #f0fdf4;
+    border-color: #86efac;
+}
+
+.schedule-check-item input[type="checkbox"] {
+    margin-top: 3px;
+    accent-color: #333;
+    flex-shrink: 0;
+}
+
+.check-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.check-item-title {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.check-item-meta {
+    font-size: 12px;
+    color: #64748b;
+    word-break: break-all;
+}
+
+.check-item-desc {
+    font-size: 12px;
+    color: #94a3b8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 500px;
+}
+
+.no-schedules-msg {
+    text-align: center;
+    padding: 32px 16px;
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+/* ---- 3. フォーム ---- */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.form-grid .full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.form-control {
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fafafa;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    color: #1e293b;
+    font-family: inherit;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #333;
+    box-shadow: 0 0 0 3px rgba(51, 51, 51, 0.1);
+    background: #fff;
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 80px;
+}
+
+select.form-control {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23475569' d='M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+}
+
+/* ---- 4. プレビュー＆出力ボタン ---- */
+.export-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-primary {
+    background: #333;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btn-primary:hover {
+    background: #111;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.btn-secondary {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btn-secondary:hover {
+    background: #e2e8f0;
+    transform: translateY(-1px);
+}
+
+.report-preview-container {
+    margin-top: 16px;
+}
+
+/* ---- 紙面風プレビュー ---- */
+.report-paper {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 48px 56px;
+    min-height: 500px;
+    box-shadow:
+        0 1px 4px rgba(0,0,0,0.04),
+        0 8px 24px rgba(0,0,0,0.06);
+    font-family: "Noto Serif JP", "Yu Mincho", "游明朝", "Hiragino Mincho ProN", serif;
+    font-size: 14px;
+    line-height: 1.9;
+    color: #1a1a1a;
+    position: relative;
+}
+
+.report-paper::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #333 0%, #666 50%, #333 100%);
+    border-radius: 4px 4px 0 0;
+}
+
+.report-paper .preview-h1 {
+    font-size: 22px;
+    text-align: center;
+    margin: 8px 0 20px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #1a1a1a;
+    border-left: none;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: #1a1a1a;
+}
+
+.report-paper .preview-h2 {
+    font-size: 16px;
+    margin: 28px 0 12px 0;
+    padding: 6px 0 6px 14px;
+    border-left: 4px solid #333;
+    border-bottom: 1px solid #e5e7eb;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.report-paper .preview-h3 {
+    font-size: 14px;
+    margin: 20px 0 8px 0;
+    padding-left: 10px;
+    border-left: 3px solid #94a3b8;
+    font-weight: 600;
+    color: #334155;
+}
+
+.report-paper .preview-hr {
+    border: none;
+    border-top: 1px solid #cbd5e1;
+    margin: 20px 0;
+}
+
+.report-paper .preview-ul {
+    margin: 8px 0;
+    padding-left: 0;
+    list-style: none;
+}
+
+.report-paper .preview-li {
+    position: relative;
+    padding: 4px 0 4px 20px;
+    font-size: 13.5px;
+    line-height: 1.7;
+}
+
+.report-paper .preview-li::before {
+    content: "●";
+    position: absolute;
+    left: 0;
+    top: 4px;
+    font-size: 7px;
+    color: #475569;
+    line-height: 1.7;
+}
+
+.report-paper .preview-li strong {
+    color: #1e293b;
+}
+
+.report-paper .preview-p {
+    margin: 6px 0;
+    font-size: 13.5px;
+}
+
+.report-paper .preview-p strong {
+    color: #1e293b;
+}
+
+/* ---- テーブル ---- */
+.preview-table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+}
+
+.preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+}
+
+.preview-table th {
+    background: #333;
+    color: #fff;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 600;
+    white-space: nowrap;
+    font-size: 12px;
+}
+
+.preview-table th:first-child {
+    border-radius: 4px 0 0 0;
+}
+
+.preview-table th:last-child {
+    border-radius: 0 4px 0 0;
+}
+
+.preview-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+    line-height: 1.6;
+}
+
+.preview-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.preview-table tbody tr:nth-child(even) {
+    background: #fafafa;
+}
+
+.preview-table tbody tr:nth-child(even):hover {
+    background: #f1f5f9;
+}
+
+/* ---- レスポンシブ ---- */
+@media screen and (max-width: 640px) {
+    .report-container {
+        padding: 0 4px 40px 4px;
+    }
+
+    .report-section {
+        padding: 16px;
+        border-radius: 10px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .report-paper {
+        padding: 28px 20px;
+        font-size: 13px;
+    }
+
+    .report-paper .preview-h1 {
+        font-size: 18px;
+        letter-spacing: 0.05em;
+    }
+
+    .section-header-flex {
+        flex-direction: column;
+    }
+
+    .export-actions {
+        width: 100%;
+    }
+
+    .export-actions button {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .period-selection-group {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* ---- 印刷スタイル ---- */
+@media print {
+    body {
+        padding: 0 !important;
+        background: white !important;
+    }
+
+    header,
+    .side-trigger,
+    .nav-menu,
+    .drawer-overlay,
+    .report-section,
+    .report-subtitle,
+    .report-container > h1,
+    .export-actions,
+    .section-header-flex {
+        display: none !important;
+    }
+
+    .report-preview-container,
+    .report-section:last-child {
+        display: block !important;
+    }
+
+    /* 4番目のセクション(プレビュー)だけ表示 */
+    .report-container .card.report-section:nth-child(5) {
+        display: block !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .report-container .card.report-section:nth-child(5) .section-header-flex {
+        display: none !important;
+    }
+
+    .report-paper {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 20px 30px !important;
+        min-height: auto !important;
+    }
+
+    .report-paper::before {
+        display: none !important;
+    }
+
+    .preview-table th {
+        background: #eee !important;
+        color: #000 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+

@@ -218,6 +218,44 @@
             console.error("Birthday notify error", e);
         }
 
+        // 5. タスク管理（todoTasks）
+        try {
+            const todoTasks = JSON.parse(localStorage.getItem("todoTasks")) || [];
+            todoTasks.forEach(t => {
+                if (!t || !t.content) return;
+                const priorityLabel = t.priority || "中";
+                if (priorityLabel === "高") {
+                    const id = `todo-high-${t.id}-${todayKey}`;
+                    notifications.push({
+                        id: id,
+                        category: "todo",
+                        title: "高優先タスク未完了",
+                        message: `⚡ ${t.content}`,
+                        link: "tasks.html",
+                        date: todayKey,
+                        badge: "タスク",
+                        isRead: readIds.includes(id),
+                        priority: "high"
+                    });
+                } else if (priorityLabel === "中") {
+                    const id = `todo-mid-${t.id}-${todayKey}`;
+                    notifications.push({
+                        id: id,
+                        category: "todo",
+                        title: "未完了タスク",
+                        message: `${t.content}`,
+                        link: "tasks.html",
+                        date: todayKey,
+                        badge: "タスク",
+                        isRead: readIds.includes(id),
+                        priority: "mid"
+                    });
+                }
+            });
+        } catch (e) {
+            console.error("Todo notify error", e);
+        }
+
         return notifications;
     }
 
@@ -273,6 +311,7 @@
                             <button class="notification-tab" data-cat="schedule">予定</button>
                             <button class="notification-tab" data-cat="kadai">課題</button>
                             <button class="notification-tab" data-cat="habit">習慣</button>
+                            <button class="notification-tab" data-cat="todo">タスク</button>
                             <button class="notification-tab" data-cat="birthday">誕生日</button>
                         </div>
                         <div class="notification-actions">
@@ -340,8 +379,9 @@
             });
         }
 
-        if (bellBtn) {
+        if (bellBtn && !bellBtn.dataset.listenerAttached) {
             bellBtn.addEventListener("click", toggleModal);
+            bellBtn.dataset.listenerAttached = "true";
         }
 
         updateNotificationBadge();

@@ -348,21 +348,91 @@
         if (!container) return;
 
         const reportText = buildReportText();
+        const lines = reportText.split("\n");
+        let previewHtml = "";
+        let inTable = false;
+        let inList = false;
 
-        // プレビュー用に簡潔なHTMLへ整形
-        let previewHtml = reportText
-            .replace(/^# (.*$)/gim, '<h1 class="preview-h1">$1</h1>')
-            .replace(/^## (.*$)/gim, '<h2 class="preview-h2">$1</h2>')
-            .replace(/^### (.*$)/gim, '<h3 class="preview-h3">$1</h3>')
-            .replace(/^\- \*\*(.*?)\*\*: (.*$)/gim, '<p class="preview-meta"><strong>$1:</strong> $2</p>')
-            .replace(/^\- (.*$)/gim, '<li class="preview-li">$1</li>')
-            .replace(/\n/g, '<br>');
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i];
 
-        container.innerHTML = `
-            <div class="report-paper">
-                ${previewHtml}
-            </div>
-        `;
+            // テーブル区切り行はスキップ
+            if (/^\|[-\s|]+\|$/.test(line)) continue;
+
+            // テーブル行
+            if (/^\|(.+)\|$/.test(line)) {
+                if (!inTable) {
+                    if (inList) { previewHtml += "</ul>"; inList = false; }
+                    previewHtml += '<div class="preview-table-wrap"><table class="preview-table">';
+                    inTable = true;
+                    // ヘッダー行
+                    const cells = line.split("|").filter(c => c.trim() !== "");
+                    previewHtml += "<thead><tr>" + cells.map(c => `<th>${escapeHtml(c.trim())}</th>`).join("") + "</tr></thead><tbody>";
+                    continue;
+                }
+                const cells = line.split("|").filter(c => c.trim() !== "");
+                previewHtml += "<tr>" + cells.map(c => `<td>${formatInline(escapeHtml(c.trim()))}</td>`).join("") + "</tr>";
+                continue;
+            } else if (inTable) {
+                previewHtml += "</tbody></table></div>";
+                inTable = false;
+            }
+
+            // 見出し
+            if (/^### (.+)$/.test(line)) {
+                if (inList) { previewHtml += "</ul>"; inList = false; }
+                previewHtml += `<h3 class="preview-h3">${formatInline(escapeHtml(line.replace(/^### /, "")))}</h3>`;
+                continue;
+            }
+            if (/^## (.+)$/.test(line)) {
+                if (inList) { previewHtml += "</ul>"; inList = false; }
+                previewHtml += `<h2 class="preview-h2">${formatInline(escapeHtml(line.replace(/^## /, "")))}</h2>`;
+                continue;
+            }
+            if (/^# (.+)$/.test(line)) {
+                if (inList) { previewHtml += "</ul>"; inList = false; }
+                previewHtml += `<h1 class="preview-h1">${formatInline(escapeHtml(line.replace(/^# /, "")))}</h1>`;
+                continue;
+            }
+
+            // 水平線
+            if (/^---+$/.test(line.trim())) {
+                if (inList) { previewHtml += "</ul>"; inList = false; }
+                previewHtml += '<hr class="preview-hr">';
+                continue;
+            }
+
+            // リスト項目
+            if (/^[\-・] (.+)$/.test(line)) {
+                if (!inList) { previewHtml += '<ul class="preview-ul">'; inList = true; }
+                const content = line.replace(/^[\-・] /, "");
+                previewHtml += `<li class="preview-li">${formatInline(escapeHtml(content))}</li>`;
+                continue;
+            } else if (inList) {
+                previewHtml += "</ul>";
+                inList = false;
+            }
+
+            // 空行
+            if (line.trim() === "") {
+                continue;
+            }
+
+            // 通常テキスト
+            previewHtml += `<p class="preview-p">${formatInline(escapeHtml(line))}</p>`;
+        }
+
+        if (inTable) previewHtml += "</tbody></table></div>";
+        if (inList) previewHtml += "</ul>";
+
+        container.innerHTML = `<div class="report-paper">${previewHtml}</div>`;
+    }
+
+    // インラインフォーマット（太字, イタリック）
+    function formatInline(text) {
+        return text
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g, '<em>$1</em>');
     }
 
     // クリップボードへコピー
