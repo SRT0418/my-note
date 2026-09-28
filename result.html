@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>達成結果</title>
+    <title>報告書作成 - MyNote</title>
     <link rel="stylesheet" href="./css/common.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./js/supabase-client.js"></script>
@@ -27,6 +27,7 @@
         <a href="wishlist.html">やりたいことリスト</a>
         <a href="ideas.html">アイデア保存</a>
         <a href="calendar.html">カレンダー</a>
+        <a href="report.html" class="active">報告書作成</a>
         <a href="birthdays.html">誕生日管理</a>
     </div>
 
@@ -34,52 +35,148 @@
         <button id="drawer-btn" aria-label="メニューを開く">☰</button>
     </div>
 
-    <h1>達成結果</h1>
+    <header>
+        <h1>MyNote</h1>
+    </header>
 
-    <h3>未達成課題：<span id="unfinished-count">0</span>件</h3>
-    <h3>達成済み課題：<span id="completed-count">0</span>件</h3>
-    <h3>期限切れ課題：<span id="overdue-count">0</span>件</h3>
+    <div class="report-container">
+        <h1>📄 報告書・資料作成</h1>
+        <p class="report-subtitle">カレンダー予定・課題・タスクから実績報告書を作成したり、見出し下線・文字数カウント付きの美しいレイアウトで自由に資料を作成・Word出力できます。</p>
 
-    <!-- 達成率表示（統一） -->
-    <div class="rate-box">
-        <div class="rate-label">達成率</div>
-        <div id="rate-text">0%</div>
+        <!-- 0. データソース選択タブ -->
+        <div class="card report-section">
+            <h2>0. 作成する資料のタイプを選択</h2>
+            <div class="source-tab-group">
+                <button type="button" class="source-tab active" data-source="schedules">📅 カレンダー予定から作成</button>
+                <button type="button" class="source-tab" data-source="kadai">📚 課題締切管理から作成</button>
+                <button type="button" class="source-tab" data-source="tasks">✅ タスク管理から作成</button>
+                <button type="button" class="source-tab es-tab" data-source="custom">📝 自由作成・資料作成</button>
+            </div>
+        </div>
 
-        <div class="progress-bar">
-            <div id="progress" class="progress-fill"></div>
+        <!-- 1. 基本情報設定エリア -->
+        <div class="card report-section">
+            <h2>1. 資料の基本情報</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="report-title">メインタイトル：</label>
+                    <!-- placeholder は report.js が資料タイプに合わせて自動で設定します -->
+                    <input type="text" id="report-title" class="form-control" placeholder="例：業務活動報告書">
+                </div>
+
+                <div class="form-group">
+                    <label for="report-subtitle">サブタイトル：</label>
+                    <input type="text" id="report-subtitle" class="form-control" placeholder="例：月次活動実績報告">
+                </div>
+
+                <div class="form-group">
+                    <label for="report-author">報告者・作成者名：</label>
+                    <input type="text" id="report-author" class="form-control" placeholder="例：山田 太郎">
+                </div>
+
+                <div class="form-group">
+                    <label for="report-dept">所属・部署・大学：</label>
+                    <input type="text" id="report-dept" class="form-control" placeholder="例：開発チーム / 情報学部">
+                </div>
+
+                <div class="form-group">
+                    <label for="report-date">作成日：</label>
+                    <input type="date" id="report-date" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="report-design-theme">デザインスタイル：</label>
+                    <select id="report-design-theme" class="form-control">
+                        <option value="classic-blue" selected>クラシックブルー（標準）</option>
+                        <option value="minimal-mono">ミニマル（モノトーン）</option>
+                        <option value="formal-gold">フォーマル（ネイビー×ゴールド）</option>
+                        <option value="modern-green">モダングリーン</option>
+                        <option value="warm-orange">ウォームオレンジ</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. 対象期間＆項目選択（カレンダー・課題・タスク選択時に表示） -->
+        <div id="section-source-selection" class="card report-section">
+            <div class="section-header-flex">
+                <h2 id="checklist-heading">2. 報告する項目の選択</h2>
+                <div class="selection-action-btns">
+                    <button id="btn-select-all" class="btn-sub-sm">全選択</button>
+                    <button id="btn-deselect-all" class="btn-sub-sm">選択解除</button>
+                    <span id="selected-count-badge" class="selected-count-badge">0件 選択中</span>
+                </div>
+            </div>
+
+            <!-- 期間フィルタ -->
+            <div class="period-selection-group" style="margin-bottom: 12px;">
+                <div class="period-type-picker">
+                    <label class="radio-label">
+                        <input type="radio" name="period-type" value="1month" checked> 1か月間
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="period-type" value="3month"> 3か月間
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="period-type" value="all"> 全期間
+                    </label>
+                </div>
+                <div class="period-date-picker">
+                    <label for="report-target-month">基準年月：</label>
+                    <input type="month" id="report-target-month" class="form-control">
+                </div>
+            </div>
+            <div id="selected-period-display" class="period-display-badge"></div>
+
+            <div id="past-schedule-checklist" class="past-schedule-checklist" style="margin-top: 12px;">
+                <!-- JavaScriptで動的描画 -->
+            </div>
+        </div>
+
+        <!-- 3. セクション書き込み・編集エリア（自由にセクションを追加・編集） -->
+        <div class="card report-section">
+            <div class="section-header-flex">
+                <h2>3. 本文・セクションの書き込み &amp; 編集</h2>
+                <div>
+                    <button type="button" id="btn-add-section" class="btn-primary"
+                        style="padding: 6px 14px; font-size: 13px;">＋ セクションを追加</button>
+                    <button type="button" id="btn-reset-sections" class="btn-sub-sm">初期構成に戻す</button>
+                </div>
+            </div>
+            <p class="section-desc">見出しと本文を自由に入力・追加できます。各セクションの文字数は自動でカウントされ、見出し右端に「（ ○○ 文字 ）」と表示されます。</p>
+
+            <div id="dynamic-sections-container">
+                <!-- JavaScriptで動的にセクションエディタを描画 -->
+            </div>
+        </div>
+
+        <!-- 4. プレビュー＆出力エリア -->
+        <div class="card report-section">
+            <div class="section-header-flex">
+                <div>
+                    <h2>4. プレビュー &amp; 直接編集</h2>
+                    <span class="preview-hint">※ 下のプレビュー用紙内で直接文字をクリックして自由に書き込み・編集できます</span>
+                </div>
+                <div class="export-actions">
+                    <button type="button" id="btn-toggle-edit" class="btn-sub-sm btn-edit-toggle active"
+                        title="プレビュー内の直接編集を切り替えます">✏️ 直接編集: ON</button>
+                    <button type="button" id="btn-copy-report" class="btn-primary">📋 コピー</button>
+                    <button type="button" id="btn-download-word" class="btn-word">💾 Word出力 (.doc)</button>
+                    <button type="button" id="btn-download-txt" class="btn-secondary">💾 .txt保存</button>
+                    <button type="button" id="btn-download-md" class="btn-secondary">💾 .md保存</button>
+                    <button type="button" id="btn-print-report" class="btn-secondary">🖨️ 印刷 / PDF</button>
+                </div>
+            </div>
+
+            <div id="report-preview-container" class="report-preview-container">
+                <!-- リアルタイムプレビュー表示（contenteditable対応） -->
+            </div>
         </div>
     </div>
 
-    <!-- 円グラフ -->
-    <canvas id="pieChart" width="300" height="300"></canvas>
-
-    <!-- 帯グラフ -->
-    <!-- <div id="chart"></div> -->
-
-    <div class="legend">
-        <span><span class="color-box unfinished"></span> 未達成</span>
-        <span><span class="color-box completed"></span> 達成</span>
-        <span><span class="color-box overdue"></span> 期限切れ</span>
-    </div>
-
-    <!-- 締切で見る現在の課題 -->
-    <h2>今週締切の課題</h2>
-    <div id="this-week-list"></div>
-
-    <h2>来週締切の課題</h2>
-    <div id="next-week-list"></div>
-
-    <h2>再来週以降の課題</h2>
-    <div id="later-list"></div>
-
-    <!-- 週次履歴 -->
-    <h2>週ごとの達成履歴</h2>
-    <div id="weekly-history-list"></div>
-
-    <button onclick="location.href='kadai.html'">戻る</button>
-
     <script src="./js/common.js" defer></script>
-    <script src="./js/result.js"></script>
+    <script src="./js/notification.js" defer></script>
+    <script src="./js/report.js" defer></script>
 </body>
 
 </html>
