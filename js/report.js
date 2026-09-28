@@ -224,11 +224,103 @@
             .es-word-count { color:#67e8f9; }`
     };
 
+    // 基本情報カード（プレビュー用CSS）
+    const META_PREVIEW_CSS = `
+    .report-paper table.es-meta { width:100%; border-collapse:collapse; table-layout:fixed; margin:0 0 30px 0; }
+    .report-paper td.es-meta-cell { text-align:center; vertical-align:top; padding:11px 8px; border-top:1px solid #cbd5e1; border-bottom:1px solid #cbd5e1; border-left:1px solid #e2e8f0; }
+    .report-paper td.es-meta-cell:first-child { border-left:none; }
+    .report-paper .es-meta-label { display:inline-block; font-size:10.5px; letter-spacing:0.18em; color:#64748b; margin-bottom:4px; }
+    .report-paper .es-meta-value { font-size:13.5px; font-weight:600; color:#1e293b; word-break:break-all; }
+
+    .report-paper.rt-classic-blue td.es-meta-cell { border-top:2px solid #2980b9; border-bottom:1px solid #bcd4e6; border-left-color:#dbe7f1; }
+    .report-paper.rt-classic-blue .es-meta-label { color:#2980b9; }
+    .report-paper.rt-classic-blue .es-meta-value { color:#1b2631; }
+
+    .report-paper.rt-minimal-mono td.es-meta-cell { border-top:1px solid #333; border-bottom:1px solid #333; border-left-color:#ddd; }
+    .report-paper.rt-minimal-mono .es-meta-label { color:#666; }
+    .report-paper.rt-minimal-mono .es-meta-value { color:#111; }
+
+    .report-paper.rt-note-paper td.es-meta-cell { background:#fffbeb; border-top:1px dashed #b45309; border-bottom:1px dashed #b45309; border-left:1px dashed #e7dcc0; }
+    .report-paper.rt-note-paper td.es-meta-cell:first-child { border-left:none; }
+    .report-paper.rt-note-paper .es-meta-label { color:#a16207; }
+    .report-paper.rt-note-paper .es-meta-value { color:#78350f; }
+
+    .report-paper.rt-pop-badge td.es-meta-cell { background:#f5f3ff; border-top:none; border-bottom:none; border-left:3px solid #fff; }
+    .report-paper.rt-pop-badge td.es-meta-cell:first-child { border-left:none; }
+    .report-paper.rt-pop-badge .es-meta-label { color:#7c3aed; }
+    .report-paper.rt-pop-badge .es-meta-value { color:#4c1d95; }
+
+    .report-paper.rt-editorial td.es-meta-cell { border-top:1px solid #1a1a1a; border-bottom:1px solid #1a1a1a; border-left:none; padding:13px 8px; }
+    .report-paper.rt-editorial .es-meta-label { color:#8a7f72; font-size:10px; letter-spacing:0.34em; }
+    .report-paper.rt-editorial .es-meta-value { color:#1a1a1a; font-weight:500; font-size:14px; letter-spacing:0.06em; }
+
+    .report-paper.rt-midnight td.es-meta-cell { background:#111a2e; border-top:1px solid #22d3ee; border-bottom:1px solid #1e293b; border-left:1px solid #1e293b; }
+    .report-paper.rt-midnight td.es-meta-cell:first-child { border-left:none; }
+    .report-paper.rt-midnight .es-meta-label { color:#22d3ee; }
+    .report-paper.rt-midnight .es-meta-value { color:#f1f5f9; }
+    `;
+
+    // 基本情報カード（Word出力用CSS）
+    const META_WORD_CSS = `
+        table.es-meta { width:100%; border-collapse:collapse; margin:0 0 20pt 0; }
+        td.es-meta-cell { text-align:center; padding:6pt 4pt; border-top:1pt solid #cbd5e1; border-bottom:1pt solid #cbd5e1; }
+        span.es-meta-label { font-size:8pt; color:#64748b; letter-spacing:0.15em; }
+        span.es-meta-value { font-size:10.5pt; font-weight:bold; color:#1e293b; }`;
+
+    const THEME_META_WORD = {
+        "classic-blue": `
+        td.es-meta-cell { border-top:2pt solid #2980b9; border-bottom:1pt solid #bcd4e6; }
+        span.es-meta-label { color:#2980b9; }
+        span.es-meta-value { color:#1b2631; }`,
+        "minimal-mono": `
+        td.es-meta-cell { border-top:1pt solid #333333; border-bottom:1pt solid #333333; }
+        span.es-meta-label { color:#666666; }
+        span.es-meta-value { color:#111111; }`,
+        "note-paper": `
+        td.es-meta-cell { background:#fffbeb; border-top:1pt dashed #b45309; border-bottom:1pt dashed #b45309; }
+        span.es-meta-label { color:#a16207; }
+        span.es-meta-value { color:#78350f; }`,
+        "pop-badge": `
+        td.es-meta-cell { background:#f5f3ff; border-top:none; border-bottom:none; }
+        span.es-meta-label { color:#7c3aed; }
+        span.es-meta-value { color:#4c1d95; }`,
+        "editorial": `
+        td.es-meta-cell { border-top:0.75pt solid #1a1a1a; border-bottom:0.75pt solid #1a1a1a; }
+        span.es-meta-label { color:#8a7f72; letter-spacing:0.3em; }
+        span.es-meta-value { color:#1a1a1a; font-weight:normal; }`,
+        "midnight": `
+        td.es-meta-cell { border-top:1.5pt solid #0f172a; border-bottom:0.75pt solid #cbd5e1; }
+        span.es-meta-label { color:#0e7490; }
+        span.es-meta-value { color:#0f172a; }`
+    };
+
+    // 一時保存UI用CSS
+    const DRAFT_CSS = `
+    .draft-panel { border:1px solid #e2e8f0; background:#f8fafc; border-radius:10px; padding:12px 14px; margin:0 0 16px 0; }
+    .draft-panel[hidden] { display:none; }
+    .draft-panel-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; color:#1e293b; }
+    .draft-empty { color:#64748b; font-size:13px; margin:6px 0; }
+    .draft-item { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 10px; background:#fff; border:1px solid #e2e8f0; border-radius:8px; margin-top:6px; }
+    .draft-item-info { min-width:0; }
+    .draft-item-name { display:block; font-weight:600; font-size:13.5px; color:#1e293b; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .draft-item-meta { display:block; font-size:11.5px; color:#64748b; }
+    .draft-item-actions { display:flex; gap:6px; flex-shrink:0; }
+    .draft-banner { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; border-radius:10px; padding:10px 14px; margin:0 0 16px 0; font-size:13.5px; }
+    .draft-toast { position:fixed; left:50%; bottom:28px; transform:translateX(-50%); background:#1e293b; color:#fff; padding:10px 18px; border-radius:999px; font-size:13px; z-index:9999; box-shadow:0 6px 20px rgba(0,0,0,0.25); }
+    @media print { .draft-panel, .draft-banner, .draft-toast { display:none !important; } }
+    `;
+
+    // 2026-09-28 → 2026年9月28日
+    function formatDateJa(s) {
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || "");
+        return m ? `${m[1]}年${Number(m[2])}月${Number(m[3])}日` : (s || "");
+    }
+
     function injectThemeStyles() {
         if (document.getElementById("report-theme-styles")) return;
         const st = document.createElement("style");
         st.id = "report-theme-styles";
-        st.textContent = THEME_PREVIEW_CSS;
+        st.textContent = THEME_PREVIEW_CSS + META_PREVIEW_CSS + DRAFT_CSS;
         document.head.appendChild(st);
     }
 
@@ -323,6 +415,7 @@
         }
 
         setupEventListeners();
+        initDrafts();
     });
 
     // ==========================================
@@ -755,19 +848,26 @@
 
         const selected = getSelectedObjects();
 
-        // 1. ヘッダー部（中央揃えタイトル、サブタイトル）
-        let headerMeta = [];
-        if (date) headerMeta.push(`作成日: ${date}`);
-        if (author) headerMeta.push(`作成者: ${author}${dept ? ` (${dept})` : ""}`);
-        if (currentSource !== "custom" && range.monthLabel) headerMeta.push(`対象期間: ${range.monthLabel}`);
-        const metaLine = headerMeta.join("　|　");
+        // 1. ヘッダー部（中央揃えタイトル、サブタイトル）＋ 基本情報カード
+        const metaItems = [];
+        if (date) metaItems.push(["作成日", formatDateJa(date)]);
+        if (author) metaItems.push(["作成者", author]);
+        if (dept) metaItems.push(["所属", dept]);
+        if (currentSource !== "custom" && range.monthLabel) metaItems.push(["対象期間", range.monthLabel]);
+
+        const cellWidth = metaItems.length ? Math.floor(100 / metaItems.length) : 100;
+        const metaHtml = metaItems.length
+            ? `<table class="es-meta"><tr>${metaItems.map(([label, value]) =>
+                `<td class="es-meta-cell" style="width:${cellWidth}%;"><span class="es-meta-label">${label}</span><br><span class="es-meta-value">${escapeHtml(value)}</span></td>`
+            ).join("")}</tr></table>`
+            : "";
 
         let html = `
             <div class="es-paper-header">
                 <h1 class="es-paper-title">${escapeHtml(title)}</h1>
                 ${subtitle ? `<p class="es-paper-subtitle">${escapeHtml(subtitle)}</p>` : ""}
-                ${metaLine ? `<p style="text-align:center; font-size:12px; color:#64748b; margin:-18px 0 28px 0;">${escapeHtml(metaLine)}</p>` : ""}
             </div>
+            ${metaHtml}
         `;
 
         // 2. カレンダー・課題・タスクの項目一覧セクション
@@ -864,6 +964,7 @@
         `;
 
         applyDirectEditMode();
+        if (autoSaveArmed) scheduleAutoSave();
     }
 
     function applyDirectEditMode() {
@@ -993,6 +1094,8 @@
             text-align: justify;
         }
         ${THEME_WORD_CSS[getCurrentTheme()] || ""}
+        ${META_WORD_CSS}
+        ${THEME_META_WORD[getCurrentTheme()] || ""}
     </style>
 </head>
 <body>
@@ -1061,5 +1164,243 @@
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+    }
+
+    // ==========================================
+    // 一時保存（下書き）機能
+    // ==========================================
+    const DRAFT_KEY = "reportDrafts";      // 手動の一時保存（最大20件）
+    const AUTO_KEY = "reportDraftAuto";    // 自動保存（最新1件）
+    const MAX_DRAFTS = 20;
+    const SOURCE_LABELS = { schedules: "カレンダー", kadai: "課題", tasks: "タスク", custom: "自由作成" };
+    let autoSaveArmed = false;   // 画面を操作するまで自動保存しない（前回分を上書きしないため）
+    let autoSaveTimer = null;
+
+    function collectState() {
+        const val = (id) => document.getElementById(id)?.value || "";
+        const periodEl = document.querySelector('input[name="period-type"]:checked');
+        const paper = document.getElementById("editable-report-paper");
+        return {
+            source: currentSource,
+            title: val("report-title"),
+            subtitle: val("report-subtitle"),
+            author: val("report-author"),
+            dept: val("report-dept"),
+            date: val("report-date"),
+            theme: getCurrentTheme(),
+            periodType: periodEl ? periodEl.value : "1month",
+            targetMonth: val("report-target-month"),
+            selectedIds: Array.from(selectedItemIds),
+            sections: customSections.map(s => ({ id: s.id, title: s.title || "", content: s.content || "" })),
+            previewHtml: paper ? paper.innerHTML : ""
+        };
+    }
+
+    function applyState(d) {
+        if (!d) return;
+        switchSource(d.source || "schedules");
+
+        const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ""; };
+        set("report-title", d.title);
+        set("report-subtitle", d.subtitle);
+        set("report-author", d.author);
+        set("report-dept", d.dept);
+        set("report-date", d.date || toDateKey(new Date()));
+        set("report-target-month", d.targetMonth || toYearMonthKey(new Date()));
+
+        const themeEl = document.getElementById("report-design-theme");
+        if (themeEl && REPORT_THEMES[d.theme]) themeEl.value = d.theme;
+
+        const rad = document.querySelector(`input[name="period-type"][value="${d.periodType}"]`);
+        if (rad) rad.checked = true;
+
+        if (d.source !== "custom") {
+            updateItemListAndPreview();
+            selectedItemIds = new Set((d.selectedIds || []).map(String));
+            renderChecklist();
+        }
+
+        if (Array.isArray(d.sections)) {
+            customSections = d.sections.map(s => ({ id: s.id, title: s.title || "", content: s.content || "" }));
+        }
+        renderSectionEditors();
+        renderPreview();
+
+        // プレビューを直接編集していた内容もそのまま復元
+        if (d.previewHtml) {
+            const paper = document.getElementById("editable-report-paper");
+            if (paper) paper.innerHTML = d.previewHtml;
+        }
+
+        autoSaveArmed = true;
+        scheduleAutoSave();
+    }
+
+    function loadDrafts() {
+        try {
+            const a = JSON.parse(localStorage.getItem(DRAFT_KEY));
+            return Array.isArray(a) ? a : [];
+        } catch (e) { return []; }
+    }
+
+    function persistDrafts(list) {
+        try {
+            localStorage.setItem(DRAFT_KEY, JSON.stringify(list));
+            return true;
+        } catch (e) {
+            alert("一時保存に失敗しました。保存容量がいっぱいの可能性があります。古い一時保存を削除してからお試しください。");
+            return false;
+        }
+    }
+
+    function loadAuto() {
+        try {
+            const a = JSON.parse(localStorage.getItem(AUTO_KEY));
+            return a && a.state ? a : null;
+        } catch (e) { return null; }
+    }
+
+    function scheduleAutoSave() {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(() => {
+            try {
+                localStorage.setItem(AUTO_KEY, JSON.stringify({ savedAt: new Date().toISOString(), state: collectState() }));
+            } catch (e) { /* 容量超過などは黙って無視 */ }
+        }, 1000);
+    }
+
+    function formatSavedAt(iso) {
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return "";
+        const pad = (n) => String(n).padStart(2, "0");
+        return `${d.getMonth() + 1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    function showToast(msg) {
+        const old = document.querySelector(".draft-toast");
+        if (old) old.remove();
+        const t = document.createElement("div");
+        t.className = "draft-toast";
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 2200);
+    }
+
+    function saveDraft() {
+        const state = collectState();
+        const base = getReportTitle("報告書");
+        const now = new Date();
+        const name = prompt("一時保存の名前を入力してください", `${base}（${formatSavedAt(now.toISOString())}）`);
+        if (name === null) return;
+
+        const list = loadDrafts();
+        list.unshift({ id: "d" + Date.now(), name: name.trim() || base, savedAt: now.toISOString(), state });
+        if (list.length > MAX_DRAFTS) list.length = MAX_DRAFTS;
+
+        if (persistDrafts(list)) {
+            showToast("一時保存しました");
+            const panel = document.getElementById("draft-panel");
+            if (panel && !panel.hidden) renderDraftPanel();
+        }
+    }
+
+    function renderDraftPanel() {
+        const box = document.getElementById("draft-list");
+        if (!box) return;
+
+        const items = [];
+        const auto = loadAuto();
+        if (auto) items.push({ id: "__auto__", name: "自動保存（最新の編集内容）", savedAt: auto.savedAt, state: auto.state, isAuto: true });
+        loadDrafts().forEach(d => items.push(d));
+
+        if (items.length === 0) {
+            box.innerHTML = `<p class="draft-empty">一時保存はまだありません。「🗂️ 一時保存」で今の内容を保存できます。</p>`;
+            return;
+        }
+
+        box.innerHTML = "";
+        items.forEach(d => {
+            const row = document.createElement("div");
+            row.className = "draft-item";
+            row.innerHTML = `
+                <div class="draft-item-info">
+                    <span class="draft-item-name">${escapeHtml(d.name)}</span>
+                    <span class="draft-item-meta">${escapeHtml(formatSavedAt(d.savedAt))}｜${escapeHtml(SOURCE_LABELS[d.state && d.state.source] || "")}</span>
+                </div>
+                <div class="draft-item-actions">
+                    <button type="button" class="btn-sub-sm btn-draft-open">開く</button>
+                    <button type="button" class="btn-sub-sm btn-draft-del" style="color:#dc2626;">削除</button>
+                </div>
+            `;
+
+            row.querySelector(".btn-draft-open").addEventListener("click", () => {
+                if (!confirm("現在の編集内容は置き換えられます。開きますか？")) return;
+                applyState(d.state);
+                showToast("一時保存を開きました");
+            });
+
+            row.querySelector(".btn-draft-del").addEventListener("click", () => {
+                if (!confirm(`「${d.name}」を削除しますか？`)) return;
+                if (d.isAuto) {
+                    try { localStorage.removeItem(AUTO_KEY); } catch (e) { }
+                } else {
+                    persistDrafts(loadDrafts().filter(x => x.id !== d.id));
+                }
+                renderDraftPanel();
+            });
+
+            box.appendChild(row);
+        });
+    }
+
+    function showRestoreBanner() {
+        const auto = loadAuto();
+        const root = document.querySelector(".report-container");
+        if (!auto || !root) return;
+
+        const banner = document.createElement("div");
+        banner.className = "draft-banner";
+        banner.innerHTML = `
+            <span>前回の編集内容（${escapeHtml(formatSavedAt(auto.savedAt))} 自動保存）が残っています。復元しますか？</span>
+            <span>
+                <button type="button" class="btn-primary" id="btn-restore-auto" style="padding:5px 14px; font-size:13px;">復元する</button>
+                <button type="button" class="btn-sub-sm" id="btn-dismiss-auto">今は使わない</button>
+            </span>
+        `;
+        const sub = root.querySelector(".report-subtitle");
+        if (sub) sub.insertAdjacentElement("afterend", banner);
+        else root.prepend(banner);
+
+        banner.querySelector("#btn-restore-auto").addEventListener("click", () => {
+            applyState(auto.state);
+            banner.remove();
+            showToast("前回の内容を復元しました");
+        });
+        banner.querySelector("#btn-dismiss-auto").addEventListener("click", () => banner.remove());
+    }
+
+    function initDrafts() {
+        const on = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener("click", fn); };
+        on("btn-save-draft", saveDraft);
+        on("btn-open-drafts", () => {
+            const panel = document.getElementById("draft-panel");
+            if (!panel) return;
+            panel.hidden = !panel.hidden;
+            if (!panel.hidden) renderDraftPanel();
+        });
+        on("btn-close-drafts", () => {
+            const panel = document.getElementById("draft-panel");
+            if (panel) panel.hidden = true;
+        });
+
+        // 入力・変更があったら自動保存を開始
+        const root = document.querySelector(".report-container");
+        if (root) {
+            const arm = () => { autoSaveArmed = true; scheduleAutoSave(); };
+            root.addEventListener("input", arm);
+            root.addEventListener("change", arm);
+        }
+
+        showRestoreBanner();
     }
 })();

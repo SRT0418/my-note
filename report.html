@@ -159,6 +159,10 @@
                     <span class="preview-hint">※ 下のプレビュー用紙内で直接文字をクリックして自由に書き込み・編集できます</span>
                 </div>
                 <div class="export-actions">
+                    <button type="button" id="btn-save-draft" class="btn-secondary" title="今の編集内容を一時保存します">🗂️
+                        一時保存</button>
+                    <button type="button" id="btn-open-drafts" class="btn-secondary" title="一時保存した内容を開きます">📂
+                        保存済み</button>
                     <button type="button" id="btn-toggle-edit" class="btn-sub-sm btn-edit-toggle active"
                         title="プレビュー内の直接編集を切り替えます">✏️ 直接編集: ON</button>
                     <button type="button" id="btn-copy-report" class="btn-primary">📋 コピー</button>
@@ -167,6 +171,14 @@
                     <button type="button" id="btn-download-md" class="btn-secondary">💾 .md保存</button>
                     <button type="button" id="btn-print-report" class="btn-secondary">🖨️ 印刷 / PDF</button>
                 </div>
+            </div>
+
+            <div id="draft-panel" class="draft-panel" hidden>
+                <div class="draft-panel-head">
+                    <strong>一時保存した報告書</strong>
+                    <button type="button" id="btn-close-drafts" class="btn-sub-sm">閉じる</button>
+                </div>
+                <div id="draft-list"></div>
             </div>
 
             <div id="report-preview-container" class="report-preview-container">
