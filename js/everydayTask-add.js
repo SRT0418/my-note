@@ -45,6 +45,8 @@ document.getElementById("save-button").addEventListener("click", async () => {
             id: Date.now(),
             title,
             detail,
+            streak: 0,
+            completedCount: 0,
             createdAt: new Date().toISOString()
         };
 

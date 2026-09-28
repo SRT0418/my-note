@@ -3,29 +3,24 @@
 // 毎日習慣タスク管理のメインロジック
 // ===================================================
 
+// HTMLエスケープヘルパー
+function escapeHtml(str) {
+    if (!str) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 // 「追加」ボタンを押したときに習慣タスク追加画面へ遷移する
-document.getElementById("add-button").addEventListener("click", () => {
-    window.location.href = "./add-everydayTask.html";
-});
-
-// ページ読み込み時に一覧・件数を表示し、日付が変わっていれば履歴に保存する
-window.addEventListener("load", () => {
-    checkDailyReset();
-    purgeOldDeletedHabitTasks();
-    renderHabitTasks();
-    renderCompletedHabitTasks();
-    renderDeletedHabitTasks();
-    updateHabitCounts();
-    scheduleMidnightReset();
-});
-
-// クラウド同期後に db-sync.js から呼び出されるグローバル再描画関数
-window.renderAll = function () {
-    renderHabitTasks();
-    renderCompletedHabitTasks();
-    renderDeletedHabitTasks();
-    updateHabitCounts();
-};
+const addBtn = document.getElementById("add-button");
+if (addBtn) {
+    addBtn.addEventListener("click", () => {
+        window.location.href = "./add-everydayTask.html";
+    });
+}
 
 // ===================================================
 // localStorage ヘルパー
@@ -72,7 +67,7 @@ function saveDailyHistory(history) {
 }
 
 // ===================================================
-// 日付リセット処理（0:00になったら前日の結果を履歴に保存）
+// 日付計算・日次リセット処理
 // ===================================================
 
 // 今日の日付キー（YYYY-MM-DD）を返す
@@ -84,20 +79,101 @@ function getTodayKey() {
     return `${y}-${m}-${day}`;
 }
 
+// 日付差（日数）を計算する (date2 - date1)
+function getDaysDiff(dateKey1, dateKey2) {
+    if (!dateKey1 || !dateKey2) return 0;
+    const d1 = new Date(dateKey1 + "T00:00:00");
+    const d2 = new Date(dateKey2 + "T00:00:00");
+    if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return 0;
+    const diffTime = d2.getTime() - d1.getTime();
+    return Math.round(diffTime / (1000 * 60 * 60 * 24));
+}
+
+// 日付キー（YYYY-MM-DD）を日本語ラベルに変換する
+function formatDateLabel(dateKey) {
+    const d = new Date(dateKey + "T00:00:00");
+    if (isNaN(d.getTime())) return dateKey;
+    return d.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric", weekday: "short" });
+}
+
 // ページを開いたとき、前回保存した日付と今日が異なれば日次リセットを実行する
 function checkDailyReset() {
     const lastDate = localStorage.getItem("habitLastDate");
     const today = getTodayKey();
 
-    if (lastDate && lastDate !== today) {
-        // 前日の結果を履歴に保存する
-        archivePreviousDay(lastDate);
-        // 達成済みを未達成リストへ戻す（毎朝リセット）
-        resetDailyCompletion();
+    // 初回アクセス時
+    if (!lastDate) {
+        localStorage.setItem("habitLastDate", today);
+        return false;
     }
 
-    // 今日の日付を記録する
+    // すでに今日リセット済み
+    if (lastDate === today) {
+        return false;
+    }
+
+    const diffDays = getDaysDiff(lastDate, today);
+    if (diffDays <= 0) {
+        localStorage.setItem("habitLastDate", today);
+        return false;
+    }
+
+    // 1. 最後にアクセスした日の実績を履歴に保存
+    archivePreviousDay(lastDate);
+
+    // 2. タスクデータの取得
+    let tasks = getHabitTasks();
+    let completed = getHabitCompleted();
+
+    // 3. ストリーク（継続日数）の更新
+    if (diffDays === 1) {
+        // 昨日利用していた場合：
+        // 達成済みタスクはストリーク +1
+        completed.forEach(t => {
+            t.streak = (t.streak || 0) + 1;
+        });
+        // 未達成タスクはストリーク 0（途切れ）
+        tasks.forEach(t => {
+            t.streak = 0;
+        });
+    } else {
+        // 2日以上空いた場合：昨日達成していないため、すべてのタスクのストリークは途切れ(0にリセット)
+        completed.forEach(t => {
+            t.streak = 0;
+        });
+        tasks.forEach(t => {
+            t.streak = 0;
+        });
+    }
+
+    // 4. 達成済みタスクを「未達成」へリセット（completedAtを削除）
+    completed.forEach(t => {
+        delete t.completedAt;
+    });
+
+    // ID重複を排除してマージ
+    const taskMap = new Map();
+    tasks.forEach(t => {
+        if (t && t.id) taskMap.set(t.id, t);
+    });
+    completed.forEach(t => {
+        if (t && t.id) taskMap.set(t.id, t);
+    });
+    const merged = Array.from(taskMap.values());
+
+    saveHabitTasks(merged);
+    saveHabitCompleted([]);
     localStorage.setItem("habitLastDate", today);
+
+    // 5. クラウド（Supabase）へ即時プッシュ（古いクラウドデータによる巻き戻りを防止）
+    if (window.MyNoteDBSync && typeof window.MyNoteDBSync.flushSync === "function") {
+        window.MyNoteDBSync.flushSync("habitTasks");
+        window.MyNoteDBSync.flushSync("habitCompleted");
+        window.MyNoteDBSync.flushSync("habitDailyHistory");
+        window.MyNoteDBSync.flushSync("habitLastDate");
+    }
+
+    return true;
 }
 
 // 前日の達成・未達成を日次履歴に保存する
@@ -128,70 +204,20 @@ function archivePreviousDay(dateKey) {
         history.unshift(entry); // 新しい日が先頭
         saveDailyHistory(history);
     }
-
-    // ストリーク更新：達成済みは +1、未達成は 0 にリセット
-    const completedIds = new Set(getHabitCompleted().map(t => t.id));
-
-    let tasks2 = getHabitTasks();
-    let completed2 = getHabitCompleted();
-
-    // 達成済みタスク：streak を +1
-    completed2.forEach(t => {
-        t.streak = (t.streak || 0) + 1;
-    });
-
-    // 未達成タスク：streak を 0 にリセット
-    tasks2.forEach(t => {
-        t.streak = 0;
-    });
-
-    saveHabitTasks(tasks2);
-    saveHabitCompleted(completed2);
-}
-
-// 毎日0:00にリセット：達成済みを全て「未達成」に戻す
-function resetDailyCompletion() {
-    const completed = getHabitCompleted();
-    const tasks = getHabitTasks();
-
-    // 達成済みを未達成に戻す（completedAtを削除、streakは保持）
-    completed.forEach(t => {
-        delete t.completedAt;
-    });
-
-    const merged = tasks.concat(completed);
-    saveHabitTasks(merged);
-    saveHabitCompleted([]);
-}
-
-// 日付キー（YYYY-MM-DD）を日本語ラベルに変換する
-function formatDateLabel(dateKey) {
-    const d = new Date(dateKey + "T00:00:00");
-    return d.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric", weekday: "short" });
 }
 
 // ===================================================
-// 0:00 になったら自動でリセットするタイマーをセットする
+// 0:00 自動リセットタイマー
 // ===================================================
 function scheduleMidnightReset() {
     const now = new Date();
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
-    const msUntilMidnight = tomorrow - now;
+    tomorrow.setHours(0, 0, 1, 0); // 0:00:01 にセット
+    const msUntilMidnight = Math.max(1000, tomorrow - now);
 
     setTimeout(() => {
-        const today = getTodayKey();
-        const lastDate = localStorage.getItem("habitLastDate");
-        if (lastDate && lastDate !== today) {
-            archivePreviousDay(lastDate);
-            resetDailyCompletion();
-            localStorage.setItem("habitLastDate", today);
-        }
-        renderHabitTasks();
-        renderCompletedHabitTasks();
-        updateHabitCounts();
-        // 次の日も続けてタイマーをセット
+        refreshAll();
         scheduleMidnightReset();
     }, msUntilMidnight);
 }
@@ -214,6 +240,7 @@ function renderHabitTasks() {
     }
 
     tasks.forEach(task => {
+        if (!task) return;
         const div = document.createElement("div");
         div.className = "card";
 
@@ -224,11 +251,15 @@ function renderHabitTasks() {
         const completedCount = task.completedCount || 0;
         const countBadge = `<span class="count-badge" style="font-size:0.85em;color:#000000">達成回数：${completedCount}回</span>`;
 
+        const titleEscaped = escapeHtml(task.title);
+        const detailEscaped = task.detail ? escapeHtml(task.detail).replace(/\n/g, "<br>") : "";
+        const createdDate = task.createdAt ? new Date(task.createdAt).toLocaleDateString("ja-JP") : "─";
+
         div.innerHTML = `
-            <p><strong>${task.title}</strong> ${streakBadge}</p>
-            ${task.detail ? `<p style="color:#666;font-size:0.92em">${task.detail}</p>` : ""}
+            <p><strong>${titleEscaped}</strong> ${streakBadge}</p>
+            ${detailEscaped ? `<p style="color:#666;font-size:0.92em">${detailEscaped}</p>` : ""}
             <p>${countBadge}</p>
-            <p style="font-size:0.85em;color:#aaa">追加日：${new Date(task.createdAt).toLocaleDateString("ja-JP")}</p>
+            <p style="font-size:0.85em;color:#aaa">追加日：${createdDate}</p>
             <button class="habit-complete-btn" data-id="${task.id}">達成</button>
             <button class="habit-edit-btn" data-id="${task.id}">編集</button>
             <button class="habit-delete-btn" data-id="${task.id}">削除</button>
@@ -252,6 +283,7 @@ function renderCompletedHabitTasks() {
     }
 
     tasks.forEach(task => {
+        if (!task) return;
         const div = document.createElement("div");
         div.className = "card";
 
@@ -261,11 +293,15 @@ function renderCompletedHabitTasks() {
         const completedCount = task.completedCount || 0;
         const countBadge = `<span class="count-badge" style="font-size:0.85em;color:#000000">達成回数：${completedCount}回</span>`;
 
+        const titleEscaped = escapeHtml(task.title);
+        const detailEscaped = task.detail ? escapeHtml(task.detail).replace(/\n/g, "<br>") : "";
+        const completedDate = task.completedAt ? new Date(task.completedAt).toLocaleString("ja-JP") : "─";
+
         div.innerHTML = `
-            <p><strong>${task.title}</strong> <span style="color:#2ecc71"></span> ${streakBadge}</p>
-            ${task.detail ? `<p style="color:#666;font-size:0.92em">${task.detail}</p>` : ""}
+            <p><strong>${titleEscaped}</strong> <span style="color:#2ecc71"></span> ${streakBadge}</p>
+            ${detailEscaped ? `<p style="color:#666;font-size:0.92em">${detailEscaped}</p>` : ""}
             <p>${countBadge}</p>
-            <p style="font-size:0.85em;color:#aaa">達成：${new Date(task.completedAt).toLocaleString("ja-JP")}</p>
+            <p style="font-size:0.85em;color:#aaa">達成：${completedDate}</p>
             <button class="habit-undo-btn" data-id="${task.id}">取り消し</button>
             <button class="habit-delete-completed-btn" data-id="${task.id}">削除</button>
         `;
@@ -290,6 +326,7 @@ function renderDeletedHabitTasks() {
     }
 
     tasks.forEach(task => {
+        if (!task) return;
         const purgeDate = new Date(task.deletedAt);
         purgeDate.setMonth(purgeDate.getMonth() + 3);
         const remainingDays = Math.max(0, Math.ceil((purgeDate - new Date()) / (1000 * 60 * 60 * 24)));
@@ -297,10 +334,14 @@ function renderDeletedHabitTasks() {
         const div = document.createElement("div");
         div.className = "card";
 
+        const titleEscaped = escapeHtml(task.title);
+        const detailEscaped = task.detail ? escapeHtml(task.detail).replace(/\n/g, "<br>") : "";
+        const deletedDate = task.deletedAt ? new Date(task.deletedAt).toLocaleString("ja-JP") : "─";
+
         div.innerHTML = `
-            <p><strong>${task.title}</strong></p>
-            ${task.detail ? `<p style="color:#666;font-size:0.92em">${task.detail}</p>` : ""}
-            <p style="font-size:0.85em;color:#aaa">削除：${new Date(task.deletedAt).toLocaleString("ja-JP")}</p>
+            <p><strong>${titleEscaped}</strong></p>
+            ${detailEscaped ? `<p style="color:#666;font-size:0.92em">${detailEscaped}</p>` : ""}
+            <p style="font-size:0.85em;color:#aaa">削除：${deletedDate}</p>
             <p style="font-size:0.85em;color:#000000">あと${remainingDays}日で自動的に完全削除されます</p>
             <button class="habit-restore-btn" data-id="${task.id}">元に戻す</button>
             <button class="habit-delete-forever-btn" data-id="${task.id}">完全に削除</button>
@@ -321,6 +362,21 @@ function updateHabitCounts() {
     if (unfinishedEl) unfinishedEl.textContent = tasks.length;
     if (completedEl) completedEl.textContent = completed.length;
 }
+
+// 全描画・更新の一元化
+function refreshAll() {
+    checkDailyReset();
+    purgeOldDeletedHabitTasks();
+    renderHabitTasks();
+    renderCompletedHabitTasks();
+    renderDeletedHabitTasks();
+    updateHabitCounts();
+}
+
+// クラウド同期後に db-sync.js から呼び出されるグローバル再描画関数
+window.renderAll = function () {
+    refreshAll();
+};
 
 // ===================================================
 // ボタン操作
@@ -373,9 +429,7 @@ function completeHabitTask(id) {
     saveHabitTasks(tasks);
     saveHabitCompleted(completed);
 
-    renderHabitTasks();
-    renderCompletedHabitTasks();
-    updateHabitCounts();
+    refreshAll();
 }
 
 // 達成済みを未達成に戻す（取り消し）
@@ -395,9 +449,7 @@ function undoHabitTask(id) {
     saveHabitTasks(tasks);
     saveHabitCompleted(completed);
 
-    renderHabitTasks();
-    renderCompletedHabitTasks();
-    updateHabitCounts();
+    refreshAll();
 }
 
 // 未達成タスクを削除（一時保存）する
@@ -417,31 +469,27 @@ function deleteHabitTask(id) {
     saveHabitTasks(tasks);
     saveHabitDeleted(deleted);
 
-    renderHabitTasks();
-    renderDeletedHabitTasks();
-    updateHabitCounts();
+    refreshAll();
 }
 
 // 達成済みタスクを削除（一時保存）する
 function deleteHabitCompleted(id) {
-    let tasks = getHabitCompleted();
+    let completedTasks = getHabitCompleted();
     let deleted = getHabitDeleted();
 
-    const idx = tasks.findIndex(t => t.id == id);
+    const idx = completedTasks.findIndex(t => t.id == id);
     if (idx === -1) return;
 
-    const task = tasks.splice(idx, 1)[0];
+    const task = completedTasks.splice(idx, 1)[0];
     task.deletedAt = new Date().toISOString();
     task.from = "habitCompleted";
 
     deleted.push(task);
 
-    saveHabitCompleted(tasks);
+    saveHabitCompleted(completedTasks);
     saveHabitDeleted(deleted);
 
-    renderCompletedHabitTasks();
-    renderDeletedHabitTasks();
-    updateHabitCounts();
+    refreshAll();
 }
 
 // 削除済みタスクを元に戻す
@@ -456,29 +504,28 @@ function restoreHabitTask(id) {
     delete task.deletedAt;
     delete task.from;
 
-    if (from === "habitCompleted") {
-        let completed = getHabitCompleted();
-        // 復元する場合、達成時刻がなければ未達成として戻す
-        if (!task.completedAt) {
-            let tasks = getHabitTasks();
-            tasks.push(task);
-            saveHabitTasks(tasks);
-            renderHabitTasks();
-        } else {
-            completed.push(task);
-            saveHabitCompleted(completed);
-            renderCompletedHabitTasks();
+    const today = getTodayKey();
+    let isTodayCompleted = false;
+    if (task.completedAt) {
+        const completedDateKey = task.completedAt.split("T")[0];
+        if (completedDateKey === today) {
+            isTodayCompleted = true;
         }
+    }
+
+    if (from === "habitCompleted" && isTodayCompleted) {
+        let completed = getHabitCompleted();
+        completed.push(task);
+        saveHabitCompleted(completed);
     } else {
+        delete task.completedAt;
         let tasks = getHabitTasks();
         tasks.push(task);
         saveHabitTasks(tasks);
-        renderHabitTasks();
     }
 
     saveHabitDeleted(deleted);
-    renderDeletedHabitTasks();
-    updateHabitCounts();
+    refreshAll();
 }
 
 // 削除済みタスクを完全に削除する
@@ -505,3 +552,37 @@ function purgeOldDeletedHabitTasks() {
         saveHabitDeleted(remaining);
     }
 }
+
+// ===================================================
+// イベントリスナー（多角的な日付変更監視・リセット実行）
+// ===================================================
+
+window.addEventListener("load", () => {
+    refreshAll();
+    scheduleMidnightReset();
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    refreshAll();
+});
+
+// タブ復帰時（PCスリープ解除・別タブ切り替え時）に日付変更を即時反映
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+        refreshAll();
+    }
+});
+
+// ウィンドウフォーカス時にも日付変更をチェック
+window.addEventListener("focus", () => {
+    refreshAll();
+});
+
+// 30秒ごとの定期ポーリングで日付跨ぎを自動検出
+setInterval(() => {
+    const today = getTodayKey();
+    const lastDate = localStorage.getItem("habitLastDate");
+    if (lastDate && lastDate !== today) {
+        refreshAll();
+    }
+}, 30000);

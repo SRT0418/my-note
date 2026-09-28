@@ -1,12 +1,118 @@
-// ===================================================
-// edTaskResult.js
-// 習慣タスク達成結果・履歴画面のロジック
-// ===================================================
+function escapeHtml(str) {
+    if (!str) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 
-window.addEventListener("load", () => {
+function getTodayKey() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+}
+
+function getDaysDiff(dateKey1, dateKey2) {
+    if (!dateKey1 || !dateKey2) return 0;
+    const d1 = new Date(dateKey1 + "T00:00:00");
+    const d2 = new Date(dateKey2 + "T00:00:00");
+    if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return 0;
+    return Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+function formatDateLabel(dateKey) {
+    const d = new Date(dateKey + "T00:00:00");
+    if (isNaN(d.getTime())) return dateKey;
+    return d.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric", weekday: "short" });
+}
+
+function checkDailyReset() {
+    const lastDate = localStorage.getItem("habitLastDate");
+    const today = getTodayKey();
+    if (!lastDate) {
+        localStorage.setItem("habitLastDate", today);
+        return;
+    }
+    if (lastDate === today) return;
+
+    const diffDays = getDaysDiff(lastDate, today);
+    if (diffDays <= 0) {
+        localStorage.setItem("habitLastDate", today);
+        return;
+    }
+
+    const tasks = JSON.parse(localStorage.getItem("habitTasks")) || [];
+    const completed = JSON.parse(localStorage.getItem("habitCompleted")) || [];
+    const history = JSON.parse(localStorage.getItem("habitDailyHistory")) || [];
+
+    if (!history.some(h => h.dateKey === lastDate)) {
+        const total = tasks.length + completed.length;
+        const rate = total === 0 ? 0 : Math.round((completed.length / total) * 100);
+        history.unshift({
+            dateKey: lastDate,
+            dateLabel: formatDateLabel(lastDate),
+            completedCount: completed.length,
+            unfinishedCount: tasks.length,
+            rate,
+            completedList: completed.map(t => ({ title: t.title })),
+            unfinishedList: tasks.map(t => ({ title: t.title })),
+            savedAt: new Date().toISOString()
+        });
+        localStorage.setItem("habitDailyHistory", JSON.stringify(history));
+    }
+
+    if (diffDays === 1) {
+        completed.forEach(t => { t.streak = (t.streak || 0) + 1; });
+        tasks.forEach(t => { t.streak = 0; });
+    } else {
+        completed.forEach(t => { t.streak = 0; });
+        tasks.forEach(t => { t.streak = 0; });
+    }
+
+    completed.forEach(t => { delete t.completedAt; });
+    const taskMap = new Map();
+    tasks.forEach(t => { if (t && t.id) taskMap.set(t.id, t); });
+    completed.forEach(t => { if (t && t.id) taskMap.set(t.id, t); });
+
+    localStorage.setItem("habitTasks", JSON.stringify(Array.from(taskMap.values())));
+    localStorage.setItem("habitCompleted", JSON.stringify([]));
+    localStorage.setItem("habitLastDate", today);
+
+    if (window.MyNoteDBSync && typeof window.MyNoteDBSync.flushSync === "function") {
+        window.MyNoteDBSync.flushSync("habitTasks");
+        window.MyNoteDBSync.flushSync("habitCompleted");
+        window.MyNoteDBSync.flushSync("habitDailyHistory");
+        window.MyNoteDBSync.flushSync("habitLastDate");
+    }
+}
+
+function refreshAll() {
+    checkDailyReset();
     renderTodaySummary();
     renderDailyHistory();
+}
+
+window.addEventListener("load", () => {
+    refreshAll();
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+    refreshAll();
+});
+
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+        refreshAll();
+    }
+});
+
+window.renderAll = function () {
+    refreshAll();
+};
 
 // ===================================================
 // 今日の状況を集計・表示する
@@ -42,13 +148,18 @@ function renderTodaySummary() {
         if (tasks.length === 0) {
             unfinishedListEl.innerHTML = "<p>未達成のタスクはありません</p>";
         } else {
-            unfinishedListEl.innerHTML = tasks.map(t => `
+            unfinishedListEl.innerHTML = tasks.map(t => {
+                if (!t) return "";
+                const titleEsc = escapeHtml(t.title);
+                const detailEsc = t.detail ? escapeHtml(t.detail).replace(/\n/g, "<br>") : "";
+                return `
                 <div class="card">
-                    <p><strong>${t.title}</strong></p>
-                    ${t.detail ? `<p style="color:#666;font-size:0.92em">${t.detail}</p>` : ""}
+                    <p><strong>${titleEsc}</strong></p>
+                    ${detailEsc ? `<p style="color:#666;font-size:0.92em">${detailEsc}</p>` : ""}
                     <p style="font-size:0.85em;color:#000000">達成回数：${t.completedCount || 0}回</p>
                 </div>
-            `).join("");
+            `;
+            }).join("");
         }
     }
 
@@ -58,14 +169,20 @@ function renderTodaySummary() {
         if (completed.length === 0) {
             completedListEl.innerHTML = "<p>達成したタスクがありません</p>";
         } else {
-            completedListEl.innerHTML = completed.map(t => `
+            completedListEl.innerHTML = completed.map(t => {
+                if (!t) return "";
+                const titleEsc = escapeHtml(t.title);
+                const detailEsc = t.detail ? escapeHtml(t.detail).replace(/\n/g, "<br>") : "";
+                const dateStr = t.completedAt ? new Date(t.completedAt).toLocaleString("ja-JP") : "─";
+                return `
                 <div class="card">
-                    <p><strong>${t.title}</strong></p>
-                    ${t.detail ? `<p style="color:#666;font-size:0.92em">${t.detail}</p>` : ""}
+                    <p><strong>${titleEsc}</strong></p>
+                    ${detailEsc ? `<p style="color:#666;font-size:0.92em">${detailEsc}</p>` : ""}
                     <p style="font-size:0.85em;color:#000000">達成回数：${t.completedCount || 0}回</p>
-                    <p style="font-size:0.85em;color:#000000">達成：${new Date(t.completedAt).toLocaleString("ja-JP")}</p>
+                    <p style="font-size:0.85em;color:#000000">達成：${dateStr}</p>
                 </div>
-            `).join("");
+            `;
+            }).join("");
         }
     }
 }
@@ -151,16 +268,16 @@ function renderDailyHistory() {
         const unfinishedWidth = total === 0 ? 0 : (h.unfinishedCount / total) * 100;
 
         const completedItems = (h.completedList || []).map(t =>
-            `<li>✅ ${t.title}</li>`
+            `<li>✅ ${escapeHtml(t.title)}</li>`
         ).join("");
         const unfinishedItems = (h.unfinishedList || []).map(t =>
-            `<li>⬜ ${t.title}</li>`
+            `<li>⬜ ${escapeHtml(t.title)}</li>`
         ).join("");
 
         return `
         <details class="history-card" id="daily-history-${index}">
             <summary class="history-summary">
-                <span class="history-week-label">📅 ${h.dateLabel}</span>
+                <span class="history-week-label">📅 ${escapeHtml(h.dateLabel)}</span>
                 <span class="history-rate-badge" style="background:${rateColor}">${h.rate}%</span>
             </summary>
             <div class="history-detail">
@@ -193,12 +310,16 @@ function renderDailyHistory() {
 
     // 日次履歴の削除ボタンにイベントを設定する
     container.querySelectorAll(".delete-daily-history-btn").forEach(btn => {
-        btn.addEventListener("click", (e) => {
+        btn.addEventListener("click", async (e) => {
             e.stopPropagation();
+            if (!confirm("この日の達成履歴を削除しますか？")) return;
             const dateKey = btn.dataset.dateKey;
             let history = JSON.parse(localStorage.getItem("habitDailyHistory")) || [];
             history = history.filter(h => h.dateKey !== dateKey);
             localStorage.setItem("habitDailyHistory", JSON.stringify(history));
+            if (window.MyNoteDBSync && typeof window.MyNoteDBSync.flushSync === "function") {
+                await window.MyNoteDBSync.flushSync("habitDailyHistory");
+            }
             renderDailyHistory();
         });
     });
