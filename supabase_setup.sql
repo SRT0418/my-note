@@ -137,3 +137,43 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+
+-- =========================================================
+-- アカウント削除依頼テーブル
+-- =========================================================
+
+CREATE TABLE IF NOT EXISTS public.delete_requests (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    username TEXT NOT NULL,
+    email TEXT NOT NULL,
+    reason TEXT,
+    requested_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    status TEXT NOT NULL DEFAULT 'pending'  -- 'pending' または 'done'
+);
+
+-- RLS 有効化
+ALTER TABLE public.delete_requests ENABLE ROW LEVEL SECURITY;
+
+-- ユーザーは自分の削除依頼のみ挿入・参照可能
+DROP POLICY IF EXISTS "Users can insert own delete request" ON public.delete_requests;
+CREATE POLICY "Users can insert own delete request"
+ON public.delete_requests FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can view own delete request" ON public.delete_requests;
+CREATE POLICY "Users can view own delete request"
+ON public.delete_requests FOR SELECT
+USING (auth.uid() = user_id);
+
+-- 管理者はすべての削除依頼を参照・更新・削除可能
+DROP POLICY IF EXISTS "Admins can manage delete requests" ON public.delete_requests;
+CREATE POLICY "Admins can manage delete requests"
+ON public.delete_requests FOR ALL
+USING (
+    EXISTS (
+        SELECT 1 FROM public.profiles
+        WHERE id = auth.uid() AND role = 'admin'
+    )
+);

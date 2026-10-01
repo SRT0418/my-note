@@ -89,21 +89,127 @@ window.addEventListener("load", () => {
         }
     });
 
-    // ---------- アカウント削除 ----------
-    document.getElementById("delete-account-button").addEventListener("click", () => {
-        const confirm1 = confirm(
-            "アカウント「" + user + "」を削除します。保存されたデータも全て完全に削除され、元に戻せません。本当に削除しますか？"
-        );
-        if (!confirm1) return;
+    // ---------- アカウント削除依頼 ----------
+    const deleteRequestMsg = document.getElementById("delete-request-message");
+    const deleteRequestAlready = document.getElementById("delete-request-already");
+    const deleteRequestFormWrap = document.getElementById("delete-request-form-wrap");
 
-        const typed = prompt("確認のため、ユーザー名「" + user + "」を入力してください。");
-        if (typed !== user) {
-            alert("ユーザー名が一致しないため、削除を中止しました。");
+    // ========== EmailJS 設定 ==========
+    // ※ EmailJS でサービスID・テンプレートID・公開キーを取得して下記に設定してください
+    const EMAILJS_SERVICE_ID  = "YOUR_SERVICE_ID";   // EmailJS > Email Services
+    const EMAILJS_TEMPLATE_ID = "YOUR_TEMPLATE_ID";  // EmailJS > Email Templates
+    const EMAILJS_PUBLIC_KEY  = "YOUR_PUBLIC_KEY";   // EmailJS > Account > Public Key
+    // ====================================
+
+    // 既に申請済みかチェック
+    async function checkExistingRequest() {
+        const client = window.MyNoteSupabase && window.MyNoteSupabase.isConfigured()
+            ? window.MyNoteSupabase.getClient()
+            : null;
+        if (!client) return;
+
+        const userId = auth.getCurrentUserId();
+        if (!userId || userId.startsWith("local-")) return;
+
+        const { data } = await client
+            .from("delete_requests")
+            .select("*")
+            .eq("user_id", userId)
+            .eq("status", "pending")
+            .maybeSingle();
+
+        if (data) {
+            // 申請済みの場合、フォームを非表示にして受付メッセージを表示
+            const d = new Date(data.requested_at);
+            const dateStr = d.getFullYear() + "/" +
+                String(d.getMonth() + 1).padStart(2, "0") + "/" +
+                String(d.getDate()).padStart(2, "0") + " " +
+                String(d.getHours()).padStart(2, "0") + ":" +
+                String(d.getMinutes()).padStart(2, "0");
+            document.getElementById("delete-request-already-date").textContent =
+                "受付日時：" + dateStr;
+            deleteRequestAlready.style.display = "flex";
+            deleteRequestFormWrap.style.display = "none";
+        }
+    }
+
+    checkExistingRequest();
+
+    // 削除依頼送信ボタン
+    document.getElementById("send-delete-request-button").addEventListener("click", async () => {
+        const reason = (document.getElementById("delete-reason").value || "").trim();
+        const userInfo = auth.getCurrentUserInfo() || {};
+        const username = userInfo.username || user;
+        const email = userInfo.email || "";
+
+        deleteRequestMsg.classList.remove("success");
+        deleteRequestMsg.textContent = "";
+
+        if (!email) {
+            deleteRequestMsg.textContent = "メールアドレスが登録されていません。先にメールアドレスを設定してください。";
             return;
         }
 
-        auth.deleteAccount(user);
-        alert("アカウントを削除しました。");
-        location.href = "login.html";
+        if (!confirm(`アカウント「${username}」の削除依頼をマスターに送信します。よろしいですか？`)) return;
+
+        // 送信ボタンを無効化
+        const btn = document.getElementById("send-delete-request-button");
+        btn.disabled = true;
+        btn.textContent = "送信中...";
+
+        try {
+            // 1. Supabaseに削除依頼を保存
+            const client = window.MyNoteSupabase && window.MyNoteSupabase.isConfigured()
+                ? window.MyNoteSupabase.getClient()
+                : null;
+
+            const userId = auth.getCurrentUserId();
+            const now = new Date();
+            const nowStr = now.getFullYear() + "/" +
+                String(now.getMonth() + 1).padStart(2, "0") + "/" +
+                String(now.getDate()).padStart(2, "0") + " " +
+                String(now.getHours()).padStart(2, "0") + ":" +
+                String(now.getMinutes()).padStart(2, "0");
+
+            if (client && userId && !userId.startsWith("local-")) {
+                const { error } = await client.from("delete_requests").insert({
+                    user_id: userId,
+                    username: username,
+                    email: email,
+                    reason: reason || null,
+                    status: "pending"
+                });
+                if (error) throw new Error("DB保存エラー: " + error.message);
+            }
+
+            // 2. EmailJSで確認メールを申請者へ送信
+            if (EMAILJS_PUBLIC_KEY && EMAILJS_PUBLIC_KEY !== "YOUR_PUBLIC_KEY") {
+                emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+                    to_email:       email,
+                    to_name:        username,
+                    account_name:   username,
+                    request_date:   nowStr,
+                    reason:         reason || "（理由なし）"
+                });
+            }
+
+            // 成功時の処理
+            deleteRequestMsg.classList.add("success");
+            deleteRequestMsg.textContent =
+                "✅ 削除依頼を送信しました。登録メールアドレスに確認メールをお送りしました。";
+
+            // フォームを受付済み表示に切り替え
+            document.getElementById("delete-request-already-date").textContent =
+                "受付日時：" + nowStr;
+            deleteRequestAlready.style.display = "flex";
+            deleteRequestFormWrap.style.display = "none";
+
+        } catch (e) {
+            deleteRequestMsg.textContent = "❌ 送信に失敗しました：" + e.message;
+            btn.disabled = false;
+            btn.textContent = "📨 マスターへ削除願いを送る";
+        }
     });
 });
+
