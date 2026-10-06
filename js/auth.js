@@ -28,6 +28,8 @@
     // ---------- 名前空間振り分け ----------
     function namespacedKey(key) {
         if (RAW_KEYS.indexOf(key) !== -1) return key;
+        // Supabase SDK が内部で使うキー（認証トークン等）は名前空間化しない
+        if (key && (key.startsWith("sb-") || key.startsWith("supabase"))) return key;
         const user = rawGet(SESSION_KEY);
         if (!user) return key;
         return "u:" + user + ":" + key;
