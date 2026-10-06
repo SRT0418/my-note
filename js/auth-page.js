@@ -26,18 +26,18 @@ window.addEventListener("load", () => {
     const loginMessage = document.getElementById("login-message");
 
     document.getElementById("login-submit").addEventListener("click", async () => {
-        const email = document.getElementById("login-email").value;
+        const username = document.getElementById("login-username").value.trim();
         const password = document.getElementById("login-password").value;
 
         loginMessage.textContent = "";
         loginMessage.classList.remove("success");
 
-        if (!email || !password) {
-            loginMessage.textContent = "メールアドレスとパスワードを入力してください。";
+        if (!username || !password) {
+            loginMessage.textContent = "ユーザー名とパスワードを入力してください。";
             return;
         }
 
-        const result = await window.MyNoteAuth.loginUser(email, password);
+        const result = await window.MyNoteAuth.loginUser(username, password);
         if (result.ok) {
             location.href = "index.html";
         } else {
@@ -47,6 +47,11 @@ window.addEventListener("load", () => {
 
     document.getElementById("login-password").addEventListener("keydown", (e) => {
         if (e.key === "Enter") document.getElementById("login-submit").click();
+    });
+
+    // usernameフィールドでもEnterで次のフィールドへ移動
+    document.getElementById("login-username").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") document.getElementById("login-password").focus();
     });
 
     // ---------- 初期機能カスタマイズUIの初期化 ----------
@@ -134,7 +139,12 @@ window.addEventListener("load", () => {
             location.href = "index.html";
         } else {
             registerMessage.classList.add("success");
-            registerMessage.textContent = "登録が完了しました。ログインしてください。";
+            // メール確認が必要な場合は案内する
+            if (loginResult.message && loginResult.message.includes("確認メール")) {
+                registerMessage.textContent = "登録が完了しました。登録したメールアドレスに確認メールが届いていますので、リンクをクリックしてからログインしてください。";
+            } else {
+                registerMessage.textContent = "登録が完了しました。ログインしてください。";
+            }
             switchTab("login");
         }
     });

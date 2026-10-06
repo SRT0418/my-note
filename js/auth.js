@@ -295,6 +295,10 @@
                 });
 
                 if (authErr || !authData.user) {
+                    // メール未確認エラーの判定
+                    if (authErr && (authErr.message === "Email not confirmed" || (authErr.message && authErr.message.toLowerCase().includes("email not confirmed")))) {
+                        return { ok: false, message: "メールアドレスの確認が完了していません。登録時に届いた確認メールのリンクをクリックしてからログインしてください。" };
+                    }
                     return { ok: false, message: "ユーザー名/メールアドレスまたはパスワードが違います。" };
                 }
 
