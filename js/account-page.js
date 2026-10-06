@@ -27,6 +27,31 @@ window.addEventListener("load", () => {
         currentUserSec.insertBefore(masterBtn, document.getElementById("logout-button"));
     }
 
+    // ---------- 機能カスタマイズプレビュー & 画面遷移 ----------
+    const featPreview = document.getElementById("account-current-features-preview");
+    const goCustomizeBtn = document.getElementById("btn-go-customize");
+    const featuresModule = window.MyNoteFeatures;
+
+    if (featPreview && featuresModule) {
+        const enabledIds = new Set(featuresModule.getEnabledFeatureIds());
+        const allFeats = featuresModule.ALL_FEATURES;
+        const activeFeats = allFeats.filter(f => enabledIds.has(f.id));
+
+        if (activeFeats.length === 0) {
+            featPreview.innerHTML = `<span style="color:#ef4444; font-size:13px;">※ 現在有効な機能はありません</span>`;
+        } else {
+            featPreview.innerHTML = activeFeats.map(f => `
+                <span class="feat-badge-pill">${f.icon} ${f.name}</span>
+            `).join("");
+        }
+    }
+
+    if (goCustomizeBtn) {
+        goCustomizeBtn.addEventListener("click", () => {
+            location.href = "customize.html";
+        });
+    }
+
     // ---------- メールアドレス変更 ----------
     const changeEmailMessage = document.getElementById("change-email-message");
 

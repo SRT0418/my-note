@@ -18,6 +18,7 @@ window.addEventListener("load", async () => {
     const searchInput = document.getElementById("master-search-input");
     const roleFilter = document.getElementById("master-role-filter");
     const statusFilter = document.getElementById("master-status-filter");
+    const featureFilter = document.getElementById("master-feature-filter");
     const reloadBtn = document.getElementById("btn-reload-users");
     const backBtn = document.getElementById("btn-back-home");
     const tbody = document.getElementById("master-user-tbody");
@@ -29,7 +30,7 @@ window.addEventListener("load", async () => {
     async function fetchAndRenderUsers() {
         tbody.innerHTML = `
             <tr>
-                <td colspan="6" style="text-align: center; padding: 20px; color: #888;">
+                <td colspan="7" style="text-align: center; padding: 20px; color: #888;">
                     ユーザー情報を読み込み中...
                 </td>
             </tr>
@@ -68,6 +69,7 @@ window.addEventListener("load", async () => {
         const query = (searchInput.value || "").toLowerCase().trim();
         const role = roleFilter.value;
         const status = statusFilter.value;
+        const feat = featureFilter ? featureFilter.value : "all";
 
         const filtered = allProfiles.filter(p => {
             const matchQuery = !query ||
@@ -75,13 +77,17 @@ window.addEventListener("load", async () => {
                 (p.email && p.email.toLowerCase().includes(query));
             const matchRole = role === "all" || p.role === role;
             const matchStatus = status === "all" || p.status === status;
-            return matchQuery && matchRole && matchStatus;
+            const userFeats = Array.isArray(p.custom_features)
+                ? p.custom_features
+                : (window.MyNoteFeatures ? window.MyNoteFeatures.getDefaultFeatureIds() : []);
+            const matchFeat = feat === "all" || userFeats.includes(feat);
+            return matchQuery && matchRole && matchStatus && matchFeat;
         });
 
         if (filtered.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" style="text-align: center; padding: 20px; color: #888;">
+                    <td colspan="7" style="text-align: center; padding: 20px; color: #888;">
                         該当するユーザーが見つかりません。
                     </td>
                 </tr>
@@ -90,6 +96,7 @@ window.addEventListener("load", async () => {
         }
 
         const currentAdminId = auth.getCurrentUserId();
+        const allFeatDefs = window.MyNoteFeatures ? window.MyNoteFeatures.ALL_FEATURES : [];
 
         tbody.innerHTML = filtered.map(p => {
             const isSelf = (currentAdminId && p.id === currentAdminId) ||
@@ -109,9 +116,25 @@ window.addEventListener("load", async () => {
             const nextStatus = p.status === "suspended" ? "active" : "suspended";
             const statusBtnText = p.status === "suspended" ? "凍結解除" : "一時凍結";
 
+            // カスタマイズ機能バッジ表示
+            const userFeats = Array.isArray(p.custom_features) && p.custom_features.length > 0
+                ? p.custom_features
+                : (window.MyNoteFeatures ? window.MyNoteFeatures.getDefaultFeatureIds() : []);
+
+            const featTags = userFeats.map(fid => {
+                const def = allFeatDefs.find(f => f.id === fid);
+                return def
+                    ? `<span class="master-feat-tag" title="${def.name}">${def.icon} ${def.name.slice(0, 4)}</span>`
+                    : `<span class="master-feat-tag">${fid}</span>`;
+            }).join("");
+
+            const featCellHtml = userFeats.length === 0
+                ? '<span style="color:#ef4444; font-size:12px; font-weight:bold;">なし (0機能)</span>'
+                : `<div class="master-feats-wrap">${featTags}</div><div class="master-feat-count">${userFeats.length} / ${allFeatDefs.length} 機能</div>`;
+
             let actionHtml = "";
             if (isSelf) {
-                actionHtml = '<span style="font-size: 0.85em; color: #888;">(現在のログインユーザー)</span>';
+                actionHtml = '<span class="self-user-label">👤 ログイン中</span>';
             } else {
                 actionHtml = `
                     <div class="action-btns">
@@ -130,12 +153,13 @@ window.addEventListener("load", async () => {
 
             return `
                 <tr>
-                    <td><strong>${escapeHtml(p.username)}</strong></td>
-                    <td>${escapeHtml(p.email || "-")}</td>
-                    <td>${roleBadge}</td>
-                    <td>${statusBadge}</td>
-                    <td>${formatDate(p.created_at)}</td>
-                    <td>${actionHtml}</td>
+                    <td class="col-username"><strong>${escapeHtml(p.username)}</strong></td>
+                    <td class="col-email">${escapeHtml(p.email || "-")}</td>
+                    <td class="col-role">${roleBadge}</td>
+                    <td class="col-status">${statusBadge}</td>
+                    <td class="col-features">${featCellHtml}</td>
+                    <td class="col-created">${formatDate(p.created_at)}</td>
+                    <td class="col-actions">${actionHtml}</td>
                 </tr>
             `;
         }).join("");
@@ -367,6 +391,7 @@ window.addEventListener("load", async () => {
     searchInput.addEventListener("input", renderFilteredUsers);
     roleFilter.addEventListener("change", renderFilteredUsers);
     statusFilter.addEventListener("change", renderFilteredUsers);
+    if (featureFilter) featureFilter.addEventListener("change", renderFilteredUsers);
     reloadBtn.addEventListener("click", fetchAndRenderUsers);
 
     // 初期ロード

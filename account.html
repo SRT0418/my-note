@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./js/supabase-client.js"></script>
     <script src="./js/db-sync.js"></script>
+    <script src="./js/features.js"></script>
     <script src="./js/auth.js"></script>
     <!-- EmailJS SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
@@ -25,6 +26,20 @@
             <p id="account-current-user" class="card"></p>
             <button id="logout-button">ログアウト</button>
             <button id="back-button">HOMEへ戻る</button>
+        </div>
+
+        <!-- 機能カスタマイズセクション -->
+        <div class="account-section">
+            <h2>⚙️ 機能のカスタマイズ</h2>
+            <p style="color: #64748b; font-size: 13.5px; margin-bottom: 12px;">
+                ホーム画面やメニューに表示する機能を自由に選択・変更できます。
+            </p>
+            <div id="account-current-features-preview" class="account-features-preview">
+                <!-- 有効機能バッジをJSで表示 -->
+            </div>
+            <button id="btn-go-customize" class="btn-primary" style="margin-top: 10px; width: 100%; font-weight: bold; background: linear-gradient(135deg, #0284c7, #2563eb);">
+                🛠️ 機能カスタマイズ画面を開く
+            </button>
         </div>
 
         <div class="account-section">

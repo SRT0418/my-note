@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>機能カスタマイズ - MyNote</title>
+    <link rel="stylesheet" href="./css/common.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./js/supabase-client.js"></script>
+    <script src="./js/db-sync.js"></script>
+    <script src="./js/features.js"></script>
+    <script src="./js/auth.js"></script>
+</head>
+
+<body class="add customize-page">
+
+    <div id="drawer-overlay" class="drawer-overlay"></div>
+    <div id="nav-menu" class="nav-menu">
+        <div class="nav-menu-header">
+            <span>メニュー</span>
+            <button id="drawer-close-btn" aria-label="閉じる">&times;</button>
+        </div>
+        <a href="index.html">HOME</a>
+        <a href="kadai.html">課題締切管理</a>
+        <a href="tasks.html">タスク管理</a>
+        <a href="everydayTask.html">毎日習慣タスク</a>
+        <a href="wishlist.html">やりたいことリスト</a>
+        <a href="ideas.html">アイデア保存</a>
+        <a href="calendar.html">カレンダー</a>
+        <a href="report.html">報告書作成</a>
+        <a href="birthdays.html">誕生日管理</a>
+    </div>
+
+    <div class="side-trigger">
+        <button id="drawer-btn" aria-label="メニューを開く">☰</button>
+    </div>
+
+    <header>
+        <h1>機能のカスタマイズ</h1>
+    </header>
+
+    <div class="customize-container">
+
+        <div class="card customize-hero">
+            <h2>🛠️ マイノートの機能をあなた好みに</h2>
+            <p>
+                使いたい機能だけをONにして、シンプルなノートにしたり、全機能をフル活用したりできます。<br>
+                設定はホーム画面（カード一覧）や左メニューに即座に反映されます。
+            </p>
+
+            <div class="customize-presets">
+                <span class="preset-label">プリセット：</span>
+                <button type="button" id="preset-all" class="btn-sub-sm">🌟 すべて選択</button>
+                <button type="button" id="preset-student" class="btn-sub-sm">🎓 学生・学習向け</button>
+                <button type="button" id="preset-minimal" class="btn-sub-sm">⚡ シンプル (ToDo+習慣)</button>
+                <button type="button" id="preset-clear" class="btn-sub-sm">🧹 全解除</button>
+            </div>
+        </div>
+
+        <div class="customize-stats-bar">
+            <span id="customize-count-badge" class="selected-count-badge">8 / 8 機能が有効</span>
+            <div class="customize-actions-top">
+                <button id="btn-save-features-top" class="btn-primary">💾 設定を保存する</button>
+            </div>
+        </div>
+
+        <!-- 機能カード一覧 -->
+        <div id="features-custom-grid" class="features-custom-grid">
+            <!-- JavaScript で動的にカードを描画 -->
+        </div>
+
+        <div class="customize-footer-actions">
+            <button id="btn-save-features" class="btn-primary btn-save-large">💾 変更を保存する</button>
+            <div class="customize-sub-nav">
+                <button id="btn-back-account" class="btn-secondary">👤 アカウント設定へ戻る</button>
+                <button id="btn-back-home" class="btn-secondary">🏠 HOMEへ戻る</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="./js/common.js" defer></script>
+    <script src="./js/customize.js" defer></script>
+
+</body>
+
+</html>

@@ -10,6 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./js/supabase-client.js"></script>
     <script src="./js/db-sync.js"></script>
+    <script src="./js/features.js"></script>
     <script src="./js/auth.js"></script>
 </head>
 
@@ -85,6 +86,18 @@
                 <option value="suspended">一時凍結 (suspended)</option>
             </select>
 
+            <select id="master-feature-filter">
+                <option value="all">すべての利用機能</option>
+                <option value="kadai">📚 課題締切管理 利用中</option>
+                <option value="tasks">✅ タスク管理 利用中</option>
+                <option value="everydayTask">🔄 毎日習慣 利用中</option>
+                <option value="wishlist">✨ やりたいこと 利用中</option>
+                <option value="ideas">💡 アイデア保存 利用中</option>
+                <option value="calendar">📅 カレンダー 利用中</option>
+                <option value="report">📄 報告書作成 利用中</option>
+                <option value="birthdays">🎂 誕生日管理 利用中</option>
+            </select>
+
             <button id="btn-reload-users" style="margin-left: auto;">🔄 更新</button>
         </div>
 
@@ -97,13 +110,14 @@
                         <th>メールアドレス</th>
                         <th>権限</th>
                         <th>ステータス</th>
+                        <th>有効機能（カスタマイズ）</th>
                         <th>登録日時</th>
                         <th>操作</th>
                     </tr>
                 </thead>
                 <tbody id="master-user-tbody">
                     <tr>
-                        <td colspan="6" style="text-align: center; padding: 20px; color: #888;">
+                        <td colspan="7" style="text-align: center; padding: 20px; color: #888;">
                             ユーザー情報を読み込み中...
                         </td>
                     </tr>

@@ -156,9 +156,15 @@
     }
 
     // ---------- 新規ユーザー登録 ----------
-    async function registerUser(username, email, password) {
+    async function registerUser(username, email, password, customFeatures) {
         username = (username || "").trim();
         email = (email || "").trim();
+
+        if (!Array.isArray(customFeatures) || customFeatures.length === 0) {
+            customFeatures = window.MyNoteFeatures
+                ? window.MyNoteFeatures.getDefaultFeatureIds()
+                : ["kadai", "tasks", "everydayTask", "wishlist", "ideas", "calendar", "report", "birthdays"];
+        }
 
         if (!username) return { ok: false, message: "ユーザー名を入力してください。" };
         if (username.length > 20) return { ok: false, message: "ユーザー名は20文字以内で入力してください。" };
@@ -175,7 +181,10 @@
                     email: email,
                     password: password,
                     options: {
-                        data: { username: username }
+                        data: {
+                            username: username,
+                            custom_features: customFeatures
+                        }
                     }
                 });
 
@@ -183,14 +192,45 @@
                     return { ok: false, message: error.message || "新規登録に失敗しました。" };
                 }
 
+                // ユーザーIDがあれば profiles に即時作成/更新を試みる
+                if (data && data.user && data.user.id) {
+                    try {
+                        const { data: countData } = await client.from("profiles").select("id", { count: "exact" });
+                        const isFirst = !countData || countData.length === 0;
+                        await client.from("profiles").upsert({
+                            id: data.user.id,
+                            username: username,
+                            email: email,
+                            role: isFirst ? "admin" : "user",
+                            status: "active",
+                            custom_features: customFeatures
+                        });
+                    } catch (pe) {
+                        console.warn("profiles insert on signup:", pe);
+                    }
+                }
+
                 // ローカルユーザー情報も念のため更新
                 const salt = randomSalt();
                 const hash = await sha256Hex(salt + password);
                 const users = getUsers();
                 if (!users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
-                    users.push({ username, email, salt, hash, createdAt: new Date().toISOString() });
+                    users.push({
+                        username,
+                        email,
+                        salt,
+                        hash,
+                        custom_features: customFeatures,
+                        createdAt: new Date().toISOString()
+                    });
                     saveUsers(users);
                 }
+
+                // 新規登録直後のカスタム機能を一時保存
+                try {
+                    rawSet("u:" + username + ":custom_features", JSON.stringify(customFeatures));
+                    rawSet("pending_signup_features", JSON.stringify(customFeatures));
+                } catch (e) {}
 
                 return { ok: true, user: data.user };
             } catch (e) {
@@ -210,9 +250,15 @@
             salt: salt,
             hash: hash,
             role: isFirst ? "admin" : "user",
+            custom_features: customFeatures,
             createdAt: new Date().toISOString()
         });
         saveUsers(users);
+
+        try {
+            rawSet("u:" + username + ":custom_features", JSON.stringify(customFeatures));
+        } catch (e) {}
+
         return { ok: true };
     }
 
@@ -287,12 +333,26 @@
                     displayUsername = (!isValidEmail(usernameOrEmail) ? usernameOrEmail : (authData.user.email ? authData.user.email.split("@")[0] : usernameOrEmail));
                 }
 
+                // カスタム機能設定の引き込み
+                const pendingFeatures = rawGet("pending_signup_features");
+                if (pendingFeatures) {
+                    try {
+                        rawSet("u:" + displayUsername + ":custom_features", pendingFeatures);
+                        rawRemoveItem.call(localStorage, "pending_signup_features");
+                    } catch (e) {}
+                } else if (profile && Array.isArray(profile.custom_features)) {
+                    try {
+                        rawSet("u:" + displayUsername + ":custom_features", JSON.stringify(profile.custom_features));
+                    } catch (e) {}
+                }
+
                 setSessionProfile(displayUsername, profile || {
                     id: userId,
                     username: displayUsername,
                     email: authData.user.email,
                     role: "user",
-                    status: "active"
+                    status: "active",
+                    custom_features: (profile && profile.custom_features) || null
                 });
 
                 // クラウドデータの同期・引き込み
@@ -314,6 +374,12 @@
         const hash = await sha256Hex(user.salt + (password || ""));
         if (hash !== user.hash) return { ok: false, message: "ユーザー名またはパスワードが違います。" };
 
+        if (user && Array.isArray(user.custom_features)) {
+            try {
+                rawSet("u:" + user.username + ":custom_features", JSON.stringify(user.custom_features));
+            } catch (e) {}
+        }
+
         const isFirst = getUsers().indexOf(user) === 0;
         const role = user.role || (isFirst || user.username.toLowerCase() === "admin" ? "admin" : "user");
         setSessionProfile(user.username, {
@@ -321,7 +387,8 @@
             username: user.username,
             email: user.email,
             role: role,
-            status: "active"
+            status: "active",
+            custom_features: user.custom_features || null
         });
 
         return { ok: true };
@@ -457,19 +524,50 @@
                 .select("*")
                 .order("created_at", { ascending: true });
 
-            if (!error && data) return data;
+            if (!error && data) {
+                return data.map(p => {
+                    let feats = p.custom_features;
+                    if (!feats || !Array.isArray(feats) || feats.length === 0) {
+                        try {
+                            const localNs = rawGet("u:" + p.username + ":custom_features");
+                            if (localNs) feats = JSON.parse(localNs);
+                        } catch (e) {}
+                    }
+                    if (!feats || !Array.isArray(feats) || feats.length === 0) {
+                        feats = window.MyNoteFeatures
+                            ? window.MyNoteFeatures.getDefaultFeatureIds()
+                            : ["kadai", "tasks", "everydayTask", "wishlist", "ideas", "calendar", "report", "birthdays"];
+                    }
+                    return { ...p, custom_features: feats };
+                });
+            }
         }
 
         // ローカルフォールバック: localStorage 内の全ユーザー一覧を整形して返す
         const users = getUsers();
-        return users.map((u, i) => ({
-            id: "local-" + u.username,
-            username: u.username,
-            email: u.email || "",
-            role: u.role || (i === 0 || u.username.toLowerCase() === "admin" ? "admin" : "user"),
-            status: u.status || "active",
-            created_at: u.createdAt || new Date().toISOString()
-        }));
+        return users.map((u, i) => {
+            let feats = u.custom_features;
+            if (!feats || !Array.isArray(feats) || feats.length === 0) {
+                try {
+                    const localNs = rawGet("u:" + u.username + ":custom_features");
+                    if (localNs) feats = JSON.parse(localNs);
+                } catch (e) {}
+            }
+            if (!feats || !Array.isArray(feats) || feats.length === 0) {
+                feats = window.MyNoteFeatures
+                    ? window.MyNoteFeatures.getDefaultFeatureIds()
+                    : ["kadai", "tasks", "everydayTask", "wishlist", "ideas", "calendar", "report", "birthdays"];
+            }
+            return {
+                id: "local-" + u.username,
+                username: u.username,
+                email: u.email || "",
+                role: u.role || (i === 0 || u.username.toLowerCase() === "admin" ? "admin" : "user"),
+                status: u.status || "active",
+                custom_features: feats,
+                created_at: u.createdAt || new Date().toISOString()
+            };
+        });
     }
 
     async function updateUserRole(userId, newRole) {

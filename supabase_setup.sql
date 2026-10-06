@@ -10,8 +10,12 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     email TEXT,
     role TEXT NOT NULL DEFAULT 'user',     -- 'admin' または 'user'
     status TEXT NOT NULL DEFAULT 'active', -- 'active' または 'suspended'
+    custom_features JSONB DEFAULT '["kadai","tasks","everydayTask","wishlist","ideas","calendar","report","birthdays"]'::jsonb,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- 既存環境へのカラム追加用（既にprofilesテーブルが存在する場合）
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS custom_features JSONB DEFAULT '["kadai","tasks","everydayTask","wishlist","ideas","calendar","report","birthdays"]'::jsonb;
 
 -- RLS (Row Level Security) 有効化
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;

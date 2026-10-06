@@ -106,8 +106,11 @@
     .report-paper.rt-minimal-mono .es-word-count { color:#666; }
 
     /* ---- ノート風（罫線・マーカー） ---- */
-    .report-paper.rt-note-paper {
-        background-color:#fffdf5;
+    .report-paper.rt-note-paper,
+    .report-paper.es-theme.rt-note-paper,
+    .report-paper.rt-note-paper[contenteditable="true"] {
+        background-color:#fffdf5 !important;
+        background:#fffdf5 !important;
         border-left:4px double #f87171;
         font-family:'Hiragino Maru Gothic ProN','Yu Gothic','Meiryo',sans-serif;
     }
@@ -138,8 +141,11 @@
     .report-paper.rt-pop-badge .es-word-count { color:#ede9fe; }
 
     /* ---- エディトリアル（雑誌風・明朝） ---- */
-    .report-paper.rt-editorial {
-        background-color:#fbf9f4;
+    .report-paper.rt-editorial,
+    .report-paper.es-theme.rt-editorial,
+    .report-paper.rt-editorial[contenteditable="true"] {
+        background-color:#fbf9f4 !important;
+        background:#fbf9f4 !important;
         font-family:'Yu Mincho','Hiragino Mincho ProN','Noto Serif JP','MS Mincho',serif;
     }
     .report-paper.rt-editorial .es-paper-header {
@@ -164,10 +170,28 @@
     .report-paper.rt-editorial p.es-item-p { color:#2b2b2b; line-height:2.05; }
 
     /* ---- ミッドナイト（ダーク×ネオン） ---- */
-    .report-paper.rt-midnight {
-        background-color:#0b1220; color:#cbd5e1; caret-color:#22d3ee;
-        border-radius:10px;
-        -webkit-print-color-adjust:exact; print-color-adjust:exact;
+    .report-paper.rt-midnight,
+    .report-paper.es-theme.rt-midnight,
+    .report-paper.rt-midnight[contenteditable="true"],
+    .report-paper.rt-midnight[contenteditable="true"]:hover,
+    .report-paper.rt-midnight[contenteditable="true"]:focus {
+        background-color: #0b1220 !important;
+        background: #0b1220 !important;
+        color: #cbd5e1 !important;
+        caret-color: #22d3ee;
+        border: 1px solid #1e293b !important;
+        border-radius: 10px;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .report-paper.rt-midnight[contenteditable="true"]:hover {
+        border-color: #22d3ee !important;
+        box-shadow: 0 0 16px rgba(34, 211, 238, 0.25), 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+    }
+    .report-paper.rt-midnight::before {
+        background: linear-gradient(90deg, #22d3ee 0%, #a78bfa 50%, #22d3ee 100%) !important;
+        height: 4px;
+        border-radius: 10px 10px 0 0;
     }
     .report-paper.rt-midnight .es-paper-title {
         font-weight:800; letter-spacing:0.06em;
@@ -254,10 +278,10 @@
     .report-paper.rt-editorial .es-meta-label { color:#8a7f72; font-size:10px; letter-spacing:0.34em; }
     .report-paper.rt-editorial .es-meta-value { color:#1a1a1a; font-weight:500; font-size:14px; letter-spacing:0.06em; }
 
-    .report-paper.rt-midnight td.es-meta-cell { background:#111a2e; border-top:1px solid #22d3ee; border-bottom:1px solid #1e293b; border-left:1px solid #1e293b; }
-    .report-paper.rt-midnight td.es-meta-cell:first-child { border-left:none; }
-    .report-paper.rt-midnight .es-meta-label { color:#22d3ee; }
-    .report-paper.rt-midnight .es-meta-value { color:#f1f5f9; }
+    .report-paper.rt-midnight td.es-meta-cell { background:#111a2e !important; border-top:1px solid #22d3ee !important; border-bottom:1px solid #1e293b !important; border-left:1px solid #1e293b !important; }
+    .report-paper.rt-midnight td.es-meta-cell:first-child { border-left:none !important; }
+    .report-paper.rt-midnight .es-meta-label { color:#22d3ee !important; }
+    .report-paper.rt-midnight .es-meta-value { color:#f1f5f9 !important; }
     `;
 
     // 基本情報カード（Word出力用CSS）
