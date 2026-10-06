@@ -133,7 +133,7 @@ window.addEventListener("load", () => {
             : null;
         if (!client) return;
 
-        const userId = auth.getCurrentUserId();
+        const userId = await auth.getCurrentUserIdAsync();
         if (!userId || userId.startsWith("local-")) return;
 
         const { data } = await client
@@ -188,13 +188,14 @@ window.addEventListener("load", () => {
                 ? window.MyNoteSupabase.getClient()
                 : null;
 
-            const userId = auth.getCurrentUserId();
             const now = new Date();
             const nowStr = now.getFullYear() + "/" +
                 String(now.getMonth() + 1).padStart(2, "0") + "/" +
                 String(now.getDate()).padStart(2, "0") + " " +
                 String(now.getHours()).padStart(2, "0") + ":" +
                 String(now.getMinutes()).padStart(2, "0");
+
+            const userId = await auth.getCurrentUserIdAsync();
 
             if (client && userId && !userId.startsWith("local-")) {
                 const { error } = await client.from("delete_requests").insert({

@@ -107,15 +107,27 @@
     }
 
     function getCurrentUserId() {
+        const prof = getSessionProfile();
+        if (prof && prof.id && !prof.id.startsWith("local-")) {
+            return prof.id;
+        }
+        return prof ? prof.id : null;
+    }
+
+    async function getCurrentUserIdAsync() {
         const client = window.MyNoteSupabase && window.MyNoteSupabase.isConfigured()
             ? window.MyNoteSupabase.getClient()
             : null;
 
         if (client && client.auth) {
-            // Supabaseのセッションから本物のUUIDを取得
-            const sessionUser = client.auth.user ? client.auth.user() : null;
-            if (sessionUser && sessionUser.id) {
-                return sessionUser.id;
+            try {
+                // Supabase JS v2: getSession() で現在のセッションを取得
+                const { data } = await client.auth.getSession();
+                if (data && data.session && data.session.user && data.session.user.id) {
+                    return data.session.user.id;
+                }
+            } catch (e) {
+                console.warn("getSession error:", e);
             }
         }
 
@@ -123,7 +135,6 @@
         if (prof && prof.id && !prof.id.startsWith("local-")) {
             return prof.id;
         }
-
         return prof ? prof.id : null;
     }
 
@@ -772,6 +783,7 @@
         deleteAccount,
         getCurrentUser,
         getCurrentUserId,
+        getCurrentUserIdAsync,
         getCurrentUserInfo,
         isAdmin,
         logout,
