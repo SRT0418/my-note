@@ -28,7 +28,24 @@
         }
 
         try {
-            supabaseInstance = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            // auth.js の localStorage フック（名前空間化）をバイパスするため
+            // Supabase SDK には生の localStorage メソッドを使うカスタムストレージを渡す
+            const _rawGet    = function(k) { return Object.getPrototypeOf(localStorage).getItem.call(localStorage, k); };
+            const _rawSet    = function(k, v) { return Object.getPrototypeOf(localStorage).setItem.call(localStorage, k, v); };
+            const _rawRemove = function(k) { return Object.getPrototypeOf(localStorage).removeItem.call(localStorage, k); };
+
+            supabaseInstance = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                auth: {
+                    storage: {
+                        getItem:    function(key) { return _rawGet(key); },
+                        setItem:    function(key, value) { return _rawSet(key, value); },
+                        removeItem: function(key) { return _rawRemove(key); }
+                    },
+                    persistSession: true,
+                    autoRefreshToken: true,
+                    detectSessionInUrl: true
+                }
+            });
             return supabaseInstance;
         } catch (e) {
             console.error("Supabase クライアント初期化エラー:", e);
