@@ -86,6 +86,106 @@
 
     <script src="./js/common.js" defer></script>
     <script src="./js/notification.js" defer></script>
+
+    <!-- ── Easter Egg: Konami Code → History Page ── -->
+    <style>
+        .portal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0);
+            pointer-events: none;
+            transition: background 0.6s ease;
+        }
+        .portal-overlay.active {
+            background: rgba(10, 10, 15, 0.95);
+            pointer-events: all;
+        }
+        .portal-ring {
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            border: 3px solid rgba(147, 130, 220, 0.8);
+            box-shadow:
+                0 0 40px rgba(147, 130, 220, 0.4),
+                inset 0 0 40px rgba(147, 130, 220, 0.2);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+        .portal-ring.expand {
+            width: 200px;
+            height: 200px;
+            animation: portalPulse 1s ease-in-out infinite alternate;
+        }
+        .portal-ring.warp {
+            width: 3000px;
+            height: 3000px;
+            border-color: transparent;
+            background: radial-gradient(circle, rgba(147,130,220,0.4) 0%, rgba(10,10,15,1) 70%);
+        }
+        .portal-text {
+            position: absolute;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #a78bfa;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .portal-ring.expand .portal-text {
+            opacity: 1;
+        }
+        @keyframes portalPulse {
+            from { box-shadow: 0 0 40px rgba(147,130,220,0.4), inset 0 0 40px rgba(147,130,220,0.2); }
+            to   { box-shadow: 0 0 80px rgba(147,130,220,0.6), inset 0 0 60px rgba(147,130,220,0.3); }
+        }
+    </style>
+    <script>
+    (function() {
+        const KONAMI = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+        let idx = 0;
+        document.addEventListener('keydown', function(e) {
+            if (e.key === KONAMI[idx]) {
+                idx++;
+                if (idx === KONAMI.length) {
+                    idx = 0;
+                    launchPortal();
+                }
+            } else {
+                idx = e.key === KONAMI[0] ? 1 : 0;
+            }
+        });
+        function launchPortal() {
+            const overlay = document.createElement('div');
+            overlay.className = 'portal-overlay';
+            const ring = document.createElement('div');
+            ring.className = 'portal-ring';
+            const text = document.createElement('div');
+            text.className = 'portal-text';
+            text.textContent = '🔓 SECRET UNLOCKED';
+            ring.appendChild(text);
+            overlay.appendChild(ring);
+            document.body.appendChild(overlay);
+            requestAnimationFrame(() => {
+                overlay.classList.add('active');
+                ring.classList.add('expand');
+            });
+            setTimeout(() => {
+                ring.classList.remove('expand');
+                ring.classList.add('warp');
+                setTimeout(() => { location.href = 'history.html'; }, 600);
+            }, 1600);
+        }
+    })();
+    </script>
 </body>
 
 </html>

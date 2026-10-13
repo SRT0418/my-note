@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyNote — History</title>
+    <link rel="stylesheet" href="./css/common.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Noto+Sans+JP:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* ── Reset & Base ──────────────────────────── */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e8;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* ── Animated Gradient Background ──────────── */
+        .history-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background:
+                radial-gradient(ellipse at 20% 50%, rgba(88, 28, 135, 0.15) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(15, 82, 186, 0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(6, 95, 70, 0.1) 0%, transparent 50%);
+            animation: bgPulse 12s ease-in-out infinite alternate;
+        }
+
+        @keyframes bgPulse {
+            0% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        /* ── Floating Particles ────────────────────── */
+        .particles {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: rgba(147, 130, 220, 0.4);
+            animation: float linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+
+        /* ── Hero Section ──────────────────────────── */
+        .history-hero {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 100px 20px 60px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 20px;
+            border-radius: 999px;
+            background: rgba(147, 130, 220, 0.12);
+            border: 1px solid rgba(147, 130, 220, 0.25);
+            color: #a78bfa;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 28px;
+            animation: fadeSlideUp 0.8s ease-out;
+        }
+
+        .hero-badge::before {
+            content: '🔓';
+            font-size: 0.9rem;
+        }
+
+        .hero-title {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            margin: 0 0 20px;
+            background: linear-gradient(135deg, #e0e0e8 0%, #a78bfa 40%, #60a5fa 70%, #34d399 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeSlideUp 0.8s ease-out 0.1s backwards;
+        }
+
+        .hero-subtitle {
+            font-size: 1.1rem;
+            color: #8888a0;
+            font-weight: 300;
+            max-width: 500px;
+            margin: 0 auto 12px;
+            line-height: 1.7;
+            animation: fadeSlideUp 0.8s ease-out 0.2s backwards;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 40px;
+            animation: fadeSlideUp 0.8s ease-out 0.3s backwards;
+        }
+
+        .hero-stat {
+            text-align: center;
+        }
+
+        .hero-stat-value {
+            font-size: 2.2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #a78bfa, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-stat-label {
+            font-size: 0.75rem;
+            color: #6b6b88;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        @keyframes fadeSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ── Timeline Container ────────────────────── */
+        .timeline-container {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px 100px;
+        }
+
+        /* ── Timeline Spine ────────────────────────── */
+        .timeline-spine {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(
+                to bottom,
+                transparent,
+                rgba(147, 130, 220, 0.3) 5%,
+                rgba(147, 130, 220, 0.3) 95%,
+                transparent
+            );
+            transform: translateX(-50%);
+        }
+
+        @media (max-width: 700px) {
+            .timeline-spine {
+                left: 28px;
+            }
+        }
+
+        /* ── Era Block ─────────────────────────────── */
+        .era-block {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .era-label {
+            position: sticky;
+            top: 20px;
+            z-index: 10;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .era-label span {
+            display: inline-block;
+            padding: 10px 28px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .era-label.era-genesis span {
+            background: rgba(88, 28, 135, 0.25);
+            border: 1px solid rgba(147, 130, 220, 0.3);
+            color: #c4b5fd;
+        }
+
+        .era-label.era-growth span {
+            background: rgba(15, 82, 186, 0.2);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            color: #93c5fd;
+        }
+
+        .era-label.era-cloud span {
+            background: rgba(6, 95, 70, 0.2);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            color: #6ee7b7;
+        }
+
+        .era-label.era-polish span {
+            background: rgba(180, 83, 9, 0.2);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            color: #fcd34d;
+        }
+
+        /* ── Timeline Event ────────────────────────── */
+        .timeline-event {
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+
+        .timeline-event.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .timeline-event.left {
+            flex-direction: row;
+            padding-right: calc(50% + 30px);
+        }
+
+        .timeline-event.right {
+            flex-direction: row-reverse;
+            padding-left: calc(50% + 30px);
+        }
+
+        @media (max-width: 700px) {
+            .timeline-event.left,
+            .timeline-event.right {
+                flex-direction: row;
+                padding-left: 56px;
+                padding-right: 0;
+            }
+        }
+
+        /* ── Node on spine ─────────────────────────── */
+        .timeline-node {
+            position: absolute;
+            left: 50%;
+            top: 16px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #0a0a0f;
+            border: 2px solid rgba(147, 130, 220, 0.5);
+            transform: translateX(-50%);
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-event:hover .timeline-node {
+            border-color: #a78bfa;
+            box-shadow: 0 0 16px rgba(147, 130, 220, 0.5);
+            transform: translateX(-50%) scale(1.3);
+        }
+
+        .timeline-event.milestone .timeline-node {
+            width: 16px;
+            height: 16px;
+            border-color: #a78bfa;
+            background: rgba(147, 130, 220, 0.3);
+            box-shadow: 0 0 20px rgba(147, 130, 220, 0.3);
+        }
+
+        @media (max-width: 700px) {
+            .timeline-node {
+                left: 28px;
+            }
+            .timeline-event:hover .timeline-node {
+                transform: translateX(-50%) scale(1.2);
+            }
+        }
+
+        /* ── Event Card ────────────────────────────── */
+        .event-card {
+            flex: 1;
+            background: rgba(20, 20, 30, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 20px 24px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: all 0.3s ease;
+            cursor: default;
+        }
+
+        .event-card:hover {
+            background: rgba(30, 30, 45, 0.7);
+            border-color: rgba(147, 130, 220, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .timeline-event.milestone .event-card {
+            border-color: rgba(147, 130, 220, 0.2);
+            background: rgba(25, 20, 40, 0.7);
+        }
+
+        .event-date {
+            font-size: 0.72rem;
+            color: #6b6b88;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            margin-bottom: 6px;
+        }
+
+        .event-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0 0 8px;
+            line-height: 1.4;
+            color: #e0e0e8;
+        }
+
+        .timeline-event.milestone .event-title {
+            background: linear-gradient(90deg, #c4b5fd, #93c5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.1rem;
+        }
+
+        .event-desc {
+            font-size: 0.85rem;
+            color: #8888a0;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .event-tag {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            margin-top: 10px;
+            letter-spacing: 0.04em;
+        }
+
+        .tag-feature {
+            background: rgba(147, 130, 220, 0.15);
+            color: #a78bfa;
+            border: 1px solid rgba(147, 130, 220, 0.2);
+        }
+
+        .tag-fix {
+            background: rgba(96, 165, 250, 0.12);
+            color: #60a5fa;
+            border: 1px solid rgba(96, 165, 250, 0.2);
+        }
+
+        .tag-cloud {
+            background: rgba(52, 211, 153, 0.12);
+            color: #34d399;
+            border: 1px solid rgba(52, 211, 153, 0.2);
+        }
+
+        .tag-ui {
+            background: rgba(251, 191, 36, 0.12);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.2);
+        }
+
+        .tag-milestone {
+            background: rgba(244, 114, 182, 0.12);
+            color: #f472b6;
+            border: 1px solid rgba(244, 114, 182, 0.2);
+        }
+
+        /* ── Commit Hash ───────────────────────────── */
+        .event-hash {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.68rem;
+            color: #4a4a66;
+            margin-top: 8px;
+            transition: color 0.2s;
+        }
+
+        .event-card:hover .event-hash {
+            color: #6b6b88;
+        }
+
+        /* ── Footer ────────────────────────────────── */
+        .history-footer {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 60px 20px 80px;
+        }
+
+        .footer-line {
+            font-size: 0.85rem;
+            color: #4a4a66;
+            margin: 8px 0;
+        }
+
+        .footer-link {
+            color: #a78bfa;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-link:hover {
+            color: #c4b5fd;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            border-radius: 999px;
+            background: rgba(147, 130, 220, 0.1);
+            border: 1px solid rgba(147, 130, 220, 0.25);
+            color: #a78bfa;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            margin-top: 30px;
+        }
+
+        .back-btn:hover {
+            background: rgba(147, 130, 220, 0.2);
+            border-color: rgba(147, 130, 220, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(147, 130, 220, 0.2);
+        }
+
+        /* ── Scrollbar ─────────────────────────────── */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(147, 130, 220, 0.2);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(147, 130, 220, 0.4);
+        }
+
+        /* ── Selection ─────────────────────────────── */
+        ::selection {
+            background: rgba(147, 130, 220, 0.3);
+            color: #e0e0e8;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="history-bg"></div>
+
+    <!-- Floating particles -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Hero -->
+    <section class="history-hero">
+        <div class="hero-badge">Hidden Page — Unlocked</div>
+        <h1 class="hero-title">MyNote の歴史</h1>
+        <p class="hero-subtitle">
+            2026年7月8日の最初のコミットから、<br>
+            今日までの開発の軌跡。
+        </p>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <div class="hero-stat-value">69</div>
+                <div class="hero-stat-label">Commits</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-value">98</div>
+                <div class="hero-stat-label">Days</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-value">8</div>
+                <div class="hero-stat-label">Features</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Timeline -->
+    <div class="timeline-container">
+        <div class="timeline-spine"></div>
+
+        <!-- ═══════════ Era 1: Genesis (2026-07) ═══════════ -->
+        <div class="era-block">
+            <div class="era-label era-genesis">
+                <span>⚡ 第1章 — 誕生（2026年7月）</span>
+            </div>
+
+            <div class="timeline-event milestone left">
+                <div class="timeline-node"></div>
+                <div class="event-card">
+                    <div class="event-date">2026.07.08</div>
+                    <h3 class="event-title">🎉 MyNote 爆誕 — First Commit</h3>
+                    <p class="event-desc">全てはここから始まった。課題締切管理アプリとして、最初のコードがGitHubにプッシュされた日。</p>
+                    <span class="event-tag tag-milestone">MILESTONE</span>
+                    <div class="event-hash">8323327</div>
+                </div>
+            </div>
+
+            <div class="timeline-event right">
+                <div class="timeline-node"></div>
+                <div class="event-card">
+                    <div class="event-date">2026.07.09</div>
+                    <h3 class="event-title">期限切れ判定の修正</h3>
+                    <p class="event-desc">課題の期限切れ判定ロジックを改善。初期バグの修正が続く。</p>
+                    <span class="event-tag tag-fix">FIX</span>
+                    <div class="event-hash">6413ff9</div>
+                </div>
+            </div>
+
+            <div class="timeline-event left">
+                <div class="timeline-node"></div>
+                <div class="event-card">
+                    <div class="event-date">2026.07.13</div>
+                    <h3 class="event-title">home.html → index.html へ改名</h3>
+                    <p class="event-desc">ホームページのファイル名を標準的なindex.htmlに変更。サイト構造の正規化。</p>
+                    <span class="event-tag tag-ui">UI/UX</span>
+                    <div class="event-hash">6fcbc78</div>
+                </div>
+            </div>
+
+            <div class="timeline-event milestone right">
+                <div class="timeline-node"></div>
+                <div class="event-card">
+                    <div class="event-date">2026.07.15</div>
+                    <h3 class="event-title">🔥 毎日習慣タスク機能 実装</h3>
+                    <p class="event-desc">習慣トラッキングシステムを一気に実装。継続日数、達成回数、サマリーの可視化まで。この日だけで7コミット。</p>
+                    <span class="event-tag tag-feature">FEATURE</span>
+                    <div class="event-hash">2902583 → aeb4cb8</div>
+                </div>
+            </div>
+
+            <div class="timeline-event left">
+                <div class="timeline-node"></div>
+                <div class="event-card">
+                    <div class="event-date">2026.07.16</div>
+                    <h3 class="event-title">メニュー仕様変更 & UI磨き</h3>
+                    <p class="event-desc">ハンバーガーメニューの導入、達成回数表示の視認性改善、追加画面のCSS修正。</p>
+                    <span class="event-tag tag-ui">UI/UX</span>
+                    <div class="event-hash">d2166e4 → 668c865</div>
+                </div>
+            </div>
+
+            <div class="timeline-event right">
+                <div class="timeline-node"></div>
+                <div class="event-card">
+                    <div class="event-date">2026.07.18</div>
+                    <h3 class="event-title">帯グラフの非表示</h3>
+                    <p class="event-desc">UIの簡素化 — 帯グラフ表示を一旦非表示に。</p>
+                    <span class="event-tag tag-ui">UI/UX</span>
+                    <div class="event-hash">bfcad2f</div>
+                </div>
+            </div>
+
+            <div class="timeline-event left">
+                <div class="timeline-node"></div>
+                <div class="event-card">
+                    <div class="event-date">2026.07.21</div>
+                    <h3 class="event-title">アイコン変更</h3>
+                    <p class="event-desc">MyNoteのファビコンを刷新。ブランドアイデンティティの確立。</p>
+                    <span class="event-tag tag-ui">UI/UX</span>
+                    <div class="event-hash">be38a9a</div>
+                </div>
+            </div>
+
+            <div class="timeline-event milestone right">
+                <div class="timeline-node"></div>
+                <div class="event-card">
+                    <div class="event-date">2026.07.22</div>
+                    <h3 class="event-title">📅 カレンダー画面 追加</h3>
+                    <p class="event-desc">予定をカレンダーとカードで管理できる新画面を追加。予定場所の入力欄も実装。</p>
+                    <span class="event-tag tag-feature">FEATURE</span>
+                    <div class="event-hash">d937262 → 12dc7b9</div>
+                </div>
+            </div>
+
+            <div class="timeline-event milestone left">
+                <div class="timeline-node"></div>
+                <div class="event-card">
+                    <div class="event-date">2026.07.23</div>
+                    <h3 class="event-title">👤 アカウント機能 追加</h3>
+                    <p class="event-desc">ユーザアカウント機能を実装。ユーザ情報の表示・管理が可能に。</p>
+                    <span class="event-tag tag-feature">FEATURE</span>
+                    <div class="event-hash">d2f777f → 6533abc</div>
+                </div>
+            </div>
+
+            <div class="timeline-event right">
+                <div class="timeline-node"></div>
+                <div class="event-card">
+                    <div class="event-date">2026.07.31</div>
+                    <h3 class="event-title">カレンダー UI 大幅修正</h3>
+                    <p class="event-desc">カレンダー画面の中央寄せや表示調整で試行錯誤。この日だけで7コミット。</p>
+                    <span class="event-tag tag-ui">UI/UX</span>
+                    <div class="event-hash">b9c5ec1 → a954a85</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════ Era 2: Growth (2026-08) ═══════════ -->
+        <div class="era-block">
+            <div class="era-label era-growth">
+                <span>🌱 第2章 — 成長（2026年8月）</span>
+            </div>
+
+            <div class="timeline-event left">
+                <div class="timeline-node"></div>
+                <div class="event-card">
+                    <div class="event-date">2026.08.05</div>
+                    <h3 class="event-title">カレンダー予定をバナー表示に</h3>
+                    <p class="event-desc">カレンダー上の予定表示をバナー形式に変更。より視認性の高いUIへ進化。</p>
+                    <span class="event-tag tag-ui">UI/UX</span>
+                    <div class="event-hash">b314e8f</div>
+                </div>
+            </div>
+
+            <div class="timeline-event right">
+                <div class="timeline-node"></div>
+                <div class="event-card">
+                    <div class="event-date">2026.08.14</div>
+                    <h3 class="event-title">result と kadai の修正</h3>
+                    <p class="event-desc">結果表示画面と課題管理画面の品質改善。</p>
+                    <span class="event-tag tag-fix">FIX</span>
+                    <div class="event-hash">d88c85d</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════ Era 3: Cloud & Expansion (2026-09) ═══════════ -->
+        <div class="era-block">
+            <div class="era-label era-cloud">
+                <span>☁️ 第3章 — クラウド化（2026年9月）</span>
+            </div>
+
+            <div class="timeline-event milestone left">
+                <div class="timeline-node"></div>
+                <div class="event-card">
+                    <div class="event-date">2026.09.06</div>
+                    <h3 class="event-title">🎂 誕生日管理機能 追加</h3>
+                    <p class="event-desc">大切な人の誕生日や年齢・日数をカウント管理。カレンダーには日にち指定と終日機能も追加。</p>
+                    <span class="event-tag tag-feature">FEATURE</span>
+                    <div class="event-hash">59eb7af</div>
+                </div>
+            </div>
+
+            <div class="timeline-event milestone right">
+                <div class="timeline-node"></div>
+                <div class="event-card">
+                    <div class="event-date">2026.09.14</div>
+                    <h3 class="event-title">🚀 クラウド化完成 — Supabase統合</h3>
+                    <p class="event-desc">ローカルストレージからクラウドへ。Supabaseとのデータ同期、マスター機能、自動バックグラウンド同期、セキュリティガードを一気に実装。この日最多の12コミット。</p>
+                    <span class="event-tag tag-cloud">CLOUD</span>
+                    <div class="event-hash">f27730a → d6049c7</div>
+                </div>
+            </div>
+
+            <div class="timeline-event left">
+                <div class="timeline-node"></div>
+                <div class="event-card">
+                    <div class="event-date">2026.09.19</div>
+                    <h3 class="event-title">バグ修正ラッシュ</h3>
+                    <p class="event-desc">クラウド化後の3連続バグ修正。安定化に向けた品質改善。</p>
+                    <span class="event-tag tag-fix">FIX</span>
+                    <div class="event-hash">13fcc1f → f339d35</div>
+                </div>
+            </div>
+
+            <div class="timeline-event milestone right">
+                <div class="timeline-node"></div>
+                <div class="event-card">
+                    <div class="event-date">2026.09.24</div>
+                    <h3 class="event-title">📝 報告書作成機能 追加</h3>
+                    <p class="event-desc">過去の予定を選択してテンプレート報告書を自動作成できる機能。通知センターも同時に改善。</p>
+                    <span class="event-tag tag-feature">FEATURE</span>
+                    <div class="event-hash">fe47918 → dec812f</div>
+                </div>
+            </div>
+
+            <div class="timeline-event left">
+                <div class="timeline-node"></div>
+                <div class="event-card">
+                    <div class="event-date">2026.09.28</div>
+                    <h3 class="event-title">報告書作成の改善 & 習慣タスク修正</h3>
+                    <p class="event-desc">報告書機能のブラッシュアップと毎日習慣タスクの動作修正。</p>
+                    <span class="event-tag tag-fix">FIX</span>
+                    <div class="event-hash">78f1cfd → 9582a5e</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════ Era 4: Polish (2026-10) ═══════════ -->
+        <div class="era-block">
+            <div class="era-label era-polish">
+                <span>✨ 第4章 — 洗練（2026年10月〜）</span>
+            </div>
+
+            <div class="timeline-event right">
+                <div class="timeline-node"></div>
+                <div class="event-card">
+                    <div class="event-date">2026.10.01</div>
+                    <h3 class="event-title">アカウント削除機能の改善</h3>
+                    <p class="event-desc">アカウント削除プロセスの修正と改善。ユーザ体験の向上。</p>
+                    <span class="event-tag tag-fix">FIX</span>
+                    <div class="event-hash">4619e39</div>
+                </div>
+            </div>
+
+            <div class="timeline-event milestone left">
+                <div class="timeline-node"></div>
+                <div class="event-card">
+                    <div class="event-date">2026.10.06</div>
+                    <h3 class="event-title">⚙️ カスタマイズ機能 & ログイン刷新</h3>
+                    <p class="event-desc">MyNoteの機能をユーザごとにカスタマイズ可能に。ログイン方法も変更し、よりスマートな認証フローへ。</p>
+                    <span class="event-tag tag-feature">FEATURE</span>
+                    <div class="event-hash">6185c12 → ad5140c</div>
+                </div>
+            </div>
+
+            <div class="timeline-event right">
+                <div class="timeline-node"></div>
+                <div class="event-card">
+                    <div class="event-date">2026.10.08</div>
+                    <h3 class="event-title">最新の修正</h3>
+                    <p class="event-desc">細かな修正を重ね、プロダクトの完成度を高め続ける。</p>
+                    <span class="event-tag tag-fix">FIX</span>
+                    <div class="event-hash">a993cf0</div>
+                </div>
+            </div>
+
+            <div class="timeline-event milestone left">
+                <div class="timeline-node"></div>
+                <div class="event-card">
+                    <div class="event-date">現在</div>
+                    <h3 class="event-title">🔮 物語は続く…</h3>
+                    <p class="event-desc">MyNoteの開発はまだまだ続く。次の章はあなたが書く。</p>
+                    <span class="event-tag tag-milestone">TO BE CONTINUED</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="history-footer">
+        <p class="footer-line">
+            Built with ❤️ since July 2026
+        </p>
+        <p class="footer-line">
+            <a href="https://github.com/SRT0418/my-note" class="footer-link" target="_blank" rel="noopener">
+                GitHub で全てのコミットを見る →
+            </a>
+        </p>
+        <a href="index.html" class="back-btn">← ホームに戻る</a>
+    </footer>
+
+    <script>
+        // ── Floating Particles ────────────────────────
+        (function createParticles() {
+            const container = document.getElementById('particles');
+            const count = 40;
+            for (let i = 0; i < count; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.animationDuration = (8 + Math.random() * 18) + 's';
+                p.style.animationDelay = (Math.random() * 15) + 's';
+                p.style.width = p.style.height = (1.5 + Math.random() * 3) + 'px';
+                p.style.background = [
+                    'rgba(147, 130, 220, 0.35)',
+                    'rgba(96, 165, 250, 0.3)',
+                    'rgba(52, 211, 153, 0.25)',
+                    'rgba(251, 191, 36, 0.2)'
+                ][Math.floor(Math.random() * 4)];
+                container.appendChild(p);
+            }
+        })();
+
+        // ── Scroll-triggered reveal ───────────────────
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, {
+            threshold: 0.15,
+            rootMargin: '0px 0px -40px 0px'
+        });
+
+        document.querySelectorAll('.timeline-event').forEach(el => {
+            observer.observe(el);
+        });
+
+        // ── Animated stat counter ─────────────────────
+        function animateCounter(el, target) {
+            let current = 0;
+            const step = Math.ceil(target / 40);
+            const interval = setInterval(() => {
+                current += step;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(interval);
+                }
+                el.textContent = current;
+            }, 30);
+        }
+
+        const statObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const el = entry.target;
+                    const target = parseInt(el.textContent, 10);
+                    el.textContent = '0';
+                    animateCounter(el, target);
+                    statObserver.unobserve(el);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        document.querySelectorAll('.hero-stat-value').forEach(el => {
+            statObserver.observe(el);
+        });
+    </script>
+</body>
+
+</html>
