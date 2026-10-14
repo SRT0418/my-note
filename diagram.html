@@ -497,6 +497,137 @@
             0% { transform: scale(0); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
         }
+
+        /* ── Mobile & Tablet Responsive Styles ── */
+        @media (max-width: 768px) {
+            .toolbar {
+                height: auto;
+                min-height: 50px;
+                padding: 8px 12px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+
+            .toolbar-brand {
+                justify-content: space-between;
+                width: 100%;
+            }
+
+            .brand-subtitle {
+                display: none;
+            }
+
+            .toolbar-actions {
+                width: 100%;
+                overflow-x: auto;
+                padding-bottom: 2px;
+                gap: 6px;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+
+            .toolbar-actions::-webkit-scrollbar {
+                display: none;
+            }
+
+            .tool-btn {
+                padding: 6px 11px;
+                font-size: 11px;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+
+            .workspace {
+                top: 92px; /* dynamically accounts for two-row mobile toolbar */
+            }
+
+            /* Floating zoom controls */
+            .floating-controls {
+                bottom: 14px;
+                right: 12px;
+                padding: 4px;
+                gap: 3px;
+                border-radius: 10px;
+            }
+
+            .icon-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 15px;
+            }
+
+            .zoom-label {
+                font-size: 10px;
+                padding: 0 4px;
+            }
+
+            /* Legend Card mobile collapse */
+            .legend-card {
+                bottom: 14px;
+                left: 12px;
+                padding: 8px 12px;
+                max-width: 170px;
+                border-radius: 10px;
+                cursor: pointer;
+            }
+
+            .legend-card.collapsed .legend-items {
+                display: none;
+            }
+
+            .legend-title {
+                margin-bottom: 0;
+                font-size: 11px;
+                user-select: none;
+            }
+
+            .legend-card:not(.collapsed) .legend-title {
+                margin-bottom: 8px;
+            }
+
+            /* Bottom sheet style for detail modal on mobile */
+            .detail-modal {
+                top: auto;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                width: 100%;
+                max-height: 75vh;
+                border-radius: 20px 20px 0 0;
+                box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.35);
+                animation: slideUpSheet 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+
+            @keyframes slideUpSheet {
+                from { transform: translateY(100%); }
+                to { transform: translateY(0); }
+            }
+
+            .modal-head {
+                padding: 14px 18px;
+            }
+
+            .modal-body {
+                padding: 14px 18px 24px;
+                gap: 12px;
+            }
+        }
+
+        /* Modal backdrop for mobile */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 105;
+        }
+
+        .modal-backdrop.open {
+            display: block;
+        }
     </style>
 </head>
 
@@ -586,9 +717,9 @@
         <button class="icon-btn" onclick="resetZoomAndPan()" title="全体を表示">⛶</button>
     </div>
 
-    <!-- ── Legend Sidebar ── -->
-    <div class="legend-card">
-        <div class="legend-title">🗺️ モジュール凡例</div>
+    <!-- ── Legend Sidebar (Collapsible on mobile) ── -->
+    <div id="legend-card" class="legend-card collapsed" onclick="toggleLegend()">
+        <div class="legend-title">🗺️ モジュール凡例 <span style="font-size: 9px; opacity: 0.7;">(タップ切替)</span></div>
         <div class="legend-items">
             <div class="legend-row"><span class="legend-dot" style="background: var(--color-core)"></span>中核 (Core Platform)</div>
             <div class="legend-row"><span class="legend-dot" style="background: var(--color-habit)"></span>習慣＆ストリーク (Habit)</div>
@@ -599,6 +730,9 @@
             <div class="legend-row"><span class="legend-dot" style="background: var(--color-notify)"></span>通知センター (Notification)</div>
         </div>
     </div>
+
+    <!-- ── Modal Backdrop (Mobile overlay) ── -->
+    <div id="modal-backdrop" class="modal-backdrop" onclick="closeDetailModal()"></div>
 
     <!-- ── Detail Flyout Modal ── -->
     <div id="detail-modal" class="detail-modal">
@@ -985,13 +1119,13 @@
                     </div>
                 `;
 
-                // Node Click to open Detail Modal
+                // Node Click to open Detail Modal (for mouse)
                 el.addEventListener('click', (e) => {
                     if (isDraggingNode) return;
                     openDetailModal(node);
                 });
 
-                // Node Drag Start
+                // Node Drag Start (Mouse)
                 el.addEventListener('mousedown', (e) => {
                     if (e.button !== 0) return; // only left click
                     e.stopPropagation();
@@ -1002,6 +1136,21 @@
                     dragOffset.x = (e.clientX - rect.left) / scale;
                     dragOffset.y = (e.clientY - rect.top) / scale;
                 });
+
+                // Node Touch Start (Mobile)
+                el.addEventListener('touchstart', (e) => {
+                    if (e.touches.length !== 1) return;
+                    e.stopPropagation();
+                    const touch = e.touches[0];
+                    activeNodeEl = el;
+                    touchNodeStarted = true;
+                    nodeTouchMoved = false;
+                    touchStartPos = { x: touch.clientX, y: touch.clientY };
+
+                    const rect = el.getBoundingClientRect();
+                    dragOffset.x = (touch.clientX - rect.left) / scale;
+                    dragOffset.y = (touch.clientY - rect.top) / scale;
+                }, { passive: false });
 
                 nodesContainer.appendChild(el);
             });
@@ -1080,10 +1229,16 @@
         }
 
         // ═════════════════════════════════════════════════════════════════
-        // Mouse / Touch Dragging and Canvas Panning
+        // Mouse & Touch Dragging, Canvas Panning, and Pinch Zoom
         // ═════════════════════════════════════════════════════════════════
 
-        // Node drag move
+        let touchNodeStarted = false;
+        let nodeTouchMoved = false;
+        let touchStartPos = { x: 0, y: 0 };
+        let initialPinchDistance = null;
+        let initialPinchScale = 1;
+
+        // Mouse Drag Move
         window.addEventListener('mousemove', (e) => {
             if (isDraggingNode && activeNodeEl) {
                 const worldRect = world.getBoundingClientRect();
@@ -1093,7 +1248,6 @@
                 activeNodeEl.style.left = `${newX}px`;
                 activeNodeEl.style.top = `${newY}px`;
 
-                // Update data registry
                 const nodeId = activeNodeEl.id.replace('node-', '');
                 const nodeObj = NODES_DATA.find(n => n.id === nodeId);
                 if (nodeObj) {
@@ -1105,7 +1259,6 @@
                 return;
             }
 
-            // Canvas Pan move
             if (isPanning) {
                 panX = e.clientX - startPanX;
                 panY = e.clientY - startPanY;
@@ -1124,7 +1277,7 @@
             }
         });
 
-        // Canvas Pan Start
+        // Mouse Pan Start
         workspace.addEventListener('mousedown', (e) => {
             if (e.target === workspace || e.target === world || e.target === svgLayer) {
                 isPanning = true;
@@ -1134,13 +1287,12 @@
             }
         });
 
-        // Wheel Zoom
+        // Wheel Zoom (Desktop)
         workspace.addEventListener('wheel', (e) => {
             e.preventDefault();
             const zoomDelta = e.deltaY < 0 ? 1.1 : 0.9;
-            const newScale = Math.min(Math.max(scale * zoomDelta, 0.4), 2.2);
+            const newScale = Math.min(Math.max(scale * zoomDelta, 0.25), 2.2);
 
-            // Zoom towards mouse pointer
             const rect = workspace.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
@@ -1152,6 +1304,128 @@
             applyTransform();
         }, { passive: false });
 
+        // ── Mobile Touch Events ──
+        function getTouchDist(t1, t2) {
+            const dx = t1.clientX - t2.clientX;
+            const dy = t1.clientY - t2.clientY;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        function getTouchCenter(t1, t2) {
+            return {
+                x: (t1.clientX + t2.clientX) / 2,
+                y: (t1.clientY + t2.clientY) / 2
+            };
+        }
+
+        // Workspace Touch Start (Background pan & pinch zoom)
+        workspace.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                // Pinch to Zoom start
+                e.preventDefault();
+                isPanning = false;
+                touchNodeStarted = false;
+                isDraggingNode = false;
+                initialPinchDistance = getTouchDist(e.touches[0], e.touches[1]);
+                initialPinchScale = scale;
+                return;
+            }
+
+            if (e.touches.length === 1 && !touchNodeStarted) {
+                // Canvas 1-finger pan start
+                const touch = e.touches[0];
+                isPanning = true;
+                startPanX = touch.clientX - panX;
+                startPanY = touch.clientY - panY;
+            }
+        }, { passive: false });
+
+        // Window Touch Move
+        window.addEventListener('touchmove', (e) => {
+            // Pinch Zoom move
+            if (e.touches.length === 2 && initialPinchDistance) {
+                e.preventDefault();
+                const dist = getTouchDist(e.touches[0], e.touches[1]);
+                const center = getTouchCenter(e.touches[0], e.touches[1]);
+                const zoomFactor = dist / initialPinchDistance;
+                const newScale = Math.min(Math.max(initialPinchScale * zoomFactor, 0.25), 2.2);
+
+                const rect = workspace.getBoundingClientRect();
+                const mouseX = center.x - rect.left;
+                const mouseY = center.y - rect.top;
+
+                panX = mouseX - (mouseX - panX) * (newScale / scale);
+                panY = mouseY - (mouseY - panY) * (newScale / scale);
+                scale = newScale;
+                applyTransform();
+                return;
+            }
+
+            if (e.touches.length === 1) {
+                const touch = e.touches[0];
+
+                // Node touch drag move
+                if (touchNodeStarted && activeNodeEl) {
+                    const distMoved = Math.hypot(touch.clientX - touchStartPos.x, touch.clientY - touchStartPos.y);
+                    if (distMoved > 8) {
+                        nodeTouchMoved = true;
+                        isDraggingNode = true;
+                        e.preventDefault();
+
+                        const worldRect = world.getBoundingClientRect();
+                        const newX = (touch.clientX - worldRect.left) / scale - dragOffset.x;
+                        const newY = (touch.clientY - worldRect.top) / scale - dragOffset.y;
+
+                        activeNodeEl.style.left = `${newX}px`;
+                        activeNodeEl.style.top = `${newY}px`;
+
+                        const nodeId = activeNodeEl.id.replace('node-', '');
+                        const nodeObj = NODES_DATA.find(n => n.id === nodeId);
+                        if (nodeObj) {
+                            nodeObj.x = newX;
+                            nodeObj.y = newY;
+                        }
+                        updateConnectors();
+                    }
+                    return;
+                }
+
+                // Canvas pan move
+                if (isPanning) {
+                    e.preventDefault();
+                    panX = touch.clientX - startPanX;
+                    panY = touch.clientY - startPanY;
+                    applyTransform();
+                }
+            }
+        }, { passive: false });
+
+        // Window Touch End
+        window.addEventListener('touchend', (e) => {
+            if (e.touches.length < 2) {
+                initialPinchDistance = null;
+            }
+
+            if (touchNodeStarted && activeNodeEl) {
+                // If moved less than threshold, treat as tap click
+                if (!nodeTouchMoved) {
+                    const nodeId = activeNodeEl.id.replace('node-', '');
+                    const nodeObj = NODES_DATA.find(n => n.id === nodeId);
+                    if (nodeObj) {
+                        openDetailModal(nodeObj);
+                    }
+                }
+                touchNodeStarted = false;
+                nodeTouchMoved = false;
+                setTimeout(() => { isDraggingNode = false; }, 50);
+                activeNodeEl = null;
+            }
+
+            if (e.touches.length === 0 && isPanning) {
+                isPanning = false;
+            }
+        });
+
         function applyTransform() {
             world.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
             document.getElementById('zoom-label').textContent = `${Math.round(scale * 100)}%`;
@@ -1161,7 +1435,7 @@
         // Interactive Controls (Buttons)
         // ═════════════════════════════════════════════════════════════════
 
-        // 1. Radial Burst Animation (ボタンを押したらバーンと放射状に出現)
+        // 1. Radial Burst Animation
         function animateRadialBurst() {
             const core = NODES_DATA.find(n => n.id === 'core');
             if (!core) return;
@@ -1236,16 +1510,27 @@
         }
 
         function zoomOut() {
-            scale = Math.max(scale * 0.85, 0.4);
+            scale = Math.max(scale * 0.85, 0.25);
             applyTransform();
         }
 
+        // Responsive Zoom and Pan (Mobile auto-fit)
         function resetZoomAndPan() {
-            scale = 0.88;
-            const wW = workspace.clientWidth;
-            const wH = workspace.clientHeight;
-            panX = (wW - 1200 * scale) / 2;
-            panY = (wH - 850 * scale) / 2;
+            const wW = workspace.clientWidth || window.innerWidth;
+            const wH = workspace.clientHeight || (window.innerHeight - 80);
+
+            if (wW < 768) {
+                // Mobile: Fit all branches (~1150px x 800px) nicely within viewport
+                scale = Math.min((wW - 20) / 1150, (wH - 40) / 800);
+                if (scale < 0.28) scale = 0.28;
+                if (scale > 0.6) scale = 0.6;
+                panX = (wW - 1200 * scale) / 2;
+                panY = (wH - 850 * scale) / 2;
+            } else {
+                scale = 0.88;
+                panX = (wW - 1200 * scale) / 2;
+                panY = (wH - 850 * scale) / 2;
+            }
             applyTransform();
         }
 
@@ -1274,10 +1559,23 @@
             document.getElementById('detail-modal-file').textContent = `📄 ${node.file || 'N/A'}`;
             document.getElementById('detail-modal-code').textContent = node.code || '// 実装コード';
             document.getElementById('detail-modal').classList.add('open');
+
+            const backdrop = document.getElementById('modal-backdrop');
+            if (backdrop) backdrop.classList.add('open');
         }
 
         function closeDetailModal() {
             document.getElementById('detail-modal').classList.remove('open');
+            const backdrop = document.getElementById('modal-backdrop');
+            if (backdrop) backdrop.classList.remove('open');
+        }
+
+        // 7. Toggle Legend for Mobile
+        function toggleLegend() {
+            const card = document.getElementById('legend-card');
+            if (card) {
+                card.classList.toggle('collapsed');
+            }
         }
 
         // Save original positions on boot
