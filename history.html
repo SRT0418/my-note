@@ -404,6 +404,19 @@
             border: 1px solid rgba(244, 114, 182, 0.2);
         }
 
+        .tag-secret {
+            background: rgba(167, 139, 250, 0.15);
+            color: #c4b5fd;
+            border: 1px solid rgba(167, 139, 250, 0.3);
+        }
+
+        .tag-algo {
+            background: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+        }
+
         /* ── Commit Hash ───────────────────────────── */
         .event-hash {
             font-family: 'SF Mono', 'Fira Code', monospace;
@@ -504,15 +517,15 @@
         </p>
         <div class="hero-stats">
             <div class="hero-stat">
-                <div class="hero-stat-value">69</div>
+                <div class="hero-stat-value">75</div>
                 <div class="hero-stat-label">Commits</div>
             </div>
             <div class="hero-stat">
-                <div class="hero-stat-value">98</div>
+                <div class="hero-stat-value">99</div>
                 <div class="hero-stat-label">Days</div>
             </div>
             <div class="hero-stat">
-                <div class="hero-stat-value">8</div>
+                <div class="hero-stat-value">10</div>
                 <div class="hero-stat-label">Features</div>
             </div>
         </div>
@@ -772,9 +785,31 @@
             <div class="timeline-event milestone left">
                 <div class="timeline-node"></div>
                 <div class="event-card">
+                    <div class="event-date">2026.10.13</div>
+                    <h3 class="event-title">🔓 隠しページ（サイトの歴史）誕生</h3>
+                    <p class="event-desc">コナミコマンド（↑↑↓↓←→←→BA）でワープするイースターエッグポータルと、2026年7月からの全開発の軌跡を振り返るインタラクティブな歴史タイムラインを公開。</p>
+                    <span class="event-tag tag-secret">SECRET UNLOCKED</span>
+                    <div class="event-hash">251ab08 → 51c9b99</div>
+                </div>
+            </div>
+
+            <div class="timeline-event milestone right">
+                <div class="timeline-node"></div>
+                <div class="event-card">
+                    <div class="event-date">2026.10.14</div>
+                    <h3 class="event-title">🧠 サイトのアルゴリズム＆相関図ページ 誕生</h3>
+                    <p class="event-desc">サイト全体の4層アーキテクチャや、ローカルファースト同期パイプライン、習慣ストリーク判定、課題週クラスタリングをボックス相関図とシミュレーターで視覚化した隠しページ（algorithm.html）を公開。「algo」キーやタイトル3回クリックでワープ可能に。</p>
+                    <span class="event-tag tag-algo">ALGORITHM MAP</span>
+                    <div class="event-hash">4dbe683</div>
+                </div>
+            </div>
+
+            <div class="timeline-event milestone left">
+                <div class="timeline-node"></div>
+                <div class="event-card">
                     <div class="event-date">現在</div>
                     <h3 class="event-title">🔮 物語は続く…</h3>
-                    <p class="event-desc">MyNoteの開発はまだまだ続く。次の章はあなたが書く。</p>
+                    <p class="event-desc">MyNoteの開発はまだまだ続く。ゼロレイテンシーのローカルファーストと最高のUXを追求し、次の章へ。</p>
                     <span class="event-tag tag-milestone">TO BE CONTINUED</span>
                 </div>
             </div>
@@ -794,6 +829,7 @@
         <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px;">
             <a href="index.html" class="back-btn">← ホームに戻る</a>
             <a href="algorithm.html" class="back-btn" style="background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.35); color: #38bdf8; box-shadow: 0 0 16px rgba(56, 189, 248, 0.15);">🧠 システム構造・アルゴリズム相関図 →</a>
+            <a href="diagram.html" class="back-btn" style="background: rgba(37, 99, 235, 0.15); border-color: rgba(37, 99, 235, 0.4); color: #60a5fa; box-shadow: 0 0 16px rgba(37, 99, 235, 0.2);">🕸️ 放射状相関図マップ →</a>
         </div>
     </footer>
 

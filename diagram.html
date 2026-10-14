@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyNote — システム関係図マップ (Architecture Diagram)</title>
+    <link rel="icon" href="./MyNote.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* ═══════════════════════════════════════════════════════════
+           MyNote Interactive Network Diagram (Lucidchart Inspired)
+           Features: Draggable nodes, SVG dynamic arrows, Canvas pan/zoom
+        ═══════════════════════════════════════════════════════════ */
+
+        :root {
+            --bg-canvas: #f8fafc;
+            --grid-dot: #cbd5e1;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+            --card-bg: #ffffff;
+            --border-card: #e2e8f0;
+            --shadow-card: 0 4px 12px rgba(15, 23, 42, 0.08);
+
+            /* Branch Colors (matching Lucidchart palette) */
+            --color-core: #2563eb;
+            --color-habit: #dc2626;
+            --color-kadai: #ea580c;
+            --color-task: #ca8a04;
+            --color-sync: #059669;
+            --color-calendar: #0284c7;
+            --color-report: #7c3aed;
+            --color-notify: #db2777;
+            --color-storage: #0d9488;
+        }
+
+        [data-theme="dark"] {
+            --bg-canvas: #0b0f19;
+            --grid-dot: #1e293b;
+            --text-main: #f1f5f9;
+            --text-sub: #94a3b8;
+            --card-bg: #131b2e;
+            --border-card: #1e293b;
+            --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background: var(--bg-canvas);
+            color: var(--text-main);
+            transition: background 0.3s ease;
+        }
+
+        /* ── Top Toolbar (Lucidchart-like Header) ── */
+        .toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-card);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .toolbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 900;
+            font-size: 14px;
+        }
+
+        .brand-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-title {
+            font-size: 15px;
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--text-main);
+        }
+
+        .brand-subtitle {
+            font-size: 11px;
+            color: var(--text-sub);
+        }
+
+        .toolbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tool-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--border-card);
+            background: var(--card-bg);
+            color: var(--text-main);
+            transition: all 0.2s ease;
+        }
+
+        .tool-btn:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .tool-btn.primary {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            border-color: #1d4ed8;
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+        }
+
+        .tool-btn.primary:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+        }
+
+        /* ── Canvas Workspace ── */
+        .workspace {
+            position: absolute;
+            top: 56px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
+            background-color: var(--bg-canvas);
+            background-image: radial-gradient(var(--grid-dot) 1.2px, transparent 1.2px);
+            background-size: 24px 24px;
+            cursor: grab;
+        }
+
+        .workspace.panning {
+            cursor: grabbing;
+        }
+
+        .canvas-world {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform-origin: 0 0;
+            will-change: transform;
+        }
+
+        /* ── SVG Connector Lines Layer ── */
+        .svg-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: visible;
+        }
+
+        .connector-line {
+            fill: none;
+            stroke-width: 2.2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: stroke 0.2s ease;
+        }
+
+        .connector-pulse {
+            stroke-dasharray: 6 6;
+            animation: dashPulse 2s linear infinite;
+        }
+
+        @keyframes dashPulse {
+            to { stroke-dashoffset: -24; }
+        }
+
+        /* ── Lucidchart-Style Box Nodes ── */
+        .node {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow-card);
+            cursor: move;
+            z-index: 10;
+            transition: box-shadow 0.2s ease, transform 0.15s ease;
+            white-space: nowrap;
+            min-width: 160px;
+        }
+
+        .node:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            z-index: 50;
+            transform: scale(1.03);
+        }
+
+        .node.active {
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.4), var(--shadow-card);
+        }
+
+        /* Node Avatar / Icon */
+        .node-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+            background: rgba(0, 0, 0, 0.05);
+            border: 2px solid currentColor;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+
+        .node-content {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+        }
+
+        .node-name {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.01em;
+            line-height: 1.3;
+        }
+
+        .node-role {
+            font-size: 11px;
+            color: var(--text-sub);
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        .node-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9.5px;
+            padding: 1px 6px;
+            border-radius: 4px;
+            margin-top: 4px;
+            width: fit-content;
+            font-weight: 600;
+        }
+
+        /* Specific Node Colors & Borders */
+        .node-core {
+            border: 2.5px solid var(--color-core);
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), var(--card-bg));
+            padding: 14px 22px;
+        }
+        .node-core .node-avatar { color: var(--color-core); width: 44px; height: 44px; font-size: 22px; }
+        .node-core .node-name { font-size: 15px; font-weight: 800; color: var(--color-core); }
+
+        .node-habit { border: 2px solid var(--color-habit); }
+        .node-habit .node-avatar { color: var(--color-habit); }
+
+        .node-kadai { border: 2px solid var(--color-kadai); }
+        .node-kadai .node-avatar { color: var(--color-kadai); }
+
+        .node-task { border: 2px solid var(--color-task); }
+        .node-task .node-avatar { color: var(--color-task); }
+
+        .node-sync { border: 2px solid var(--color-sync); }
+        .node-sync .node-avatar { color: var(--color-sync); }
+
+        .node-calendar { border: 2px solid var(--color-calendar); }
+        .node-calendar .node-avatar { color: var(--color-calendar); }
+
+        .node-report { border: 2px solid var(--color-report); }
+        .node-report .node-avatar { color: var(--color-report); }
+
+        .node-notify { border: 2px solid var(--color-notify); }
+        .node-notify .node-avatar { color: var(--color-notify); }
+
+        .node-storage { border: 2px solid var(--color-storage); }
+        .node-storage .node-avatar { color: var(--color-storage); }
+
+        /* ── Floating Controls Bar (Zoom & Layout) ── */
+        .floating-controls {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-card);
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+            display: flex;
+            align-items: center;
+            padding: 6px;
+            gap: 6px;
+            z-index: 90;
+        }
+
+        .icon-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: var(--text-main);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: rgba(0, 0, 0, 0.06);
+            color: #2563eb;
+        }
+
+        .zoom-label {
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            padding: 0 8px;
+            color: var(--text-sub);
+        }
+
+        /* ── Legend Sidebar (Collapsible) ── */
+        .legend-card {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-card);
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+            padding: 14px 18px;
+            z-index: 90;
+            max-width: 260px;
+            font-size: 12px;
+        }
+
+        .legend-title {
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-main);
+        }
+
+        .legend-items {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .legend-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-sub);
+            font-size: 11px;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* ── Detail Modal / Flyout ── */
+        .detail-modal {
+            position: fixed;
+            top: 76px;
+            right: 24px;
+            width: 360px;
+            max-height: calc(100vh - 120px);
+            background: var(--card-bg);
+            border: 1px solid var(--border-card);
+            border-radius: 16px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+            z-index: 110;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideInRight 0.25s ease;
+        }
+
+        .detail-modal.open {
+            display: flex;
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .modal-head {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-card);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .modal-close-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: var(--text-sub);
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 18px 20px;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .modal-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-sub);
+            margin-bottom: 4px;
+        }
+
+        .code-snippet {
+            background: rgba(0, 0, 0, 0.05);
+            padding: 10px;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            border: 1px solid var(--border-card);
+            overflow-x: auto;
+        }
+
+        /* ── Launch Burst Animation ── */
+        .node.burst-in {
+            animation: burstPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes burstPop {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ── Top Lucidchart-Style Toolbar ── -->
+    <header class="toolbar">
+        <div class="toolbar-brand">
+            <div class="brand-icon">MN</div>
+            <div class="brand-info">
+                <span class="brand-title">MyNote システム全体関係図</span>
+                <span class="brand-subtitle">Interactive Architecture Mindmap</span>
+            </div>
+        </div>
+
+        <div class="toolbar-actions">
+            <button id="btn-burst" class="tool-btn primary" onclick="animateRadialBurst()">
+                <span>🚀 相関図を展開</span>
+            </button>
+            <button class="tool-btn" onclick="resetNodePositions()">
+                <span>🔄 位置を整列</span>
+            </button>
+            <button class="tool-btn" onclick="togglePulse()">
+                <span>⚡ データフロー演出</span>
+            </button>
+            <button class="tool-btn" onclick="toggleTheme()">
+                <span id="theme-icon">🌙 ダーク切替</span>
+            </button>
+            <a href="algorithm.html" class="tool-btn">
+                <span>🧠 アルゴリズム詳細</span>
+            </a>
+            <a href="index.html" class="tool-btn">
+                <span>🏠 ホーム</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- ── Interactive Canvas Workspace ── -->
+    <div id="workspace" class="workspace">
+        <div id="canvas-world" class="canvas-world">
+            <!-- SVG Connectors Layer -->
+            <svg id="svg-layer" class="svg-layer">
+                <defs>
+                    <!-- Marker for line arrows -->
+                    <marker id="arrow-core" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--color-core)" />
+                    </marker>
+                    <marker id="arrow-habit" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--color-habit)" />
+                    </marker>
+                    <marker id="arrow-kadai" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--color-kadai)" />
+                    </marker>
+                    <marker id="arrow-task" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--color-task)" />
+                    </marker>
+                    <marker id="arrow-sync" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--color-sync)" />
+                    </marker>
+                    <marker id="arrow-calendar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--color-calendar)" />
+                    </marker>
+                    <marker id="arrow-report" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--color-report)" />
+                    </marker>
+                    <marker id="arrow-notify" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--color-notify)" />
+                    </marker>
+                    <marker id="arrow-storage" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--color-storage)" />
+                    </marker>
+                </defs>
+            </svg>
+
+            <!-- ── Nodes Container ── -->
+            <div id="nodes-container">
+                <!-- Dynamically populated or statically positioned -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Floating Zoom Controls ── -->
+    <div class="floating-controls">
+        <button class="icon-btn" onclick="zoomIn()" title="拡大">+</button>
+        <span id="zoom-label" class="zoom-label">100%</span>
+        <button class="icon-btn" onclick="zoomOut()" title="縮小">-</button>
+        <button class="icon-btn" onclick="resetZoomAndPan()" title="全体を表示">⛶</button>
+    </div>
+
+    <!-- ── Legend Sidebar ── -->
+    <div class="legend-card">
+        <div class="legend-title">🗺️ モジュール凡例</div>
+        <div class="legend-items">
+            <div class="legend-row"><span class="legend-dot" style="background: var(--color-core)"></span>中核 (Core Platform)</div>
+            <div class="legend-row"><span class="legend-dot" style="background: var(--color-habit)"></span>習慣＆ストリーク (Habit)</div>
+            <div class="legend-row"><span class="legend-dot" style="background: var(--color-kadai)"></span>課題管理 (Kadai)</div>
+            <div class="legend-row"><span class="legend-dot" style="background: var(--color-sync)"></span>クラウド同期 (Sync Engine)</div>
+            <div class="legend-row"><span class="legend-dot" style="background: var(--color-calendar)"></span>カレンダー予定 (Calendar)</div>
+            <div class="legend-row"><span class="legend-dot" style="background: var(--color-report)"></span>報告書作成 (Report)</div>
+            <div class="legend-row"><span class="legend-dot" style="background: var(--color-notify)"></span>通知センター (Notification)</div>
+        </div>
+    </div>
+
+    <!-- ── Detail Flyout Modal ── -->
+    <div id="detail-modal" class="detail-modal">
+        <div class="modal-head">
+            <h4 id="detail-modal-title" class="modal-title">モジュール詳細</h4>
+            <button class="modal-close-btn" onclick="closeDetailModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div>
+                <div class="modal-section-title">役割 ＆ アルゴリズム</div>
+                <div id="detail-modal-desc"></div>
+            </div>
+            <div>
+                <div class="modal-section-title">関連ファイル</div>
+                <div id="detail-modal-file" style="font-family:'JetBrains Mono'; font-size:12px; color:var(--color-core);"></div>
+            </div>
+            <div>
+                <div class="modal-section-title">主要ロジック</div>
+                <pre id="detail-modal-code" class="code-snippet"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ═════════════════════════════════════════════════════════════════
+        // Node & Edge Data Registry (Lucidchart Structure)
+        // ═════════════════════════════════════════════════════════════════
+
+        const NODES_DATA = [
+            // Center Core Node (アレンSにあたる中核)
+            {
+                id: 'core',
+                name: 'MyNote Core',
+                role: '統合ハブ ＆ UIプラットフォーム',
+                avatar: '🚀',
+                type: 'core',
+                x: 600,
+                y: 400,
+                desc: 'Webサイト全体の基盤。HTML5 UIカードグリッド、イースターエッグポータル、ドロワーナビゲーションを統括します。',
+                file: 'index.html / common.js',
+                code: 'window.addEventListener("DOMContentLoaded", initApp);'
+            },
+
+            // 1. Habit Branch (Red)
+            {
+                id: 'branch-habit',
+                name: '毎日習慣タスク',
+                role: 'everydayTask.js',
+                avatar: '🔥',
+                type: 'habit',
+                parent: 'core',
+                x: 600,
+                y: 180,
+                desc: '毎日の習慣化を支援。前日アクセスの場合はストリーク+1、2日以上空いた場合は0リセットを自動判定。',
+                file: 'js/everydayTask.js',
+                code: 'diffDays = getDaysDiff(lastDate, today);'
+            },
+            {
+                id: 'sub-habit-streak',
+                name: 'ストリーク計算',
+                role: '連続日数維持ロジック',
+                avatar: '📈',
+                type: 'habit',
+                parent: 'branch-habit',
+                x: 430,
+                y: 80,
+                desc: 'diffDays === 1 の場合にのみ streak++ を実行。',
+                file: 'js/everydayTask.js',
+                code: 'completed.forEach(t => t.streak++);'
+            },
+            {
+                id: 'sub-habit-reset',
+                name: '日次自動リセット',
+                role: 'checkDailyReset()',
+                avatar: '🔄',
+                type: 'habit',
+                parent: 'branch-habit',
+                x: 600,
+                y: 60,
+                desc: '日付を跨いだ初回オープン時に昨日の実績を日次履歴にアーカイブ。',
+                file: 'js/everydayTask.js',
+                code: 'archivePreviousDay(lastDate);'
+            },
+            {
+                id: 'sub-habit-history',
+                name: '日次履歴アーカイブ',
+                role: 'habitDailyHistory',
+                avatar: '📊',
+                type: 'habit',
+                parent: 'branch-habit',
+                x: 770,
+                y: 80,
+                desc: '過去の達成率カレンダーやグラフ表示のための日別スナップショット。',
+                file: 'js/everydayTask.js',
+                code: 'saveDailyHistory(history);'
+            },
+
+            // 2. Kadai Branch (Orange)
+            {
+                id: 'branch-kadai',
+                name: '課題締切管理',
+                role: 'kadai.js',
+                avatar: '📚',
+                type: 'kadai',
+                parent: 'core',
+                x: 950,
+                y: 280,
+                desc: '課題の締切日時をパースし、今週・来週・再来週以降に自動分類。達成率プログレスバーを動的計算。',
+                file: 'js/kadai.js',
+                code: 'tasks.sort((a,b) => deadlineA - deadlineB);'
+            },
+            {
+                id: 'sub-kadai-cluster',
+                name: '週次クラスタリング',
+                role: 'getWeekKey(date)',
+                avatar: '🗓️',
+                type: 'kadai',
+                parent: 'branch-kadai',
+                x: 1140,
+                y: 200,
+                desc: '基準月曜日の日付キー（YYYY-MM-DD）により今週/来週を等値判定。',
+                file: 'js/kadai.js',
+                code: 'wk === currentWeekKey ? thisWeek : later;'
+            },
+            {
+                id: 'sub-kadai-archive',
+                name: '期限超過アーカイブ',
+                role: 'archiveFinishedDeadlineWeeks()',
+                avatar: '📦',
+                type: 'kadai',
+                parent: 'branch-kadai',
+                x: 1170,
+                y: 320,
+                desc: '期限が過ぎた週の課題を自動的に過去アーカイブに移動。',
+                file: 'js/kadai.js',
+                code: 'tasks.filter(t => t.deadline < now);'
+            },
+
+            // 3. Task Branch (Yellow/Amber)
+            {
+                id: 'branch-task',
+                name: '優先度タスク',
+                role: 'tasks.js',
+                avatar: '📋',
+                type: 'task',
+                parent: 'core',
+                x: 950,
+                y: 470,
+                desc: '締切のない日常のToDoを「高・中・低」の優先度で整理。',
+                file: 'js/tasks.js',
+                code: 'priorityWeight[b.priority] - priorityWeight[a.priority]'
+            },
+            {
+                id: 'sub-task-matrix',
+                name: '優先度ソート',
+                role: '高 / 中 / 低 マトリクス',
+                avatar: '🏷️',
+                type: 'task',
+                parent: 'branch-task',
+                x: 1150,
+                y: 470,
+                desc: '重要度の高いタスクを上部に固定配置。',
+                file: 'js/tasks.js',
+                code: 'renderTodoAll();'
+            },
+
+            // 4. Report Branch (Purple)
+            {
+                id: 'branch-report',
+                name: '報告書自動作成',
+                role: 'report.js',
+                avatar: '📝',
+                type: 'report',
+                parent: 'core',
+                x: 820,
+                y: 620,
+                desc: '過去の予定・課題・タスクから1/3ヶ月の実績を抽出し、6種類のデザインテーマでWord/MD出力。',
+                file: 'js/report.js',
+                code: 'schedules.filter(s => s.date >= rangeStart)'
+            },
+            {
+                id: 'sub-report-theme',
+                name: '6大デザインテーマ',
+                role: 'REPORT_THEMES',
+                avatar: '🎨',
+                type: 'report',
+                parent: 'branch-report',
+                x: 960,
+                y: 720,
+                desc: 'クラシックブルー、ミッドナイト、エディトリアルなど多様な体裁。',
+                file: 'js/report.js',
+                code: 'applyTheme(REPORT_THEMES[selected]);'
+            },
+            {
+                id: 'sub-report-doc',
+                name: 'Word / MD出力',
+                role: 'application/msword Blob',
+                avatar: '💾',
+                type: 'report',
+                parent: 'branch-report',
+                x: 800,
+                y: 760,
+                desc: 'HTML Blobを生成してクライアント完結ダウンロード。',
+                file: 'js/report.js',
+                code: 'new Blob([docHtml], { type: "application/msword" });'
+            },
+
+            // 5. Calendar & Birthday Branch (Light Blue)
+            {
+                id: 'branch-calendar',
+                name: 'カレンダー＆予定',
+                role: 'calendar.js',
+                avatar: '📅',
+                type: 'calendar',
+                parent: 'core',
+                x: 520,
+                y: 650,
+                desc: '月度グリッドの生成と、予定・課題締切の同一日付マルチドット重畳。',
+                file: 'js/calendar.js',
+                code: 'new Date(year, month + 1, 0).getDate()'
+            },
+            {
+                id: 'sub-bday',
+                name: '誕生日管理',
+                role: 'birthdays.js',
+                avatar: '🎂',
+                type: 'calendar',
+                parent: 'branch-calendar',
+                x: 480,
+                y: 770,
+                desc: '年齢自動計算と次の誕生日までのカウントダウン。',
+                file: 'js/birthdays.js',
+                code: 'daysRemaining = Math.ceil((nextBday - now) / 86400000);'
+            },
+
+            // 6. Notification Center (Pink)
+            {
+                id: 'branch-notify',
+                name: '通知センター',
+                role: 'notification.js',
+                avatar: '🔔',
+                type: 'notify',
+                parent: 'core',
+                x: 270,
+                y: 530,
+                desc: '全データを一括スキャンし、締切当日・直前・未達成習慣・誕生日を抽出。',
+                file: 'js/notification.js',
+                code: 'calculateNotifications();'
+            },
+            {
+                id: 'sub-notify-web',
+                name: 'デスクトップ通知',
+                role: 'Web Notification API',
+                avatar: '📢',
+                type: 'notify',
+                parent: 'branch-notify',
+                x: 100,
+                y: 610,
+                desc: 'ブラウザ通知権限でOSトレイにアラートを発火。',
+                file: 'js/notification.js',
+                code: 'new Notification("MyNote", { body });'
+            },
+
+            // 7. Local Storage Cache (Teal)
+            {
+                id: 'branch-storage',
+                name: '22 Key Storage',
+                role: 'localStorage API',
+                avatar: '💾',
+                type: 'storage',
+                parent: 'core',
+                x: 230,
+                y: 370,
+                desc: '全22キーの完全分離データストア。通信状態に関わらず0ms即時描画。',
+                file: 'browser localStorage',
+                code: 'localStorage.setItem(key, JSON.stringify(val));'
+            },
+            {
+                id: 'sub-bus',
+                name: 'カスタムイベントバス',
+                role: 'myNoteDataSynced',
+                avatar: '📡',
+                type: 'storage',
+                parent: 'branch-storage',
+                x: 60,
+                y: 430,
+                desc: 'クラウド同期完了時に全画面の renderAll() を自動実行。',
+                file: 'js/db-sync.js',
+                code: 'window.dispatchEvent(new CustomEvent("myNoteDataSynced"));'
+            },
+
+            // 8. Cloud Sync & Supabase (Green)
+            {
+                id: 'branch-sync',
+                name: 'クラウド同期エンジン',
+                role: 'db-sync.js',
+                avatar: '⚡',
+                type: 'sync',
+                parent: 'core',
+                x: 270,
+                y: 220,
+                desc: '500msデバウンスキューによる一括バッチUpsertとバックグラウンド差分同期。',
+                file: 'js/db-sync.js',
+                code: 'pendingKeys.add(key); clearTimeout(syncTimer);'
+            },
+            {
+                id: 'sub-supabase',
+                name: 'Supabase PostgreSQL',
+                role: 'user_data (RLS)',
+                avatar: '🗄️',
+                type: 'sync',
+                parent: 'branch-sync',
+                x: 100,
+                y: 160,
+                desc: 'Row Level Securityでユーザー自身のUUIDデータのみ保護。',
+                file: 'supabase_setup.sql',
+                code: 'USING (auth.uid() = user_id)'
+            },
+            {
+                id: 'sub-auth',
+                name: 'JWT セッション認証',
+                role: 'auth.js',
+                avatar: '🔐',
+                type: 'sync',
+                parent: 'branch-sync',
+                x: 180,
+                y: 80,
+                desc: 'OAuth 2.0 / Emailパスワードによるクラウドログイン。',
+                file: 'js/auth.js',
+                code: 'supabase.auth.getSession();'
+            }
+        ];
+
+        // ═════════════════════════════════════════════════════════════════
+        // Diagram Engine (Drag, Zoom, Pan, SVG Curve Arrows)
+        // ═════════════════════════════════════════════════════════════════
+
+        let scale = 1;
+        let panX = 0;
+        let panY = 0;
+        let isPanning = false;
+        let startPanX = 0;
+        let startPanY = 0;
+
+        let isDraggingNode = false;
+        let activeNodeEl = null;
+        let dragOffset = { x: 0, y: 0 };
+
+        let pulseActive = false;
+
+        const workspace = document.getElementById('workspace');
+        const world = document.getElementById('canvas-world');
+        const svgLayer = document.getElementById('svg-layer');
+        const nodesContainer = document.getElementById('nodes-container');
+
+        // Color mapper for SVG arrows
+        const TYPE_COLORS = {
+            core: 'var(--color-core)',
+            habit: 'var(--color-habit)',
+            kadai: 'var(--color-kadai)',
+            task: 'var(--color-task)',
+            sync: 'var(--color-sync)',
+            calendar: 'var(--color-calendar)',
+            report: 'var(--color-report)',
+            notify: 'var(--color-notify)',
+            storage: 'var(--color-storage)'
+        };
+
+        // Initialize Nodes in DOM
+        function renderNodes() {
+            nodesContainer.innerHTML = '';
+            NODES_DATA.forEach(node => {
+                const el = document.createElement('div');
+                el.className = `node node-${node.type}`;
+                el.id = `node-${node.id}`;
+                el.style.left = `${node.x}px`;
+                el.style.top = `${node.y}px`;
+
+                el.innerHTML = `
+                    <div class="node-avatar">${node.avatar}</div>
+                    <div class="node-content">
+                        <span class="node-name">${node.name}</span>
+                        <span class="node-role">${node.role}</span>
+                    </div>
+                `;
+
+                // Node Click to open Detail Modal
+                el.addEventListener('click', (e) => {
+                    if (isDraggingNode) return;
+                    openDetailModal(node);
+                });
+
+                // Node Drag Start
+                el.addEventListener('mousedown', (e) => {
+                    if (e.button !== 0) return; // only left click
+                    e.stopPropagation();
+                    isDraggingNode = true;
+                    activeNodeEl = el;
+
+                    const rect = el.getBoundingClientRect();
+                    dragOffset.x = (e.clientX - rect.left) / scale;
+                    dragOffset.y = (e.clientY - rect.top) / scale;
+                });
+
+                nodesContainer.appendChild(el);
+            });
+
+            // Adjust Canvas Size to accommodate all nodes
+            fitCanvasDimensions();
+            updateConnectors();
+        }
+
+        // Calculate and Draw SVG Curves between parent and child nodes
+        function updateConnectors() {
+            // Keep defs, remove existing lines
+            const defs = svgLayer.querySelector('defs');
+            svgLayer.innerHTML = '';
+            if (defs) svgLayer.appendChild(defs);
+
+            NODES_DATA.forEach(node => {
+                if (!node.parent) return;
+                const parentNode = NODES_DATA.find(n => n.id === node.parent);
+                if (!parentNode) return;
+
+                const parentEl = document.getElementById(`node-${parentNode.id}`);
+                const childEl = document.getElementById(`node-${node.id}`);
+                if (!parentEl || !childEl) return;
+
+                // Center positions of both elements
+                const pW = parentEl.offsetWidth;
+                const pH = parentEl.offsetHeight;
+                const cW = childEl.offsetWidth;
+                const cH = childEl.offsetHeight;
+
+                const pX = parentNode.x + pW / 2;
+                const pY = parentNode.y + pH / 2;
+                const cX = node.x + cW / 2;
+                const cY = node.y + cH / 2;
+
+                // Calculate edge attachment points
+                const angle = Math.atan2(cY - pY, cX - pX);
+                const startX = pX + (pW / 2) * Math.cos(angle);
+                const startY = pY + (pH / 2) * Math.sin(angle);
+                const endX = cX - (cW / 2 + 6) * Math.cos(angle);
+                const endY = cY - (cH / 2 + 6) * Math.sin(angle);
+
+                // Quadratic Bezier Curve for smooth curved arrows
+                const midX = (startX + endX) / 2;
+                const midY = (startY + endY) / 2;
+                // Add gentle natural curve deviation
+                const dx = endX - startX;
+                const dy = endY - startY;
+                const curveFactor = 0.12;
+                const ctrlX = midX - dy * curveFactor;
+                const ctrlY = midY + dx * curveFactor;
+
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', `M ${startX} ${startY} Q ${ctrlX} ${ctrlY} ${endX} ${endY}`);
+                path.setAttribute('class', `connector-line connector-${node.type} ${pulseActive ? 'connector-pulse' : ''}`);
+                path.setAttribute('stroke', TYPE_COLORS[node.type] || '#2563eb');
+                path.setAttribute('marker-end', `url(#arrow-${node.type})`);
+
+                svgLayer.appendChild(path);
+            });
+        }
+
+        // Fit canvas dimensions to encompass all nodes with padding
+        function fitCanvasDimensions() {
+            let maxX = 1600;
+            let maxY = 1200;
+            NODES_DATA.forEach(n => {
+                if (n.x + 300 > maxX) maxX = n.x + 300;
+                if (n.y + 200 > maxY) maxY = n.y + 200;
+            });
+            world.style.width = `${maxX}px`;
+            world.style.height = `${maxY}px`;
+            svgLayer.setAttribute('width', maxX);
+            svgLayer.setAttribute('height', maxY);
+        }
+
+        // ═════════════════════════════════════════════════════════════════
+        // Mouse / Touch Dragging and Canvas Panning
+        // ═════════════════════════════════════════════════════════════════
+
+        // Node drag move
+        window.addEventListener('mousemove', (e) => {
+            if (isDraggingNode && activeNodeEl) {
+                const worldRect = world.getBoundingClientRect();
+                const newX = (e.clientX - worldRect.left) / scale - dragOffset.x;
+                const newY = (e.clientY - worldRect.top) / scale - dragOffset.y;
+
+                activeNodeEl.style.left = `${newX}px`;
+                activeNodeEl.style.top = `${newY}px`;
+
+                // Update data registry
+                const nodeId = activeNodeEl.id.replace('node-', '');
+                const nodeObj = NODES_DATA.find(n => n.id === nodeId);
+                if (nodeObj) {
+                    nodeObj.x = newX;
+                    nodeObj.y = newY;
+                }
+
+                updateConnectors();
+                return;
+            }
+
+            // Canvas Pan move
+            if (isPanning) {
+                panX = e.clientX - startPanX;
+                panY = e.clientY - startPanY;
+                applyTransform();
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (isDraggingNode) {
+                setTimeout(() => { isDraggingNode = false; }, 50);
+                activeNodeEl = null;
+            }
+            if (isPanning) {
+                isPanning = false;
+                workspace.classList.remove('panning');
+            }
+        });
+
+        // Canvas Pan Start
+        workspace.addEventListener('mousedown', (e) => {
+            if (e.target === workspace || e.target === world || e.target === svgLayer) {
+                isPanning = true;
+                workspace.classList.add('panning');
+                startPanX = e.clientX - panX;
+                startPanY = e.clientY - panY;
+            }
+        });
+
+        // Wheel Zoom
+        workspace.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomDelta = e.deltaY < 0 ? 1.1 : 0.9;
+            const newScale = Math.min(Math.max(scale * zoomDelta, 0.4), 2.2);
+
+            // Zoom towards mouse pointer
+            const rect = workspace.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            panX = mouseX - (mouseX - panX) * (newScale / scale);
+            panY = mouseY - (mouseY - panY) * (newScale / scale);
+            scale = newScale;
+
+            applyTransform();
+        }, { passive: false });
+
+        function applyTransform() {
+            world.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+            document.getElementById('zoom-label').textContent = `${Math.round(scale * 100)}%`;
+        }
+
+        // ═════════════════════════════════════════════════════════════════
+        // Interactive Controls (Buttons)
+        // ═════════════════════════════════════════════════════════════════
+
+        // 1. Radial Burst Animation (ボタンを押したらバーンと放射状に出現)
+        function animateRadialBurst() {
+            const core = NODES_DATA.find(n => n.id === 'core');
+            if (!core) return;
+
+            // Collapse to center first
+            NODES_DATA.forEach(node => {
+                if (node.id === 'core') return;
+                const el = document.getElementById(`node-${node.id}`);
+                if (!el) return;
+
+                el.style.transition = 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
+                el.style.left = `${core.x}px`;
+                el.style.top = `${core.y}px`;
+                el.style.opacity = '0';
+                el.style.transform = 'scale(0.2)';
+            });
+            updateConnectors();
+
+            // Burst outward sequentially
+            setTimeout(() => {
+                NODES_DATA.forEach((node, idx) => {
+                    if (node.id === 'core') return;
+                    const el = document.getElementById(`node-${node.id}`);
+                    if (!el) return;
+
+                    setTimeout(() => {
+                        el.style.left = `${node.originalX || node.x}px`;
+                        el.style.top = `${node.originalY || node.y}px`;
+                        el.style.opacity = '1';
+                        el.style.transform = 'scale(1)';
+                        updateConnectors();
+                    }, idx * 45);
+                });
+
+                // Clear transition after finish
+                setTimeout(() => {
+                    NODES_DATA.forEach(node => {
+                        const el = document.getElementById(`node-${node.id}`);
+                        if (el) el.style.transition = '';
+                    });
+                }, 1200);
+            }, 300);
+        }
+
+        // 2. Reset Node Positions
+        function resetNodePositions() {
+            NODES_DATA.forEach(node => {
+                if (node.originalX !== undefined) {
+                    node.x = node.originalX;
+                    node.y = node.originalY;
+                }
+                const el = document.getElementById(`node-${node.id}`);
+                if (el) {
+                    el.style.transition = 'all 0.4s ease';
+                    el.style.left = `${node.x}px`;
+                    el.style.top = `${node.y}px`;
+                }
+            });
+            setTimeout(() => {
+                NODES_DATA.forEach(node => {
+                    const el = document.getElementById(`node-${node.id}`);
+                    if (el) el.style.transition = '';
+                });
+                updateConnectors();
+            }, 450);
+        }
+
+        // 3. Zoom Controls
+        function zoomIn() {
+            scale = Math.min(scale * 1.15, 2.2);
+            applyTransform();
+        }
+
+        function zoomOut() {
+            scale = Math.max(scale * 0.85, 0.4);
+            applyTransform();
+        }
+
+        function resetZoomAndPan() {
+            scale = 0.88;
+            const wW = workspace.clientWidth;
+            const wH = workspace.clientHeight;
+            panX = (wW - 1200 * scale) / 2;
+            panY = (wH - 850 * scale) / 2;
+            applyTransform();
+        }
+
+        // 4. Data Flow Pulse Toggle
+        function togglePulse() {
+            pulseActive = !pulseActive;
+            updateConnectors();
+        }
+
+        // 5. Dark / Light Theme Toggle
+        function toggleTheme() {
+            const isDark = document.body.getAttribute('data-theme') === 'dark';
+            if (isDark) {
+                document.body.removeAttribute('data-theme');
+                document.getElementById('theme-icon').textContent = '🌙 ダーク切替';
+            } else {
+                document.body.setAttribute('data-theme', 'dark');
+                document.getElementById('theme-icon').textContent = '☀️ ライト切替';
+            }
+        }
+
+        // 6. Detail Modal Flyout
+        function openDetailModal(node) {
+            document.getElementById('detail-modal-title').textContent = `${node.avatar} ${node.name}`;
+            document.getElementById('detail-modal-desc').textContent = node.desc || 'モジュール概要';
+            document.getElementById('detail-modal-file').textContent = `📄 ${node.file || 'N/A'}`;
+            document.getElementById('detail-modal-code').textContent = node.code || '// 実装コード';
+            document.getElementById('detail-modal').classList.add('open');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detail-modal').classList.remove('open');
+        }
+
+        // Save original positions on boot
+        window.addEventListener('DOMContentLoaded', () => {
+            NODES_DATA.forEach(n => {
+                n.originalX = n.x;
+                n.originalY = n.y;
+            });
+
+            renderNodes();
+            resetZoomAndPan();
+
+            // Run initial burst animation after a brief delay
+            setTimeout(() => {
+                animateRadialBurst();
+            }, 300);
+        });
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            updateConnectors();
+        });
+    </script>
+</body>
+
+</html>

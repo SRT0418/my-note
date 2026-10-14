@@ -29,6 +29,9 @@
         <a href="calendar.html">カレンダー</a>
         <a href="report.html">報告書作成</a>
         <a href="birthdays.html">誕生日管理</a>
+        <div style="border-top: 1px solid rgba(255,255,255,0.15); margin: 10px 0;"></div>
+        <a href="diagram.html" style="color: #60a5fa; font-weight: 600;">🕸️ システム相関図マップ</a>
+        <a href="algorithm.html" style="color: #a78bfa; font-weight: 600;">🧠 アルゴリズム詳細</a>
     </div>
 
     <div class="side-trigger">
@@ -170,6 +173,10 @@
         const ALGO = ['a','l','g','o'];
         let idxA = 0;
 
+        // 3. Secret Word "map" → diagram.html
+        const MAP = ['m','a','p'];
+        let idxM = 0;
+
         document.addEventListener('keydown', function(e) {
             // Konami
             if (e.key === KONAMI[idxK]) {
@@ -191,6 +198,17 @@
                 }
             } else {
                 idxA = e.key.toLowerCase() === ALGO[0] ? 1 : 0;
+            }
+
+            // Map
+            if (e.key.toLowerCase() === MAP[idxM]) {
+                idxM++;
+                if (idxM === MAP.length) {
+                    idxM = 0;
+                    launchPortal('diagram.html', '🕸️ DIAGRAM UNLOCKED', true);
+                }
+            } else {
+                idxM = e.key.toLowerCase() === MAP[0] ? 1 : 0;
             }
         });
 
