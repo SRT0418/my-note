@@ -1,0 +1,2310 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyNote — System Architecture & Algorithms</title>
+    <link rel="icon" href="./MyNote.ico">
+    <link rel="stylesheet" href="./css/common.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* ═══════════════════════════════════════════════════════
+           MyNote Algorithm & Architecture Secret Page
+           Theme: Neon Blueprint & Cyber-Glassmorphism
+        ═══════════════════════════════════════════════════════ */
+
+        :root {
+            --bg-base: #090a10;
+            --bg-surface: rgba(18, 20, 32, 0.75);
+            --bg-card: rgba(23, 27, 44, 0.7);
+            --bg-card-hover: rgba(30, 35, 58, 0.85);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(167, 139, 250, 0.3);
+
+            --accent-cyan: #38bdf8;
+            --accent-purple: #a855f7;
+            --accent-emerald: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f43f5e;
+            --accent-blue: #3b82f6;
+
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+
+            --font-sans: 'Inter', 'Noto Sans JP', -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        /* ── Reset & Body Override (isolate from common.css) ── */
+        html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: var(--bg-base) !important;
+            color: var(--text-primary) !important;
+            font-family: var(--font-sans) !important;
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        /* ── Animated Background ── */
+        .cyber-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+            background:
+                radial-gradient(circle at 15% 25%, rgba(56, 189, 248, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 85% 75%, rgba(168, 85, 247, 0.09) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.04) 0%, transparent 60%);
+        }
+
+        .cyber-grid {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background-size: 40px 40px;
+            background-image:
+                linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        /* ── Top Navigation Bar ── */
+        .algo-navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 28px;
+            background: rgba(9, 10, 16, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .algo-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .algo-logo-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 14px;
+            color: #fff;
+            box-shadow: 0 0 16px rgba(56, 189, 248, 0.4);
+        }
+
+        .algo-brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .algo-brand-title {
+            font-weight: 800;
+            font-size: 15px;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .algo-brand-tag {
+            font-size: 10px;
+            font-family: var(--font-mono);
+            color: var(--accent-cyan);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .algo-nav-links {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border: 1px solid var(--border-subtle);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-secondary);
+        }
+
+        .nav-btn:hover {
+            color: #fff;
+            border-color: var(--border-glow);
+            background: rgba(168, 85, 247, 0.12);
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .nav-btn.primary {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(168, 85, 247, 0.15));
+            border-color: rgba(56, 189, 248, 0.3);
+            color: var(--accent-cyan);
+        }
+
+        /* ── Hero Header ── */
+        .algo-hero {
+            position: relative;
+            z-index: 1;
+            padding: 50px 24px 30px;
+            text-align: center;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .clearance-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border-radius: 999px;
+            background: rgba(56, 189, 248, 0.08);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            color: var(--accent-cyan);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.15);
+        }
+
+        .clearance-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--accent-cyan);
+            box-shadow: 0 0 8px var(--accent-cyan);
+            animation: pulseDot 1.6s infinite;
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.4); opacity: 0.4; }
+        }
+
+        .algo-hero-title {
+            font-size: clamp(2rem, 5vw, 3.4rem);
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            line-height: 1.15;
+            margin: 0 0 16px;
+            background: linear-gradient(135deg, #ffffff 10%, #cbd5e1 40%, #38bdf8 70%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .algo-hero-desc {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            max-width: 680px;
+            margin: 0 auto 30px;
+            line-height: 1.7;
+        }
+
+        /* ── Metric Badges ── */
+        .algo-metrics {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .metric-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            backdrop-filter: blur(8px);
+            min-width: 160px;
+        }
+
+        .metric-icon {
+            font-size: 20px;
+        }
+
+        .metric-info {
+            text-align: left;
+        }
+
+        .metric-val {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #fff;
+            font-family: var(--font-mono);
+            line-height: 1.2;
+        }
+
+        .metric-lbl {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* ── Navigation Tabs ── */
+        .tabs-wrapper {
+            position: sticky;
+            top: 61px;
+            z-index: 90;
+            background: rgba(9, 10, 16, 0.9);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 10px 24px;
+        }
+
+        .tabs-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+        }
+
+        .tabs-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid transparent;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .tab-btn.active {
+            color: #fff;
+            background: rgba(56, 189, 248, 0.12);
+            border-color: rgba(56, 189, 248, 0.35);
+            box-shadow: 0 0 16px rgba(56, 189, 248, 0.2);
+        }
+
+        .tab-btn .tab-badge {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .tab-btn.active .tab-badge {
+            background: rgba(56, 189, 248, 0.25);
+            color: var(--accent-cyan);
+        }
+
+        /* ── Main Content Area ── */
+        .content-area {
+            position: relative;
+            z-index: 1;
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 30px 20px 80px;
+        }
+
+        .tab-pane {
+            display: none;
+            animation: fadeInPane 0.35s ease forwards;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        @keyframes fadeInPane {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Section Titles ── */
+        .section-header {
+            margin-bottom: 28px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .section-tag {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--accent-cyan);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .section-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #fff;
+            margin: 0;
+            letter-spacing: -0.02em;
+        }
+
+        .section-desc {
+            font-size: 0.92rem;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            max-width: 720px;
+        }
+
+        /* ── BOX DIAGRAM SYSTEM (The Core Feature) ── */
+        .diagram-canvas {
+            background: rgba(14, 16, 26, 0.85);
+            border: 1px solid var(--border-subtle);
+            border-radius: 18px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(12px);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .diagram-canvas::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent-cyan), var(--accent-purple), transparent);
+        }
+
+        /* Layer Rows in Architecture Diagram */
+        .arch-layer {
+            position: relative;
+            background: rgba(20, 24, 38, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .arch-layer:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+            background: rgba(23, 28, 46, 0.7);
+        }
+
+        .layer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .layer-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .layer-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .layer-name {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #fff;
+        }
+
+        .layer-badge {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-muted);
+        }
+
+        .layer-boxes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 12px;
+        }
+
+        /* Interactive Diagram Node Box */
+        .node-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 14px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .node-box::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), transparent);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .node-box:hover {
+            transform: translateY(-3px) scale(1.02);
+            background: var(--bg-card-hover);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 8px 24px rgba(56, 189, 248, 0.2);
+        }
+
+        .node-box:hover::after {
+            opacity: 1;
+        }
+
+        .node-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .node-icon {
+            font-size: 18px;
+        }
+
+        .node-status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-emerald);
+            box-shadow: 0 0 6px var(--accent-emerald);
+        }
+
+        .node-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            margin: 0;
+        }
+
+        .node-desc {
+            font-size: 11px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        .node-tech {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* ── Tracer & Dynamic Glow Animations ── */
+        .node-box.highlight-active {
+            border-color: var(--accent-cyan) !important;
+            box-shadow: 0 0 35px rgba(56, 189, 248, 0.7), inset 0 0 15px rgba(56, 189, 248, 0.3) !important;
+            transform: translateY(-5px) scale(1.04) !important;
+            animation: pulseGlow 0.9s infinite alternate;
+        }
+
+        .node-box.highlight-faint {
+            opacity: 0.35;
+            filter: grayscale(0.5);
+        }
+
+        @keyframes pulseGlow {
+            from { box-shadow: 0 0 20px rgba(56, 189, 248, 0.5), inset 0 0 10px rgba(56, 189, 248, 0.2); }
+            to { box-shadow: 0 0 45px rgba(56, 189, 248, 0.9), inset 0 0 25px rgba(56, 189, 248, 0.4); }
+        }
+
+        .tracer-bar {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: rgba(18, 22, 38, 0.9);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 12px 18px;
+            margin-bottom: 24px;
+        }
+
+        .tracer-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            font-family: var(--font-mono);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tracer-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tracer-btn:hover, .tracer-btn.active {
+            color: #fff;
+            background: rgba(56, 189, 248, 0.18);
+            border-color: rgba(56, 189, 248, 0.45);
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+        }
+
+        .tracer-status {
+            font-size: 11px;
+            font-family: var(--font-mono);
+            color: var(--accent-emerald);
+            margin-left: auto;
+        }
+
+        /* Connector Arrow Between Layers */
+        .layer-flow-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: -12px 0 12px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .flow-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 14px;
+            border-radius: 999px;
+            background: rgba(14, 16, 26, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--accent-purple);
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);
+        }
+
+        .flow-pulse {
+            display: inline-block;
+            animation: bounceArrow 1.4s infinite ease-in-out;
+        }
+
+        @keyframes bounceArrow {
+            0%, 100% { transform: translateY(-2px); }
+            50% { transform: translateY(2px); }
+        }
+
+        /* ── HORIZONTAL FLOWCHART DIAGRAM ── */
+        .flow-steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            position: relative;
+        }
+
+        .step-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 18px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: all 0.25s ease;
+        }
+
+        .step-card:hover {
+            border-color: var(--accent-purple);
+            box-shadow: 0 8px 24px rgba(168, 85, 247, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            background: rgba(168, 85, 247, 0.2);
+            color: var(--accent-purple);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .step-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+            margin: 0;
+        }
+
+        .step-code-preview {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            padding: 8px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--accent-cyan);
+            overflow-x: auto;
+        }
+
+        /* ── INTERACTIVE SIMULATOR (Live Algorithm Playground) ── */
+        .simulator-box {
+            background: linear-gradient(135deg, rgba(20, 24, 40, 0.9), rgba(15, 17, 28, 0.9));
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 30px;
+            box-shadow: 0 0 30px rgba(56, 189, 248, 0.1);
+        }
+
+        .sim-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .sim-tag {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(56, 189, 248, 0.2);
+            color: var(--accent-cyan);
+            font-weight: 700;
+        }
+
+        .sim-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #fff;
+            margin: 0;
+        }
+
+        .sim-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .sim-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .sim-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .sim-select, .sim-input {
+            background: rgba(10, 12, 20, 0.8);
+            border: 1px solid var(--border-subtle);
+            color: #fff;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-family: var(--font-sans);
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .sim-select:focus, .sim-input:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        .sim-btn {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 9px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(56, 189, 248, 0.3);
+            margin-top: 18px;
+        }
+
+        .sim-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
+        }
+
+        .sim-result-card {
+            background: rgba(8, 10, 16, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .sim-result-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .sim-result-value {
+            font-family: var(--font-mono);
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--accent-emerald);
+        }
+
+        /* ── MODAL POPUP FOR NODE DETAILS ── */
+        .algo-modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: rgba(4, 5, 10, 0.85);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .algo-modal-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .algo-modal {
+            background: #111422;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 680px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(168, 85, 247, 0.2);
+            transform: scale(0.94) translateY(20px);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+
+        .algo-modal-overlay.open .algo-modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            padding: 24px 28px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            background: #111422;
+            z-index: 10;
+        }
+
+        .modal-badge {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--accent-cyan);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .modal-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #fff;
+            margin: 4px 0 0;
+        }
+
+        .modal-close {
+            background: rgba(255, 255, 255, 0.08);
+            border: none;
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: rgba(244, 63, 94, 0.3);
+            color: var(--accent-rose);
+        }
+
+        .modal-body {
+            padding: 24px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .modal-section-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+        }
+
+        .modal-text {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin: 0;
+        }
+
+        .code-box {
+            background: #090b14;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 16px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: #e2e8f0;
+            overflow-x: auto;
+            line-height: 1.6;
+        }
+
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .spec-table th, .spec-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            text-align: left;
+        }
+
+        .spec-table th {
+            color: var(--text-muted);
+            font-weight: 600;
+            width: 35%;
+        }
+
+        .spec-table td {
+            color: #fff;
+            font-family: var(--font-mono);
+        }
+
+        /* ── FOOTER ── */
+        .algo-footer {
+            position: relative;
+            z-index: 1;
+            padding: 40px 24px;
+            text-align: center;
+            border-top: 1px solid var(--border-subtle);
+            background: rgba(9, 10, 16, 0.8);
+        }
+
+        .footer-brand {
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .footer-copy {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Responsive tweaks */
+        @media (max-width: 768px) {
+            .algo-navbar { padding: 12px 16px; }
+            .algo-hero { padding: 40px 16px 20px; }
+            .diagram-canvas { padding: 16px; }
+            .arch-layer { padding: 14px; }
+            .layer-boxes-grid { grid-template-columns: 1fr; }
+            .flow-steps-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="cyber-bg"></div>
+    <div class="cyber-grid"></div>
+
+    <!-- ── Top Navbar ── -->
+    <nav class="algo-navbar">
+        <a href="index.html" class="algo-brand">
+            <div class="algo-logo-badge">MN</div>
+            <div class="algo-brand-text">
+                <span class="algo-brand-title">MyNote Architecture</span>
+                <span class="algo-brand-tag">Core Engine Blueprint</span>
+            </div>
+        </a>
+        <div class="algo-nav-links">
+            <a href="history.html" class="nav-btn">
+                <span>📜 開発歴史 (History)</span>
+            </a>
+            <a href="index.html" class="nav-btn primary">
+                <span>🏠 ホームに戻る</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- ── Hero Section ── -->
+    <header class="algo-hero">
+        <div class="clearance-pill">
+            <span class="clearance-dot"></span>
+            <span>Secret Diagnostic Mode // Architecture & Algorithms</span>
+        </div>
+        <h1 class="algo-hero-title">MyNote システム構造 ＆ アルゴリズム解剖</h1>
+        <p class="algo-hero-desc">
+            MyNoteの舞台裏で稼働する「ローカルファースト同期パイプライン」「ストリーク継続ロジック」「週次クラスタリング」「全方位通知スキャン」などのアルゴリズムを、インタラクティブなボックス相関図で視覚化しました。各ボックスをクリックすると詳細仕様とソースコードを確認できます。
+        </p>
+
+        <!-- Metrics -->
+        <div class="algo-metrics">
+            <div class="metric-card">
+                <span class="metric-icon">🧩</span>
+                <div class="metric-info">
+                    <div class="metric-val">8</div>
+                    <div class="metric-lbl">機能モジュール</div>
+                </div>
+            </div>
+            <div class="metric-card">
+                <span class="metric-icon">💾</span>
+                <div class="metric-info">
+                    <div class="metric-val">22+</div>
+                    <div class="metric-lbl">Local Storage キー</div>
+                </div>
+            </div>
+            <div class="metric-card">
+                <span class="metric-icon">⚡</span>
+                <div class="metric-info">
+                    <div class="metric-val">500ms</div>
+                    <div class="metric-lbl">デバウンス同期ラグ</div>
+                </div>
+            </div>
+            <div class="metric-card">
+                <span class="metric-icon">🔒</span>
+                <div class="metric-info">
+                    <div class="metric-val">Zero-Latency</div>
+                    <div class="metric-lbl">オフライン先行描画</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ── Navigation Tabs ── -->
+    <div class="tabs-wrapper">
+        <div class="tabs-container">
+            <button class="tab-btn active" onclick="switchTab('tab-architecture')">
+                <span>🌐 システム全体アーキテクチャ</span>
+                <span class="tab-badge">OVERVIEW</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('tab-sync')">
+                <span>⚡ クラウド同期 (Local-First)</span>
+                <span class="tab-badge">PIPELINE</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('tab-habits')">
+                <span>🔥 習慣＆ストリーク判定</span>
+                <span class="tab-badge">STREAK</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('tab-kadai')">
+                <span>📅 課題週次分類＆達成率</span>
+                <span class="tab-badge">CLUSTERING</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('tab-notify')">
+                <span>🔔 全方位通知スキャン</span>
+                <span class="tab-badge">SCANNER</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('tab-report')">
+                <span>📝 報告書自動集計エンジン</span>
+                <span class="tab-badge">SYNTHESIS</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ── Main Content Area ── -->
+    <main class="content-area">
+
+        <!-- ══════════════════════════════════════════════════════════
+             TAB 1: システム全体アーキテクチャ関係図
+        ══════════════════════════════════════════════════════════ -->
+        <div id="tab-architecture" class="tab-pane active">
+            <div class="section-header">
+                <div>
+                    <div class="section-tag">LAYER ARCHITECTURE RELATION MAP</div>
+                    <h2 class="section-title">全レイヤー相関図 (System Hierarchy)</h2>
+                    <p class="section-desc">ユーザーインターフェースからブラウザのLocalStorage、そしてクラウドSupabaseデータベースまで、データとイベントがどのように巡回するかを示した階層構造です。</p>
+                </div>
+            </div>
+
+            <div class="tracer-bar">
+                <span class="tracer-label">
+                    <span>⚡ FLOW TRACER:</span>
+                    <span>シナリオ別データ巡回追跡</span>
+                </span>
+                <button class="tracer-btn" onclick="traceFlow('kadai-add')">➕ 課題追加フロー</button>
+                <button class="tracer-btn" onclick="traceFlow('daily-reset')">🔄 日付跨ぎ・習慣判定フロー</button>
+                <button class="tracer-btn" onclick="traceFlow('cloud-sync')">☁️ クラウド同期反映フロー</button>
+                <button class="tracer-btn" onclick="traceFlow('notify-scan')">🔔 通知センター巡回フロー</button>
+                <button class="tracer-btn" onclick="clearTrace()" style="color: var(--text-muted);">リセット</button>
+                <span id="tracer-status-text" class="tracer-status">ボタンを押すとボックスが順に光ります</span>
+            </div>
+
+            <div class="diagram-canvas">
+
+                <!-- Layer 1: Presentation Layer -->
+                <div class="arch-layer" style="border-left: 3px solid var(--accent-cyan);">
+                    <div class="layer-header">
+                        <div class="layer-title-wrap">
+                            <span class="layer-dot" style="background: var(--accent-cyan); box-shadow: 0 0 8px var(--accent-cyan);"></span>
+                            <span class="layer-name">Layer 1: プレゼンテーション層 (UI & Interaction)</span>
+                        </div>
+                        <span class="layer-badge">HTML5 / Responsive Grid / CSS3</span>
+                    </div>
+                    <div class="layer-boxes-grid">
+                        <div id="node-ui-portal" class="node-box" onclick="openNodeModal('ui-portal')">
+                            <div class="node-header">
+                                <span class="node-icon">🌌</span>
+                                <span class="node-status-dot"></span>
+                            </div>
+                            <h3 class="node-title">Easter Egg Portal</h3>
+                            <p class="node-desc">コナミコマンド & algoキー入力検知による隠しワープ演出</p>
+                            <span class="node-tech">index.html</span>
+                        </div>
+                        <div id="node-ui-drawer" class="node-box" onclick="openNodeModal('ui-drawer')">
+                            <div class="node-header">
+                                <span class="node-icon">☰</span>
+                                <span class="node-status-dot"></span>
+                            </div>
+                            <h3 class="node-title">Navigation Drawer</h3>
+                            <p class="node-desc">スマホ／PC共通のオーバーレイスライドメニュー</p>
+                            <span class="node-tech">common.js</span>
+                        </div>
+                        <div id="node-ui-theme" class="node-box" onclick="openNodeModal('ui-theme')">
+                            <div class="node-header">
+                                <span class="node-icon">🎨</span>
+                                <span class="node-status-dot"></span>
+                            </div>
+                            <h3 class="node-title">Card Grid System</h3>
+                            <p class="node-desc">各機能への入口を提供するレスポンシブグリッドカード</p>
+                            <span class="node-tech">common.css</span>
+                        </div>
+                        <div id="node-ui-notify-bell" class="node-box" onclick="openNodeModal('ui-notify-bell')">
+                            <div class="node-header">
+                                <span class="node-icon">🔔</span>
+                                <span class="node-status-dot"></span>
+                            </div>
+                            <h3 class="node-title">Notification Center</h3>
+                            <p class="node-desc">フローティング通知バッジと全機能未読件数フライアウト</p>
+                            <span class="node-tech">notification.js</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Arrow 1 to 2 -->
+                <div class="layer-flow-arrow">
+                    <div class="flow-pill">
+                        <span class="flow-pulse">↓</span> ユーザーイベント (Click / Input / Submit) <span class="flow-pulse">↓</span>
+                    </div>
+                </div>
+
+                <!-- Layer 2: Business Logic & Feature Engines -->
+                <div class="arch-layer" style="border-left: 3px solid var(--accent-purple);">
+                    <div class="layer-header">
+                        <div class="layer-title-wrap">
+                            <span class="layer-dot" style="background: var(--accent-purple); box-shadow: 0 0 8px var(--accent-purple);"></span>
+                            <span class="layer-name">Layer 2: 8大機能ビジネスロジック (Feature Engines)</span>
+                        </div>
+                        <span class="layer-badge">Pure Vanilla JS Modules</span>
+                    </div>
+                    <div class="layer-boxes-grid">
+                        <div id="node-eng-kadai" class="node-box" onclick="openNodeModal('eng-kadai')">
+                            <div class="node-header">
+                                <span class="node-icon">📚</span>
+                                <span class="node-status-dot"></span>
+                            </div>
+                            <h3 class="node-title">課題締切管理</h3>
+                            <p class="node-desc">週次グループ分類、30日パージ、達成率計算</p>
+                            <span class="node-tech">kadai.js</span>
+                        </div>
+                        <div id="node-eng-tasks" class="node-box" onclick="openNodeModal('eng-tasks')">
+                            <div class="node-header">
+                                <span class="node-icon">📋</span>
+                                <span class="node-status-dot"></span>
+                            </div>
+                            <h3 class="node-title">優先度タスク</h3>
+                            <p class="node-desc">締切なし用事の優先度（高・中・低）ソートマトリクス</p>
+                            <span class="node-tech">tasks.js</span>
+                        </div>
+                        <div id="node-eng-habits" class="node-box" onclick="openNodeModal('eng-habits')">
+                            <div class="node-header">
+                                <span class="node-icon">🔥</span>
+                                <span class="node-status-dot"></span>
+                            </div>
+                            <h3 class="node-title">毎日習慣タスク</h3>
+                            <p class="node-desc">日付差分検知、ストリーク維持/途切れ、自動リセット</p>
+                            <span class="node-tech">everydayTask.js</span>
+                        </div>
+                        <div id="node-eng-calendar" class="node-box" onclick="openNodeModal('eng-calendar')">
+                            <div class="node-header">
+                                <span class="node-icon">📅</span>
+                                <span class="node-status-dot"></span>
+                            </div>
+                            <h3 class="node-title">カレンダー予定</h3>
+                            <p class="node-desc">月次マトリクス生成、予定・課題・タスク統合重畳表示</p>
+                            <span class="node-tech">calendar.js</span>
+                        </div>
+                        <div id="node-eng-report" class="node-box" onclick="openNodeModal('eng-report')">
+                            <div class="node-header">
+                                <span class="node-icon">📝</span>
+                                <span class="node-status-dot"></span>
+                            </div>
+                            <h3 class="node-title">報告書作成</h3>
+                            <p class="node-desc">過去1/3か月実績の集計、6大テーマ整形、Word出力</p>
+                            <span class="node-tech">report.js</span>
+                        </div>
+                        <div id="node-eng-birthdays" class="node-box" onclick="openNodeModal('eng-birthdays')">
+                            <div class="node-header">
+                                <span class="node-icon">🎂</span>
+                                <span class="node-status-dot"></span>
+                            </div>
+                            <h3 class="node-title">誕生日管理</h3>
+                            <p class="node-desc">年齢・残り日数カウント、うるう年補正アルゴリズム</p>
+                            <span class="node-tech">birthdays.js</span>
+                        </div>
+                        <div id="node-eng-wish" class="node-box" onclick="openNodeModal('eng-wish')">
+                            <div class="node-header">
+                                <span class="node-icon">✨</span>
+                                <span class="node-status-dot"></span>
+                            </div>
+                            <h3 class="node-title">やりたいこと</h3>
+                            <p class="node-desc">パートナーフィルター、未達成・達成ステート遷移</p>
+                            <span class="node-tech">wishlist.js</span>
+                        </div>
+                        <div id="node-eng-ideas" class="node-box" onclick="openNodeModal('eng-ideas')">
+                            <div class="node-header">
+                                <span class="node-icon">💡</span>
+                                <span class="node-status-dot"></span>
+                            </div>
+                            <h3 class="node-title">アイデア保存</h3>
+                            <p class="node-desc">メモ即時永続化、アーカイブ・復元スタック</p>
+                            <span class="node-tech">ideas.js</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Arrow 2 to 3 -->
+                <div class="layer-flow-arrow">
+                    <div class="flow-pill">
+                        <span class="flow-pulse">↓</span> ゼロレイテンシー同期 & イベント発火 <span class="flow-pulse">↓</span>
+                    </div>
+                </div>
+
+                <!-- Layer 3: Local-First Storage & Bus -->
+                <div class="arch-layer" style="border-left: 3px solid var(--accent-emerald);">
+                    <div class="layer-header">
+                        <div class="layer-title-wrap">
+                            <span class="layer-dot" style="background: var(--accent-emerald); box-shadow: 0 0 8px var(--accent-emerald);"></span>
+                            <span class="layer-name">Layer 3: ローカルファースト層 (Local State & Cache)</span>
+                        </div>
+                        <span class="layer-badge">LocalStorage API / Custom Event Bus</span>
+                    </div>
+                    <div class="layer-boxes-grid">
+                        <div id="node-core-storage" class="node-box" onclick="openNodeModal('core-storage')">
+                            <div class="node-header">
+                                <span class="node-icon">💾</span>
+                                <span class="node-status-dot"></span>
+                            </div>
+                            <h3 class="node-title">22 Key Local Storage</h3>
+                            <p class="node-desc">即時読み書きにより、通信が途切れても完全動作を保証</p>
+                            <span class="node-tech">browser localStorage</span>
+                        </div>
+                        <div id="node-core-eventbus" class="node-box" onclick="openNodeModal('core-eventbus')">
+                            <div class="node-header">
+                                <span class="node-icon">📡</span>
+                                <span class="node-status-dot"></span>
+                            </div>
+                            <h3 class="node-title">myNoteDataSynced Event</h3>
+                            <p class="node-desc">クラウド更新時に全ページ初期描画関数を自動再トリガー</p>
+                            <span class="node-tech">window.dispatchEvent</span>
+                        </div>
+                        <div id="node-core-notify-scanner" class="node-box" onclick="openNodeModal('core-notify-scanner')">
+                            <div class="node-header">
+                                <span class="node-icon">🔍</span>
+                                <span class="node-status-dot"></span>
+                            </div>
+                            <h3 class="node-title">Global Scanner Loop</h3>
+                            <p class="node-desc">全22キーを走査し、期日・未読・重要アラートを動的合成</p>
+                            <span class="node-tech">notification.js</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Arrow 3 to 4 -->
+                <div class="layer-flow-arrow">
+                    <div class="flow-pill">
+                        <span class="flow-pulse">⇅</span> 500ms デバウンスキュー (Set) ＆ 非同期通信 <span class="flow-pulse">⇅</span>
+                    </div>
+                </div>
+
+                <!-- Layer 4: Cloud Sync & Backend -->
+                <div class="arch-layer" style="border-left: 3px solid var(--accent-blue);">
+                    <div class="layer-header">
+                        <div class="layer-title-wrap">
+                            <span class="layer-dot" style="background: var(--accent-blue); box-shadow: 0 0 8px var(--accent-blue);"></span>
+                            <span class="layer-name">Layer 4: クラウド永続化 ＆ 認証層 (Cloud Sync & Database)</span>
+                        </div>
+                        <span class="layer-badge">Supabase BaaS / PostgreSQL</span>
+                    </div>
+                    <div class="layer-boxes-grid">
+                        <div id="node-cloud-sync-engine" class="node-box" onclick="openNodeModal('cloud-sync-engine')">
+                            <div class="node-header">
+                                <span class="node-icon">⚡</span>
+                                <span class="node-status-dot"></span>
+                            </div>
+                            <h3 class="node-title">Sync Queue & Debounce</h3>
+                            <p class="node-desc">短時間の連続更新をSetにまとめ500ms後に一括Upsert</p>
+                            <span class="node-tech">db-sync.js</span>
+                        </div>
+                        <div id="node-cloud-auth" class="node-box" onclick="openNodeModal('cloud-auth')">
+                            <div class="node-header">
+                                <span class="node-icon">🔐</span>
+                                <span class="node-status-dot"></span>
+                            </div>
+                            <h3 class="node-title">JWT Auth & Session</h3>
+                            <p class="node-desc">ゲスト端末とSupabase Authユーザーの自動リンク＆復元</p>
+                            <span class="node-tech">auth.js</span>
+                        </div>
+                        <div id="node-cloud-db" class="node-box" onclick="openNodeModal('cloud-db')">
+                            <div class="node-header">
+                                <span class="node-icon">🗄️</span>
+                                <span class="node-status-dot"></span>
+                            </div>
+                            <h3 class="node-title">PostgreSQL `user_data`</h3>
+                            <p class="node-desc">RLS (Row Level Security) により他者からのアクセスを完全遮断</p>
+                            <span class="node-tech">Supabase Database</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════
+             TAB 2: クラウド同期パイプライン
+        ══════════════════════════════════════════════════════════ -->
+        <div id="tab-sync" class="tab-pane">
+            <div class="section-header">
+                <div>
+                    <div class="section-tag">LOCAL-FIRST SYNCHRONIZATION ALGORITHM</div>
+                    <h2 class="section-title">ローカルファースト双方向同期パイプライン</h2>
+                    <p class="section-desc">「端末ローカルで即座に0msで画面更新し、ユーザーを待たせずに非同期でクラウドへ同期する」設計アルゴリズムの流れです。</p>
+                </div>
+            </div>
+
+            <div class="diagram-canvas">
+                <div class="flow-steps-grid">
+                    <div class="step-card" onclick="openNodeModal('sync-step1')">
+                        <div class="step-num">01</div>
+                        <h4 class="step-title">UI操作 ＆ 即時ローカル書き込み</h4>
+                        <p class="node-desc">タスク追加や完了時にlocalStorageへ即時JSON文字列化して保存。ユーザーはラグを一切感じません。</p>
+                        <div class="step-code-preview">localStorage.setItem(key, val);</div>
+                    </div>
+
+                    <div class="step-card" onclick="openNodeModal('sync-step2')">
+                        <div class="step-num">02</div>
+                        <h4 class="step-title">Set キューイング ＆ デバウンス</h4>
+                        <p class="node-desc">変更キーを <code>pendingKeys.add(key)</code> で重複排除。500msのタイマーをリセットし、連続操作を1回の通信に集約。</p>
+                        <div class="step-code-preview">clearTimeout(syncTimer);<br>syncTimer = setTimeout(..., 500);</div>
+                    </div>
+
+                    <div class="step-card" onclick="openNodeModal('sync-step3')">
+                        <div class="step-num">03</div>
+                        <h4 class="step-title">Supabase バッチ Upsert</h4>
+                        <p class="node-desc">ログイン中のUUIDを確認し、<code>user_data</code> テーブルに <code>onConflict: "user_id, data_key"</code> で一括保存。</p>
+                        <div class="step-code-preview">client.from("user_data").upsert(...)</div>
+                    </div>
+
+                    <div class="step-card" onclick="openNodeModal('sync-step4')">
+                        <div class="step-num">04</div>
+                        <h4 class="step-title">クラウド引き込み ＆ 差分検知</h4>
+                        <p class="node-desc">ログイン時や別端末変更時に <code>pullCloudData()</code> を実行。ローカル文字列と異なる場合のみ上書き更新。</p>
+                        <div class="step-code-preview">if (localStorage[key] !== cloudVal)</div>
+                    </div>
+
+                    <div class="step-card" onclick="openNodeModal('sync-step5')">
+                        <div class="step-num">05</div>
+                        <h4 class="step-title">カスタムイベント発火 ＆ 自動再描画</h4>
+                        <p class="node-desc">データ更新を検知すると <code>myNoteDataSynced</code> を発火し、各画面の <code>renderAll()</code> を自動呼び出し。</p>
+                        <div class="step-code-preview">window.dispatchEvent("myNoteDataSynced")</div>
+                    </div>
+                </div>
+
+                <!-- Simulator for Sync Pipeline -->
+                <div class="simulator-box">
+                    <div class="sim-header">
+                        <span class="sim-tag">INTERACTIVE SIMULATOR</span>
+                        <h3 class="sim-title">同期パイプライン・シミュレーター</h3>
+                    </div>
+                    <div class="sim-controls">
+                        <div class="sim-group">
+                            <span class="sim-label">変更対象キー</span>
+                            <select id="sim-sync-key" class="sim-select">
+                                <option value="tasks">tasks (課題管理)</option>
+                                <option value="habitTasks">habitTasks (習慣タスク)</option>
+                                <option value="schedules">schedules (カレンダー予定)</option>
+                                <option value="todoTasks">todoTasks (通常タスク)</option>
+                            </select>
+                        </div>
+                        <div class="sim-group">
+                            <span class="sim-label">ネットワーク状態</span>
+                            <select id="sim-network-status" class="sim-select">
+                                <option value="online">オンライン (接続良好)</option>
+                                <option value="offline">オフライン (キャッシュ待機)</option>
+                            </select>
+                        </div>
+                        <button class="sim-btn" onclick="runSyncSimulation()">パイプライン実行テスト</button>
+                    </div>
+                    <div id="sim-sync-result" class="sim-result-card">
+                        <span class="sim-result-label">待機中: 上のボタンを押してシミュレーションを実行してください</span>
+                        <span class="sim-result-value">READY</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════
+             TAB 3: 習慣＆ストリーク判定アルゴリズム
+        ══════════════════════════════════════════════════════════ -->
+        <div id="tab-habits" class="tab-pane">
+            <div class="section-header">
+                <div>
+                    <div class="section-tag">HABIT STREAK & RESET ALGORITHM</div>
+                    <h2 class="section-title">習慣タスク日次リセット ＆ ストリーク判定ロジック</h2>
+                    <p class="section-desc">日付を跨いだときに、継続日数を増やすかリセットするかを決定するステートマシンアルゴリズムです。</p>
+                </div>
+            </div>
+
+            <div class="diagram-canvas">
+                <div class="flow-steps-grid">
+                    <div class="step-card" onclick="openNodeModal('habit-step1')">
+                        <div class="step-num">01</div>
+                        <h4 class="step-title">日付キー比較 (checkDailyReset)</h4>
+                        <p class="node-desc">起動時に保存された <code>habitLastDate</code> と今の日付 <code>getTodayKey()</code> を比較。</p>
+                        <div class="step-code-preview">diffDays = getDaysDiff(lastDate, today);</div>
+                    </div>
+
+                    <div class="step-card" onclick="openNodeModal('habit-step2')">
+                        <div class="step-num">02</div>
+                        <h4 class="step-title">分岐 A: 同日アクセス (diffDays === 0)</h4>
+                        <p class="node-desc">今日すでにアクセス済みのため、リセット処理はスキップ。既存の達成状態をそのまま維持。</p>
+                        <div class="step-code-preview">return false; // 何もしない</div>
+                    </div>
+
+                    <div class="step-card" onclick="openNodeModal('habit-step3')">
+                        <div class="step-num">03</div>
+                        <h4 class="step-title">分岐 B: 翌日アクセス (diffDays === 1)</h4>
+                        <p class="node-desc">昨日アクセスあり！達成済タスクは <code>streak++</code>、未達成タスクは <code>streak = 0</code>。前日を履歴に保存し未完了化。</p>
+                        <div class="step-code-preview">completed.forEach(t => t.streak++);</div>
+                    </div>
+
+                    <div class="step-card" onclick="openNodeModal('habit-step4')">
+                        <div class="step-num">04</div>
+                        <h4 class="step-title">分岐 C: 2日以上放置 (diffDays >= 2)</h4>
+                        <p class="node-desc">昨日タスクを実施しなかったため、全タスクの <code>streak = 0</code> にリセット。継続記録は途切れます。</p>
+                        <div class="step-code-preview">allTasks.forEach(t => t.streak = 0);</div>
+                    </div>
+                </div>
+
+                <!-- Live Streak Simulator -->
+                <div class="simulator-box">
+                    <div class="sim-header">
+                        <span class="sim-tag">INTERACTIVE TESTER</span>
+                        <h3 class="sim-title">ストリーク判定シミュレーター</h3>
+                    </div>
+                    <div class="sim-controls">
+                        <div class="sim-group">
+                            <span class="sim-label">現在のストリーク日数</span>
+                            <input id="sim-current-streak" type="number" class="sim-input" value="5" min="0" max="100">
+                        </div>
+                        <div class="sim-group">
+                            <span class="sim-label">前回アクセス日</span>
+                            <select id="sim-diff-days" class="sim-select">
+                                <option value="0">今日 (0日経過)</option>
+                                <option value="1">昨日 (1日経過 - 連続成功)</option>
+                                <option value="2">一昨日 (2日経過 - 1日サボり)</option>
+                                <option value="5">5日前 (5日経過 - 長期離脱)</option>
+                            </select>
+                        </div>
+                        <div class="sim-group">
+                            <span class="sim-label">前回達成フラグ</span>
+                            <select id="sim-was-completed" class="sim-select">
+                                <option value="yes">達成していた (Completed)</option>
+                                <option value="no">未達成だった (Incomplete)</option>
+                            </select>
+                        </div>
+                        <button class="sim-btn" onclick="runStreakSimulation()">判定ロジックを実行</button>
+                    </div>
+                    <div id="sim-streak-result" class="sim-result-card">
+                        <span class="sim-result-label">判定結果</span>
+                        <span class="sim-result-value">待機中</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════
+             TAB 4: 課題週次分類＆達成率アルゴリズム
+        ══════════════════════════════════════════════════════════ -->
+        <div id="tab-kadai" class="tab-pane">
+            <div class="section-header">
+                <div>
+                    <div class="section-tag">KADAI CLUSTERING & PROGRESS ENGINE</div>
+                    <h2 class="section-title">課題週次クラスタリング ＆ 達成率計算</h2>
+                    <p class="section-desc">締切日時に基づいて「今週」「来週」「再来週以降」の3グループに自動クラスタリングし、達成率プログレスバーを動的生成するアルゴリズムです。</p>
+                </div>
+            </div>
+
+            <div class="diagram-canvas">
+                <div class="flow-steps-grid">
+                    <div class="step-card" onclick="openNodeModal('kadai-step1')">
+                        <div class="step-num">01</div>
+                        <h4 class="step-title">タイムスタンプ昇順ソート</h4>
+                        <p class="node-desc">全課題の締切日時をDateオブジェクト化し、近い順にクイックソート。</p>
+                        <div class="step-code-preview">tasks.sort((a,b) => new Date(a.deadline) - new Date(b.deadline));</div>
+                    </div>
+
+                    <div class="step-card" onclick="openNodeModal('kadai-step2')">
+                        <div class="step-num">02</div>
+                        <h4 class="step-title">月曜起点週キー算出 (getWeekKey)</h4>
+                        <p class="node-desc">基準日（今日・来週・課題締切）の週の月曜日日付をYYYY-MM-DD形式で一意にハッシュ化。</p>
+                        <div class="step-code-preview">d.setDate(d.getDate() - dayOfWeek + 1);</div>
+                    </div>
+
+                    <div class="step-card" onclick="openNodeModal('kadai-step3')">
+                        <div class="step-num">03</div>
+                        <h4 class="step-title">3分割クラスタリング判定</h4>
+                        <p class="node-desc">週キーの等値判定により <code>thisWeek</code>, <code>nextWeek</code>, <code>later</code> の3配列に分配。</p>
+                        <div class="step-code-preview">if (wk === current) thisWeek.push(t);</div>
+                    </div>
+
+                    <div class="step-card" onclick="openNodeModal('kadai-step4')">
+                        <div class="step-num">04</div>
+                        <h4 class="step-title">達成率プログレス計算式</h4>
+                        <p class="node-desc">完了数と未完了数からパーセンテージを四捨五入計算し、UIの幅アニメーションを更新。</p>
+                        <div class="step-code-preview">Math.round((comp / (act + comp)) * 100);</div>
+                    </div>
+                </div>
+
+                <!-- Kadai Clustering Tester -->
+                <div class="simulator-box">
+                    <div class="sim-header">
+                        <span class="sim-tag">WEEK CLUSTERING TESTER</span>
+                        <h3 class="sim-title">締切日クラスタリング・シミュレーター</h3>
+                    </div>
+                    <div class="sim-controls">
+                        <div class="sim-group">
+                            <span class="sim-label">課題締切日を選択</span>
+                            <input id="sim-kadai-date" type="date" class="sim-input">
+                        </div>
+                        <button class="sim-btn" onclick="runKadaiSimulation()">分類先を判定する</button>
+                    </div>
+                    <div id="sim-kadai-result" class="sim-result-card">
+                        <span class="sim-result-label">分類先グループ:</span>
+                        <span class="sim-result-value">日付を選択してください</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════
+             TAB 5: 全方位通知スキャン
+        ══════════════════════════════════════════════════════════ -->
+        <div id="tab-notify" class="tab-pane">
+            <div class="section-header">
+                <div>
+                    <div class="section-tag">NOTIFICATION SCANNER ENGINE</div>
+                    <h2 class="section-title">全方位通知スキャン ＆ 優先度合成アルゴリズム</h2>
+                    <p class="section-desc">アプリ起動時や定期インターバルで全データを一括巡回し、締切前日・当日・習慣リマインドをリアルタイム抽出するアルゴリズムです。</p>
+                </div>
+            </div>
+
+            <div class="diagram-canvas">
+                <div class="flow-steps-grid">
+                    <div class="step-card" onclick="openNodeModal('notify-step1')">
+                        <div class="step-num">01</div>
+                        <h4 class="step-title">マルチソース・スキャン</h4>
+                        <p class="node-desc">「カレンダー予定」「課題締切」「通常タスク」「毎日習慣」「誕生日」の5系統を並行巡回。</p>
+                        <div class="step-code-preview">scanSchedules(), scanKadai(), ...</div>
+                    </div>
+
+                    <div class="step-card" onclick="openNodeModal('notify-step2')">
+                        <div class="step-num">02</div>
+                        <h4 class="step-title">3日以内 ＆ 当日日付フィルタ</h4>
+                        <p class="node-desc"><code>todayKey</code> および <code>in3DaysKey</code> の範囲内にある未完了アイテムのみを抽出。</p>
+                        <div class="step-code-preview">if (itemDate >= today && itemDate <= in3Days)</div>
+                    </div>
+
+                    <div class="step-card" onclick="openNodeModal('notify-step3')">
+                        <div class="step-num">03</div>
+                        <h4 class="step-title">既読ID差分フィルタ</h4>
+                        <p class="node-desc"><code>readNotificationIds</code> 配列に含まれる既読通知を除外し、未読バッジ件数を確定。</p>
+                        <div class="step-code-preview">!readIds.includes(notification.id)</div>
+                    </div>
+
+                    <div class="step-card" onclick="openNodeModal('notify-step4')">
+                        <div class="step-num">04</div>
+                        <h4 class="step-title">Web Notification API 発火</h4>
+                        <p class="node-desc">ブラウザ通知権限が許可されている場合、システムトレイへデスクトップ通知を即時送出。</p>
+                        <div class="step-code-preview">new Notification("MyNote", { body });</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════
+             TAB 6: 報告書自動集計エンジン
+        ══════════════════════════════════════════════════════════ -->
+        <div id="tab-report" class="tab-pane">
+            <div class="section-header">
+                <div>
+                    <div class="section-tag">REPORT SYNTHESIS & EXPORT ENGINE</div>
+                    <h2 class="section-title">報告書自動集計 ＆ ドキュメント生成</h2>
+                    <p class="section-desc">過去1ヶ月・3ヶ月の完了実績やスケジュールを抽出し、6種類の美しいテンプレートに自動整形してWord/Markdown出力するエンジンです。</p>
+                </div>
+            </div>
+
+            <div class="diagram-canvas">
+                <div class="flow-steps-grid">
+                    <div class="step-card" onclick="openNodeModal('report-step1')">
+                        <div class="step-num">01</div>
+                        <h4 class="step-title">データソース抽出</h4>
+                        <p class="node-desc">カレンダー予定・課題・タスクから実績データを集約し、期間（1/3ヶ月）でフィルタリング。</p>
+                        <div class="step-code-preview">schedules.filter(s => s.date >= rangeStart)</div>
+                    </div>
+
+                    <div class="step-card" onclick="openNodeModal('report-step2')">
+                        <div class="step-num">02</div>
+                        <h4 class="step-title">文字数カウント＆サニタイズ</h4>
+                        <p class="node-desc">改行・空白を除外した純粋文字数のリアルタイム算出とXSS防止のエスケープ処理。</p>
+                        <div class="step-code-preview">text.replace(/\r?\n/g, "").length</div>
+                    </div>
+
+                    <div class="step-card" onclick="openNodeModal('report-step3')">
+                        <div class="step-num">03</div>
+                        <h4 class="step-title">テーマ別CSS動的注入</h4>
+                        <p class="node-desc">クラシックブルー、ミッドナイト、エディトリアルなど6種類のデザインCSSをプレビューへ即時適用。</p>
+                        <div class="step-code-preview">applyTheme(REPORT_THEMES[selected])</div>
+                    </div>
+
+                    <div class="step-card" onclick="openNodeModal('report-step4')">
+                        <div class="step-num">04</div>
+                        <h4 class="step-title">Word(.doc) / Markdown出力</h4>
+                        <p class="node-desc">HTML Blobを作成し、MIMEタイプ <code>application/msword</code> としてブラウザダウンロード。</p>
+                        <div class="step-code-preview">new Blob([docHtml], { type: "application/msword" })</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ── Interactive Modal for Node Details ── -->
+    <div id="algo-modal" class="algo-modal-overlay" onclick="handleModalBackdropClick(event)">
+        <div class="algo-modal">
+            <div class="modal-header">
+                <div>
+                    <span id="modal-badge" class="modal-badge">COMPONENT SPEC</span>
+                    <h3 id="modal-title" class="modal-title">モジュール詳細</h3>
+                </div>
+                <button class="modal-close" onclick="closeNodeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <div class="modal-section-title">概要 & アルゴリズムの役割</div>
+                    <p id="modal-desc" class="modal-text"></p>
+                </div>
+                <div>
+                    <div class="modal-section-title">仕様 & パラメータ</div>
+                    <table class="spec-table">
+                        <tbody id="modal-specs"></tbody>
+                    </table>
+                </div>
+                <div>
+                    <div class="modal-section-title">コアコード・スニペット</div>
+                    <pre id="modal-code" class="code-box"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Footer ── -->
+    <footer class="algo-footer">
+        <div class="footer-brand">MyNote Engine v2.0 — Architecture & Algorithms</div>
+        <div class="footer-copy">Built with Zero-Latency Local-First Engineering & Cloud Sync</div>
+    </footer>
+
+    <script>
+        // ── Tab Switching Logic ──
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+
+            const targetPane = document.getElementById(tabId);
+            if (targetPane) {
+                targetPane.classList.add('active');
+            }
+
+            // Find matching tab button
+            const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick').includes(tabId));
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+            }
+        }
+
+        // ── Node Data Registry for Modals ──
+        const NODE_DETAILS = {
+            'ui-portal': {
+                title: 'Easter Egg Portal (隠しワープ機構)',
+                badge: 'INDEX.HTML // INTERACTION',
+                desc: 'Webサイト内の遊び心として実装されたイースターエッグ。キーボードの特定のキーシーケンス（Konamiコードや「algo」コマンド入力）を検知すると、フルスクリーンのサイバーポータル演出が走り、隠しページへリダイレクトします。',
+                specs: [
+                    ['トリガーキー', 'Konami: ↑↑↓↓←→←→ba / Secret: algo'],
+                    ['演出方式', 'CSS3 radial-gradient expansion & blur'],
+                    ['遷移先', 'history.html / algorithm.html']
+                ],
+                code: `const SECRET = ['a','l','g','o'];
+let idx = 0;
+document.addEventListener('keydown', (e) => {
+    if (e.key === SECRET[idx]) {
+        idx++;
+        if (idx === SECRET.length) launchCyberPortal();
+    } else {
+        idx = (e.key === SECRET[0]) ? 1 : 0;
+    }
+});`
+            },
+            'ui-drawer': {
+                title: 'Navigation Drawer (レスポンシブメニュー)',
+                badge: 'COMMON.JS // NAVIGATION',
+                desc: 'PCとスマートフォンの両方で共通のナビゲーション体験を提供するドロワーメニュー。backdrop-filterブラーとCSS transformを用いたスムーズなスライドインアニメーションを実装しています。',
+                specs: [
+                    ['ファイル', 'js/common.js'],
+                    ['対象DOM', '#nav-menu, #drawer-overlay, #drawer-btn'],
+                    ['イベント', 'click (開閉) / keydown (Escapeで閉じる)']
+                ],
+                code: `drawerBtn.addEventListener('click', () => {
+    navMenu.classList.add('open');
+    drawerOverlay.classList.add('open');
+});`
+            },
+            'ui-theme': {
+                title: 'Card Grid System (メニューグリッド)',
+                badge: 'COMMON.CSS // PRESENTATION',
+                desc: 'CSS Gridを活用したレスポンシブカードレイアウト。画面幅に応じて自動で1〜3列に並び替えられ、ホバー時にはマイクロインタラクション（Y軸微動とシャドウ拡大）でクリック可能であることを直感的に伝えます。',
+                specs: [
+                    ['レイアウト', 'grid-template-columns: repeat(auto-fit, minmax(280px, 1fr))'],
+                    ['ホバー効果', 'transform: translateY(-2px); box-shadow: 0 4px 12px rgba(...)'],
+                    ['対応画面', 'Mobile (320px〜) / Tablet / Desktop']
+                ],
+                code: `.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+}`
+            },
+            'ui-notify-bell': {
+                title: 'Notification Center (統合通知センター)',
+                badge: 'NOTIFICATION.JS // GLOBAL UI',
+                desc: '画面右上に常駐する通知ベル。課題の締切前日・当日、毎日の習慣タスク、誕生日などの未処理タスクを統合集計し、未読バッジの赤丸数字とクリック時のドロップダウンリストでユーザーに通知します。',
+                specs: [
+                    ['バッジ計算', '未読通知IDを除外した動的カウント'],
+                    ['アニメーション', '新規通知時のベル揺れ（bellSwing）'],
+                    ['連携API', 'ブラウザ Notification API (デスクトップ通知)']
+                ],
+                code: `function updateBadgeCount(unreadCount) {
+    const badge = document.getElementById('notify-badge');
+    badge.textContent = unreadCount;
+    badge.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+}`
+            },
+            'eng-kadai': {
+                title: '課題締切管理エンジン (Kadai Engine)',
+                badge: 'KADAI.JS // BUSINESS LOGIC',
+                desc: '課題の締切日時を解析し、「今週締切」「来週締切」「再来週以降」の3グループに動的振り分け。期限切れ週の自動アーカイブや、30日経過したゴミ箱アイテムの自動パージ、リアルタイム達成率算出を行います。',
+                specs: [
+                    ['ソート順', '締切日時の昇順 (近い締切が最上位)'],
+                    ['クラスタリング', '月曜日起点週キー (getWeekKey)'],
+                    ['自動保守', 'archiveFinishedDeadlineWeeks(), purgeOldDeletedTasks()']
+                ],
+                code: `tasks.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+const currentWeekKey = getWeekKey(new Date());
+// 今週 / 来週 / 再来週以降 に分配`
+            },
+            'eng-tasks': {
+                title: '優先度タスクエンジン (Task Matrix)',
+                badge: 'TASKS.JS // BUSINESS LOGIC',
+                desc: '締切日時のない日々のToDoを「高・中・低」の3段階の重要度で管理。完了タスクとアクティブタスクの即時分離、完了率カウントのリアルタイム反映を制御します。',
+                specs: [
+                    ['重要度区分', '高 (red) / 中 (amber) / 低 (blue)'],
+                    ['状態管理', 'todoTasks / todoCompleted / todoDeleted'],
+                    ['再描画トリガー', 'renderTodoAll()']
+                ],
+                code: `const sorted = tasks.sort((a, b) => priorityWeight[b.priority] - priorityWeight[a.priority]);`
+            },
+            'eng-habits': {
+                title: '毎日習慣＆ストリークエンジン',
+                badge: 'EVERYDAYTASK.JS // CORE ALGO',
+                desc: '毎日の習慣化を支援するストリーク（連続達成日数）計算機。日付跨ぎの判定を行い、昨日利用時はストリーク加算、2日以上空いた場合は0リセットを自動判定します。',
+                specs: [
+                    ['日付計算', 'getDaysDiff(lastDate, today)'],
+                    ['ストリーク規則', '連続日のみ+1、1日でもスキップすると0リセット'],
+                    ['履歴保存', 'archivePreviousDay() で前日実績をスナップショット']
+                ],
+                code: `if (diffDays === 1) {
+    completed.forEach(t => t.streak = (t.streak || 0) + 1);
+    tasks.forEach(t => t.streak = 0);
+} else if (diffDays >= 2) {
+    allTasks.forEach(t => t.streak = 0);
+}`
+            },
+            'eng-calendar': {
+                title: 'カレンダー統合エンジン',
+                badge: 'CALENDAR.JS // VIEW ENGINE',
+                desc: '月次カレンダーグリッドの動的生成に加え、登録された「予定 (schedules)」「課題締切 (tasks)」を日別にマッピングしてカラーポインターや件数バッジとして同時投影します。',
+                specs: [
+                    ['グリッド構成', '前月末日 + 当月全日 + 翌月初日 (7列固定)'],
+                    ['統合表示', '予定 (青丸) + 課題締切 (赤丸) の複合レンダリング'],
+                    ['祝日判定', '日本の祝日APIまたは計算ロジック連携']
+                ],
+                code: `const daysInMonth = new Date(year, month + 1, 0).getDate();
+const firstDayIndex = new Date(year, month, 1).getDay();`
+            },
+            'eng-report': {
+                title: '報告書自動生成エンジン',
+                badge: 'REPORT.JS // SYNTHESIS',
+                desc: 'カレンダー予定・課題・タスクの過去1ヶ月〜3ヶ月の活動データを集約・抽出し、6つのデザインテーマ（クラシックブルー、ミッドナイト等）で整形。リアルタイム文字数計算とWord(.doc)/Markdown/TXTダウンロードに対応。',
+                specs: [
+                    ['抽出期間', '直近1ヶ月 / 直近3ヶ月 / 全期間'],
+                    ['出力形式', 'HTMLプレビュー / Word (.doc) / Markdown (.md) / TXT'],
+                    ['デザインテーマ', '6種類 (REPORT_THEMES)']
+                ],
+                code: `const charCount = text.replace(/\\r?\\n/g, "").length;
+const blob = new Blob([htmlDoc], { type: "application/msword" });`
+            },
+            'eng-birthdays': {
+                title: '誕生日管理エンジン',
+                badge: 'BIRTHDAYS.JS // UTILITY',
+                desc: '大切な人の誕生日を登録し、現在の年齢、次の誕生日までの残り日数を自動計算。うるう年（2月29日生まれ）の誕生日判定アルゴリズムも内蔵しています。',
+                specs: [
+                    ['年齢計算', 'Math.floor((today - birthDate) / 365.25 days)'],
+                    ['日数カウント', '今年の誕生日が過ぎていれば翌年との差分を計算'],
+                    ['通知連携', '誕生日当日に通知センターへ特別カード発行']
+                ],
+                code: `let nextBday = new Date(today.getFullYear(), bMonth - 1, bDay);
+if (nextBday < today) nextBday.setFullYear(today.getFullYear() + 1);`
+            },
+            'eng-wish': {
+                title: 'やりたいことリストエンジン',
+                badge: 'WISHLIST.JS // MANAGEMENT',
+                desc: '死ぬまでにやりたい100のこと等のウィッシュリスト。パートナーフィルターによる絞り込みや、達成時のアニメーション、削除済みアーカイブ機能を提供。',
+                specs: [
+                    ['ストレージ', 'wishItems / wishDeleted / wishPartnerFilter'],
+                    ['フィルタ', '全体 / 自分のみ / パートナーと一緒'],
+                    ['達成ステート', 'チェックボックス即時トグル ＆ 達成日記録']
+                ],
+                code: `wishItems.filter(item => matchesPartnerFilter(item, activeFilter));`
+            },
+            'eng-ideas': {
+                title: 'アイデア保存エンジン',
+                badge: 'IDEAS.JS // MEMO',
+                desc: 'ひらめいたアイデアを瞬時にテキスト保存。ドラフトの破棄防止、検索フィルタ、削除済みリストからの復元スタックを実装しています。',
+                specs: [
+                    ['ストレージ', 'ideaItems / ideaDeleted'],
+                    ['検索速度', 'インデックス不要のクライアントサイドリアルタイムフィルタ'],
+                    ['永続化', '入力後即時LocalStorageへ書き込み']
+                ],
+                code: `ideaItems.filter(i => i.title.includes(q) || i.body.includes(q));`
+            },
+            'core-storage': {
+                title: '22 Key Local Storage アーキテクチャ',
+                badge: 'BROWSER STORAGE // PERSISTENCE',
+                desc: 'MyNoteは全22種類の個別キーによってデータを完全分離管理しています。これにより1つの機能のエラーが他の機能のストレージを破壊せず、個別の差分検知が容易になります。',
+                specs: [
+                    ['キー総数', '22+ キー (tasks, habitTasks, schedules, etc.)'],
+                    ['書き込み速度', '< 1ms (同期型メモリキャッシュ)'],
+                    ['オフライン耐性', '通信環境が完全にゼロでも全機能が動作可能']
+                ],
+                code: `const DATA_KEYS = [
+    "todoTasks", "todoCompleted", "todoDeleted",
+    "schedules", "deletedSchedules", "habitTasks",
+    "habitCompleted", "habitDailyHistory", "tasks", ...
+];`
+            },
+            'core-eventbus': {
+                title: 'myNoteDataSynced カスタムイベントバス',
+                badge: 'EVENT DRIVEN ARCHITECTURE',
+                desc: 'クラウド同期がバックグラウンドで完了してLocalStorageが書き換わった瞬間、ブラウザのWindowオブジェクトにカスタムイベントを発火。開いているタブが自動再描画されます。',
+                specs: [
+                    ['イベント名', 'myNoteDataSynced'],
+                    ['購読方法', 'window.addEventListener("myNoteDataSynced", ...)'],
+                    ['自動ディスパッチ', 'renderAll(), renderKadai(), renderCalendar() 等']
+                ],
+                code: `window.dispatchEvent(new CustomEvent("myNoteDataSynced"));
+// 画面側での受け取り
+window.addEventListener("myNoteDataSynced", () => {
+    if (typeof renderKadai === "function") renderKadai();
+});`
+            },
+            'core-notify-scanner': {
+                title: 'Global Scanner Loop (通知スキャンループ)',
+                badge: 'NOTIFICATION.JS // WORKER',
+                desc: '全ストレージキーを巡回し、現在時刻との時差を比較。「締切当日」「締切まであと3日以内」「本日の未達成習慣」を自動検出して集約します。',
+                specs: [
+                    ['実行契機', 'ページロード時 ＆ 定期インターバル (60秒毎)'],
+                    ['重複排除', '通知固有ID (例: kadai_168000_due) と readNotificationIds の差分比較'],
+                    ['デスクトップ通知', 'Notification.requestPermission()']
+                ],
+                code: `function calculateNotifications() {
+    const today = getTodayKey();
+    const in3Days = getFutureDateKey(3);
+    // 全ソースから日付条件に一致するタスクを走査
+}`
+            },
+            'cloud-sync-engine': {
+                title: 'Sync Queue & Debounce (同期エンジン)',
+                badge: 'DB-SYNC.JS // PIPELINE',
+                desc: '文字入力やチェックボックストグルなどの短時間の連続操作でSupabase APIを過剰に叩かないよう、変更キーをSetにキューイングし、500msのデバウンスタイマーで1回のリクエストにまとめて送信します。',
+                specs: [
+                    ['キュー構造', 'JavaScript Set (重複キーの自動マージ)'],
+                    ['デバウンス時間', '500ms (clearTimeout & setTimeout)'],
+                    ['バッチ方式', 'Supabase bulk upsert payload']
+                ],
+                code: `function schedulePush(key) {
+    pendingKeys.add(key);
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(() => {
+        pushCloudData(userId, Array.from(pendingKeys));
+        pendingKeys.clear();
+    }, 500);
+}`
+            },
+            'cloud-auth': {
+                title: 'JWT Auth & Session Management',
+                badge: 'AUTH.JS // SECURITY',
+                desc: 'Supabase Authを使用したセッション管理。ゲスト利用時は端末固有UUIDでLocalStorageのみを利用し、ログインするとクラウド同期が自動有効化されます。',
+                specs: [
+                    ['認証方式', 'OAuth 2.0 / Email Password / Magic Link'],
+                    ['トークン保持', 'Supabase JS SDK LocalStorage (自動リフレッシュ)'],
+                    ['コールバック', 'auth-callback.html によるハッシュフラグメントパース']
+                ],
+                code: `const { data: { session } } = await client.auth.getSession();
+if (session) {
+    pullCloudData(session.user.id);
+}`
+            },
+            'cloud-db': {
+                title: 'PostgreSQL `user_data` & RLS Policies',
+                badge: 'SUPABASE POSTGRESQL // CLOUD',
+                desc: 'Supabase上に構築されたKey-Valueストア型テーブル。複合ユニークキー (user_id, data_key) を持ち、Row Level Security (RLS) により本人のJWTトークンでのみSELECT/INSERT/UPDATEが許可されます。',
+                specs: [
+                    ['テーブル名', 'user_data'],
+                    ['カラム', 'id (UUID), user_id (UUID), data_key (text), content (jsonb), updated_at'],
+                    ['セキュリティ', 'RLS ENABLED (auth.uid() = user_id)']
+                ],
+                code: `CREATE POLICY "Users can manage own data"
+ON public.user_data
+FOR ALL
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);`
+            }
+        };
+
+        // Modal Controls
+        function openNodeModal(nodeKey) {
+            const data = NODE_DETAILS[nodeKey] || {
+                title: nodeKey,
+                badge: 'MODULE SPEC',
+                desc: '詳細な内部ロジック仕様とソースコード実装情報です。',
+                specs: [['キー', nodeKey]],
+                code: '// 詳細仕様コード'
+            };
+
+            document.getElementById('modal-title').textContent = data.title;
+            document.getElementById('modal-badge').textContent = data.badge;
+            document.getElementById('modal-desc').textContent = data.desc;
+
+            const specsTbody = document.getElementById('modal-specs');
+            specsTbody.innerHTML = '';
+            (data.specs || []).forEach(([k, v]) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<th>${escapeHtml(k)}</th><td>${escapeHtml(v)}</td>`;
+                specsTbody.appendChild(tr);
+            });
+
+            document.getElementById('modal-code').textContent = data.code || '';
+
+            const modal = document.getElementById('algo-modal');
+            modal.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeNodeModal() {
+            const modal = document.getElementById('algo-modal');
+            modal.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        function handleModalBackdropClick(e) {
+            if (e.target.id === 'algo-modal') {
+                closeNodeModal();
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeNodeModal();
+        });
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // ── SIMULATORS IMPLEMENTATION ──
+
+        // 1. Sync Simulation
+        function runSyncSimulation() {
+            const key = document.getElementById('sim-sync-key').value;
+            const net = document.getElementById('sim-network-status').value;
+            const resEl = document.getElementById('sim-sync-result');
+
+            resEl.innerHTML = `<span class="sim-result-label">処理中: 1. [LocalStorage] "${key}" に即時保存 (0ms) ...</span><span class="sim-result-value" style="color: var(--accent-cyan);">RUNNING</span>`;
+
+            setTimeout(() => {
+                if (net === 'online') {
+                    resEl.innerHTML = `
+                        <div>
+                            <div class="sim-result-label">✅ [0ms] LocalStorageへ即時書き込み完了</div>
+                            <div class="sim-result-label">⏳ [500ms] デバウンス待機後、pendingKeys=[${key}] をSupabaseへUpsert送信</div>
+                            <div class="sim-result-label">🎉 [650ms] Supabase 200 OK 受信 → myNoteDataSynced イベント発火</div>
+                        </div>
+                        <span class="sim-result-value" style="color: var(--accent-emerald);">SYNC SUCCESS</span>
+                    `;
+                } else {
+                    resEl.innerHTML = `
+                        <div>
+                            <div class="sim-result-label">✅ [0ms] LocalStorageへ即時保存完了（画面は問題なく更新）</div>
+                            <div class="sim-result-label">⚠️ [500ms] オフライン検知: Supabase送信を保留しローカルキューに保持</div>
+                            <div class="sim-result-label">🔄 次回オンライン復帰時に自動バッチUpsertされます</div>
+                        </div>
+                        <span class="sim-result-value" style="color: var(--accent-amber);">OFFLINE CACHED</span>
+                    `;
+                }
+            }, 600);
+        }
+
+        // 2. Streak Simulation
+        function runStreakSimulation() {
+            const currentStreak = parseInt(document.getElementById('sim-current-streak').value, 10) || 0;
+            const diffDays = parseInt(document.getElementById('sim-diff-days').value, 10);
+            const wasCompleted = document.getElementById('sim-was-completed').value === 'yes';
+            const resEl = document.getElementById('sim-streak-result');
+
+            let nextStreak = currentStreak;
+            let note = '';
+            let statusColor = 'var(--accent-emerald)';
+
+            if (diffDays === 0) {
+                note = '本日アクセス済み。日次リセットはスキップされ、現在のストリークがそのまま維持されます。';
+                nextStreak = currentStreak;
+            } else if (diffDays === 1) {
+                if (wasCompleted) {
+                    nextStreak = currentStreak + 1;
+                    note = `昨日達成していたため、ストリーク継続！ ${currentStreak}日 → ${nextStreak}日に増加しました！`;
+                } else {
+                    nextStreak = 0;
+                    statusColor = 'var(--accent-rose)';
+                    note = `昨日未達成だったため、ストリークは0日にリセットされました。`;
+                }
+            } else {
+                nextStreak = 0;
+                statusColor = 'var(--accent-rose)';
+                note = `${diffDays}日間のブランクがあるため、連続記録は途切れて0日にリセットされました。`;
+            }
+
+            resEl.innerHTML = `
+                <div>
+                    <div style="font-weight:700; color:#fff; margin-bottom:4px;">新ストリーク: ${nextStreak} 日連続</div>
+                    <div class="sim-result-label">${note}</div>
+                </div>
+                <span class="sim-result-value" style="color: ${statusColor};">${nextStreak} DAYS</span>
+            `;
+        }
+
+        // 3. Kadai Week Clustering Simulation
+        function runKadaiSimulation() {
+            const dateInput = document.getElementById('sim-kadai-date').value;
+            const resEl = document.getElementById('sim-kadai-result');
+
+            if (!dateInput) {
+                resEl.innerHTML = `<span class="sim-result-label">日付を選択してください</span><span class="sim-result-value">N/A</span>`;
+                return;
+            }
+
+            const targetDate = new Date(dateInput + "T00:00:00");
+            const now = new Date();
+
+            function getWeekKey(d) {
+                const date = new Date(d);
+                const day = date.getDay();
+                const diff = (day === 0 ? -6 : 1) - day;
+                date.setDate(date.getDate() + diff);
+                const y = date.getFullYear();
+                const m = String(date.getMonth() + 1).padStart(2, "0");
+                const dayStr = String(date.getDate()).padStart(2, "0");
+                return `${y}-${m}-${dayStr}`;
+            }
+
+            const currentWeekKey = getWeekKey(now);
+            const nextWeekDate = new Date(currentWeekKey);
+            nextWeekDate.setDate(nextWeekDate.getDate() + 7);
+            const nextWeekKey = getWeekKey(nextWeekDate);
+
+            const targetWeekKey = getWeekKey(targetDate);
+
+            let groupName = "";
+            let groupColor = "var(--accent-cyan)";
+
+            if (targetWeekKey === currentWeekKey) {
+                groupName = "今週締切 (This Week)";
+                groupColor = "var(--accent-rose)";
+            } else if (targetWeekKey === nextWeekKey) {
+                groupName = "来週締切 (Next Week)";
+                groupColor = "var(--accent-amber)";
+            } else if (targetWeekKey < currentWeekKey) {
+                groupName = "期限超過 / アーカイブ対象 (Overdue)";
+                groupColor = "var(--text-muted)";
+            } else {
+                groupName = "再来週以降 (Later)";
+                groupColor = "var(--accent-emerald)";
+            }
+
+            resEl.innerHTML = `
+                <div>
+                    <div style="font-weight:700; color:#fff;">週キー: ${targetWeekKey} (基準月曜)</div>
+                    <div class="sim-result-label">現在週キー: ${currentWeekKey} / 来週キー: ${nextWeekKey}</div>
+                </div>
+                <span class="sim-result-value" style="color: ${groupColor};">${groupName}</span>
+            `;
+        }
+
+        // ── FLOW TRACER ENGINE (Interactive Box Highlighting) ──
+        let traceTimeouts = [];
+
+        function clearTrace() {
+            traceTimeouts.forEach(t => clearTimeout(t));
+            traceTimeouts = [];
+
+            document.querySelectorAll('.node-box').forEach(el => {
+                el.classList.remove('highlight-active', 'highlight-faint');
+            });
+            document.querySelectorAll('.tracer-btn').forEach(btn => btn.classList.remove('active'));
+
+            const statusEl = document.getElementById('tracer-status-text');
+            if (statusEl) {
+                statusEl.textContent = 'リセット完了: ボタンを押して巡回を体験';
+                statusEl.style.color = 'var(--text-muted)';
+            }
+        }
+
+        function traceFlow(scenario) {
+            clearTrace();
+
+            // Set button active
+            const activeBtn = Array.from(document.querySelectorAll('.tracer-btn')).find(b => b.getAttribute('onclick')?.includes(scenario));
+            if (activeBtn) activeBtn.classList.add('active');
+
+            const statusEl = document.getElementById('tracer-status-text');
+
+            const SCENARIOS = {
+                'kadai-add': {
+                    title: '➕ 課題追加フロー',
+                    steps: [
+                        { id: 'node-ui-theme', label: '1. [UI] ユーザーが課題入力フォームから送信' },
+                        { id: 'node-eng-kadai', label: '2. [Logic] 締切パース・月曜週キー算出・ソート' },
+                        { id: 'node-core-storage', label: '3. [Local] localStorage "tasks" に即時書き込み (0ms)' },
+                        { id: 'node-cloud-sync-engine', label: '4. [Sync] pendingKeys に追加し500msデバウンス開始' },
+                        { id: 'node-cloud-db', label: '5. [Cloud] Supabase user_data テーブルへバッチUpsert完了' }
+                    ]
+                },
+                'daily-reset': {
+                    title: '🔄 日付跨ぎ・習慣判定フロー',
+                    steps: [
+                        { id: 'node-ui-drawer', label: '1. [UI] 朝一番にアプリを開く' },
+                        { id: 'node-eng-habits', label: '2. [Logic] checkDailyReset() で日付差分 (diffDays) を計算' },
+                        { id: 'node-core-storage', label: '3. [Local] ストリーク+1更新 & 前日実績を日次履歴に保存' },
+                        { id: 'node-core-notify-scanner', label: '4. [Scan] 本日未達成の習慣タスクを通知スキャン' },
+                        { id: 'node-ui-notify-bell', label: '5. [UI] 通知ベルに赤いバッジ点灯 & アラート表示' }
+                    ]
+                },
+                'cloud-sync': {
+                    title: '☁️ クラウド同期反映フロー',
+                    steps: [
+                        { id: 'node-cloud-auth', label: '1. [Auth] 有効なセッションJWTトークンを確認' },
+                        { id: 'node-cloud-db', label: '2. [Cloud] Supabase から全 user_data を読み出し (pullCloudData)' },
+                        { id: 'node-cloud-sync-engine', label: '3. [Sync] ローカル値とのハッシュ・文字列差分を比較' },
+                        { id: 'node-core-storage', label: '4. [Local] 変更があったキーのみ localStorage を上書き' },
+                        { id: 'node-core-eventbus', label: '5. [Bus] myNoteDataSynced カスタムイベントを発火' },
+                        { id: 'node-eng-kadai', label: '6. [UI] 各画面の renderKadai() / renderAll() が自動実行' }
+                    ]
+                },
+                'notify-scan': {
+                    title: '🔔 通知センター巡回フロー',
+                    steps: [
+                        { id: 'node-core-notify-scanner', label: '1. [Scan] バックグラウンド巡回タイマーが起動' },
+                        { id: 'node-core-storage', label: '2. [Local] 課題・タスク・習慣・誕生日キーを一括読み出し' },
+                        { id: 'node-eng-birthdays', label: '3. [Logic] 今日〜3日以内の期日判定 & 既読ID差分除外' },
+                        { id: 'node-ui-notify-bell', label: '4. [UI] 未読数カウントをベルアイコンに反映' }
+                    ]
+                }
+            };
+
+            const data = SCENARIOS[scenario];
+            if (!data) return;
+
+            // Faint all nodes
+            document.querySelectorAll('.node-box').forEach(el => el.classList.add('highlight-faint'));
+
+            data.steps.forEach((step, idx) => {
+                const timeout = setTimeout(() => {
+                    const el = document.getElementById(step.id);
+                    if (el) {
+                        el.classList.remove('highlight-faint');
+                        el.classList.add('highlight-active');
+                        // Scroll node into view smoothly if offscreen
+                        el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+                    }
+                    if (statusEl) {
+                        statusEl.textContent = `${data.title} » ${step.label}`;
+                        statusEl.style.color = 'var(--accent-cyan)';
+                    }
+
+                    // On last step
+                    if (idx === data.steps.length - 1) {
+                        const finalTimeout = setTimeout(() => {
+                            if (statusEl) {
+                                statusEl.textContent = `✅ ${data.title} の全ステップ巡回が完了しました！`;
+                                statusEl.style.color = 'var(--accent-emerald)';
+                            }
+                        }, 1200);
+                        traceTimeouts.push(finalTimeout);
+                    }
+                }, idx * 1000);
+                traceTimeouts.push(timeout);
+            });
+        }
+
+        // Set default date picker to tomorrow
+        window.addEventListener('DOMContentLoaded', () => {
+            const tmr = new Date();
+            tmr.setDate(tmr.getDate() + 1);
+            const tmrStr = tmr.toISOString().split('T')[0];
+            const dateInput = document.getElementById('sim-kadai-date');
+            if (dateInput) dateInput.value = tmrStr;
+        });
+    </script>
+</body>
+
+</html>

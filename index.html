@@ -147,30 +147,80 @@
             from { box-shadow: 0 0 40px rgba(147,130,220,0.4), inset 0 0 40px rgba(147,130,220,0.2); }
             to   { box-shadow: 0 0 80px rgba(147,130,220,0.6), inset 0 0 60px rgba(147,130,220,0.3); }
         }
+        .portal-ring.algo {
+            border-color: rgba(56, 189, 248, 0.9);
+            box-shadow:
+                0 0 50px rgba(56, 189, 248, 0.5),
+                inset 0 0 50px rgba(56, 189, 248, 0.3);
+        }
+        .portal-ring.algo.warp {
+            background: radial-gradient(circle, rgba(56,189,248,0.5) 0%, rgba(9,10,16,1) 75%);
+        }
+        .portal-ring.algo .portal-text {
+            color: #38bdf8;
+        }
     </style>
     <script>
     (function() {
+        // 1. Konami Code → history.html
         const KONAMI = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
-        let idx = 0;
+        let idxK = 0;
+
+        // 2. Secret Word "algo" → algorithm.html
+        const ALGO = ['a','l','g','o'];
+        let idxA = 0;
+
         document.addEventListener('keydown', function(e) {
-            if (e.key === KONAMI[idx]) {
-                idx++;
-                if (idx === KONAMI.length) {
-                    idx = 0;
-                    launchPortal();
+            // Konami
+            if (e.key === KONAMI[idxK]) {
+                idxK++;
+                if (idxK === KONAMI.length) {
+                    idxK = 0;
+                    launchPortal('history.html', '🔓 SECRET UNLOCKED', false);
                 }
             } else {
-                idx = e.key === KONAMI[0] ? 1 : 0;
+                idxK = e.key === KONAMI[0] ? 1 : 0;
+            }
+
+            // Algo
+            if (e.key.toLowerCase() === ALGO[idxA]) {
+                idxA++;
+                if (idxA === ALGO.length) {
+                    idxA = 0;
+                    launchPortal('algorithm.html', '⚡ ALGORITHM UNLOCKED', true);
+                }
+            } else {
+                idxA = e.key.toLowerCase() === ALGO[0] ? 1 : 0;
             }
         });
-        function launchPortal() {
+
+        // 3. Header Title 3-Click Trigger
+        const headerH1 = document.querySelector('header h1');
+        if (headerH1) {
+            let clickCount = 0;
+            let clickTimer = null;
+            headerH1.style.cursor = 'pointer';
+            headerH1.setAttribute('title', 'MyNote');
+            headerH1.addEventListener('click', function() {
+                clickCount++;
+                clearTimeout(clickTimer);
+                if (clickCount >= 3) {
+                    clickCount = 0;
+                    launchPortal('algorithm.html', '⚡ ALGORITHM UNLOCKED', true);
+                } else {
+                    clickTimer = setTimeout(() => { clickCount = 0; }, 600);
+                }
+            });
+        }
+
+        function launchPortal(targetUrl, bannerText, isAlgo) {
             const overlay = document.createElement('div');
             overlay.className = 'portal-overlay';
             const ring = document.createElement('div');
-            ring.className = 'portal-ring';
+            ring.className = 'portal-ring' + (isAlgo ? ' algo' : '');
             const text = document.createElement('div');
             text.className = 'portal-text';
-            text.textContent = '🔓 SECRET UNLOCKED';
+            text.textContent = bannerText;
             ring.appendChild(text);
             overlay.appendChild(ring);
             document.body.appendChild(overlay);
@@ -181,7 +231,7 @@
             setTimeout(() => {
                 ring.classList.remove('expand');
                 ring.classList.add('warp');
-                setTimeout(() => { location.href = 'history.html'; }, 600);
+                setTimeout(() => { location.href = targetUrl; }, 600);
             }, 1600);
         }
     })();
