@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>MyNote — システム関係図マップ (Architecture Diagram)</title>
     <link rel="icon" href="./MyNote.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -628,6 +628,48 @@
         .modal-backdrop.open {
             display: block;
         }
+
+        /* ═══ v2: 詳細放射レイアウト / 線の入場アニメ / スマホ最適化 ═══ */
+        :root { --color-wish: #c026d3; --color-ui: #4f46e5; }
+        html, body { height: 100%; width: 100%; }
+        body { display: flex; flex-direction: column; height: 100dvh; }
+        .toolbar { position: relative; flex: none; padding-top: env(safe-area-inset-top); }
+        .workspace { position: relative; top: auto; flex: 1; min-height: 0; touch-action: none; }
+        .node-wish { border: 2px solid var(--color-wish); } .node-wish .node-avatar { color: var(--color-wish); }
+        .node-ui { border: 2px solid var(--color-ui); } .node-ui .node-avatar { color: var(--color-ui); }
+        .node { transform: translate(-50%, -50%); min-width: 0; padding: 6px 10px; gap: 8px; overflow: hidden; touch-action: none; }
+        .node:hover { transform: translate(-50%, -50%) scale(1.05); }
+        .node-content { min-width: 0; }
+        .node-name, .node-role { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .node.lv0 { width: 230px; height: 66px; padding: 8px 16px; }
+        .node.lv1 { width: 190px; height: 56px; }
+        .node.lv2 { width: 150px; height: 46px; padding: 5px 8px; gap: 6px; }
+        .node.lv3 { width: 140px; height: 40px; padding: 4px 8px; gap: 6px; border-style: dashed !important; border-width: 1.5px !important; }
+        .lv2 .node-avatar { width: 28px; height: 28px; font-size: 14px; border-width: 1.5px; }
+        .lv3 .node-avatar { width: 24px; height: 24px; font-size: 12px; border-width: 1.5px; }
+        .lv2 .node-name { font-size: 12px; } .lv3 .node-name { font-size: 11px; }
+        .lv2 .node-role, .lv3 .node-role { font-size: 9.5px; margin-top: 0; }
+        .ring { fill: none; stroke: var(--grid-dot); stroke-width: 1.2; stroke-dasharray: 4 9; opacity: .8; }
+        .connector-line { stroke-width: 2; }
+        .connector-line.link { stroke-width: 1.4; stroke-dasharray: 3 6; opacity: .55; }
+        .nolinks .link { display: none; }
+        .pulsing .connector-line:not(.play):not(.link) { stroke-dasharray: 6 6; animation: dashPulse 2s linear infinite; }
+        .node.play { animation: popIn .5s cubic-bezier(.175, .885, .32, 1.275) var(--d, 0s) both; }
+        .ring.play { animation: fadeRing .8s ease var(--d, 0s) both; }
+        .connector-line.play { stroke-dasharray: var(--len) !important; animation: drawLine .7s ease-out var(--d, 0s) both !important; }
+        @keyframes popIn { from { opacity: 0; transform: translate(-50%, -50%) scale(.4); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+        @keyframes drawLine { from { stroke-dashoffset: var(--len); opacity: 0; } 8% { opacity: 1; } to { stroke-dashoffset: 0; } }
+        @keyframes fadeRing { from { opacity: 0; } to { opacity: .8; } }
+        .legend-title { white-space: nowrap; }
+        @media (max-width: 768px) {
+            .toolbar { padding: 8px 12px; padding-top: max(8px, env(safe-area-inset-top)); }
+            .workspace { top: auto; }
+            .tool-btn { min-height: 38px; }
+            .floating-controls { bottom: max(14px, env(safe-area-inset-bottom)); right: max(12px, env(safe-area-inset-right)); }
+            .legend-card { bottom: max(14px, env(safe-area-inset-bottom)); left: max(12px, env(safe-area-inset-left)); }
+            .detail-modal { max-height: 70dvh; padding-bottom: env(safe-area-inset-bottom); }
+            .icon-btn { width: 40px; height: 40px; }
+        }
     </style>
 </head>
 
@@ -649,6 +691,9 @@
             </button>
             <button class="tool-btn" onclick="resetNodePositions()">
                 <span>🔄 位置を整列</span>
+            </button>
+            <button class="tool-btn" onclick="toggleLinks()">
+                <span>🔗 連携線</span>
             </button>
             <button class="tool-btn" onclick="togglePulse()">
                 <span>⚡ データフロー演出</span>
@@ -714,7 +759,7 @@
         <button class="icon-btn" onclick="zoomIn()" title="拡大">+</button>
         <span id="zoom-label" class="zoom-label">100%</span>
         <button class="icon-btn" onclick="zoomOut()" title="縮小">-</button>
-        <button class="icon-btn" onclick="resetZoomAndPan()" title="全体を表示">⛶</button>
+        <button class="icon-btn" onclick="fitAll()" title="全体を表示">⛶</button>
     </div>
 
     <!-- ── Legend Sidebar (Collapsible on mobile) ── -->
@@ -728,6 +773,9 @@
             <div class="legend-row"><span class="legend-dot" style="background: var(--color-calendar)"></span>カレンダー予定 (Calendar)</div>
             <div class="legend-row"><span class="legend-dot" style="background: var(--color-report)"></span>報告書作成 (Report)</div>
             <div class="legend-row"><span class="legend-dot" style="background: var(--color-notify)"></span>通知センター (Notification)</div>
+            <div class="legend-row"><span class="legend-dot" style="background: var(--color-wish)"></span>やりたいこと＆アイデア (Wish)</div>
+            <div class="legend-row"><span class="legend-dot" style="background: var(--color-ui)"></span>UI基盤 (UI)</div>
+            <div class="legend-row"><span class="legend-dot" style="background: var(--color-task)"></span>優先度タスク / <span class="legend-dot" style="background: var(--color-storage)"></span>ストレージ</div>
         </div>
     </div>
 
@@ -1066,538 +1114,219 @@
             }
         ];
 
-        // ═════════════════════════════════════════════════════════════════
-        // Diagram Engine (Drag, Zoom, Pan, SVG Curve Arrows)
-        // ═════════════════════════════════════════════════════════════════
+        // ── 追加ノード（詳細化）: [id,name,role,avatar,type,parent,desc,file,code]
+        const A = (...a) => NODES_DATA.push(Object.fromEntries(['id','name','role','avatar','type','parent','desc','file','code'].map((k, i) => [k, a[i]])));
+        A('branch-wish','やりたいこと＆アイデア','wishlist.js / ideas.js','✨','wish','core','やりたいことリストとアイデアメモ。達成ステート・ゴミ箱・復元を管理。','js/wishlist.js','renderWishes(); renderIdeas();');
+        A('branch-ui','UI基盤','common.js / common.css','🎨','ui','core','全ページ共通のドロワー・カードグリッド・テーマ・隠しコマンド。','js/common.js','openDrawer(); closeDrawer();');
+        A('leaf-streak-inc','+1 加算','diffDays === 1','➕','habit','sub-habit-streak','前日アクセスかつ達成済みのタスクのみ streak を加算。','js/everydayTask.js','t.streak = (t.streak || 0) + 1;');
+        A('leaf-streak-zero','0 リセット','diffDays >= 2','⛔','habit','sub-habit-streak','2日以上空いた場合は全タスクの連続記録を0に戻す。','js/everydayTask.js','allTasks.forEach(t => t.streak = 0);');
+        A('leaf-today','getTodayKey','日付キー生成','🗝️','habit','sub-habit-reset','YYYY-MM-DD 形式の今日の日付キーを返す。','js/everydayTask.js','getTodayKey()');
+        A('leaf-diff','getDaysDiff','日数差分','➗','habit','sub-habit-reset','前回アクセス日と今日の差を日数で算出。','js/everydayTask.js','getDaysDiff(last, today)');
+        A('sub-habit-crud','習慣データ保存','save/getHabitTasks','✏️','habit','branch-habit','習慣タスク・完了・削除の3系統を個別キーで保存。','js/everydayTask.js','saveHabitTasks(list);');
+        A('sub-kadai-progress','達成率計算','完了 ÷ 全体','📶','kadai','branch-kadai','完了数と未完了数から達成率(%)を算出しバーを更新。','js/kadai.js','Math.round(comp / (act + comp) * 100)');
+        A('sub-kadai-purge','30日パージ','削除済みの自動消去','🗑️','kadai','branch-kadai','ゴミ箱に30日以上残った課題を自動で完全削除。','js/kadai.js','purgeOldDeletedTasks();');
+        A('leaf-kadai-sort','締切昇順ソート','近い順に並べる','↕️','kadai','sub-kadai-cluster','締切をDate化して近い順に並べ替える。','js/kadai.js','sort((a,b) => new Date(a.deadline) - new Date(b.deadline))');
+        A('sub-task-done','完了・ゴミ箱','todoCompleted / Deleted','✅','task','branch-task','完了タスクと削除済みタスクを別キーで保持。','js/tasks.js','saveTodoCompleted(list);');
+        A('sub-task-badge','優先度クラス','priorityClass()','🎚️','task','branch-task','高・中・低に応じた色クラスを返す。','js/tasks.js','priorityClass(p)');
+        A('sub-cal-grid','月グリッド生成','renderCalendar()','🔲','calendar','branch-calendar','月の日数と曜日オフセットから7列グリッドを生成。','js/calendar.js','new Date(y, m + 1, 0).getDate()');
+        A('sub-cal-map','日付別マッピング','getSchedulesOnDate()','📍','calendar','branch-calendar','日付キーで予定・課題・誕生日を引き当てる。','js/calendar.js','getSchedulesOnDate(key)');
+        A('leaf-cal-dot','ドット重畳','予定＋課題＋誕生日','🔵','calendar','sub-cal-map','同じ日の複数種別を色違いのドットで重ねて表示。','js/calendar.js','renderCalendar();');
+        A('leaf-leap','うるう年補正','2/29 生まれ対応','📆','calendar','sub-bday','2月29日生まれの誕生日を平年は繰り上げて判定。','js/birthdays.js','getDaysInMonth(y, m)');
+        A('sub-report-src','データ抽出','予定・課題・タスク','📥','report','branch-report','3系統のデータを期間(1/3ヶ月)で絞り込む。','js/report.js','getKadaiTasks(); getTodoTasks();');
+        A('leaf-inject','CSS動的注入','injectThemeStyles()','💉','report','sub-report-theme','選んだテーマのCSSをプレビューへ即時注入。','js/report.js','injectThemeStyles(theme)');
+        A('leaf-count','文字数カウント','countCharacters()','🔢','report','sub-report-doc','改行を除いた純粋な文字数をリアルタイム算出。','js/report.js','text.replace(/\\r?\\n/g, "").length');
+        A('sub-notify-calc','期日スキャン','calculateNotifications()','🔍','notify','branch-notify','全データを走査し当日・直前の項目を抽出。','js/notification.js','calculateNotifications();');
+        A('leaf-3days','3日以内フィルタ','getFutureDateKey(3)','📆','notify','sub-notify-calc','今日から3日後までの未完了のみを対象にする。','js/notification.js','getFutureDateKey(3)');
+        A('sub-notify-read','既読ID管理','readNotificationIds','👁️','notify','branch-notify','既読の通知IDを保存し未読との差分を取る。','js/notification.js','saveReadNotificationIds(ids);');
+        A('sub-notify-badge','未読バッジ','updateNotificationBadge()','🔴','notify','branch-notify','未読件数をベルの赤バッジに反映。','js/notification.js','updateNotificationBadge();');
+        A('sub-ns','ユーザー名前空間','namespacedKey()','🏷️','storage','branch-storage','ユーザーごとにキーへ接頭辞を付けデータを分離。','js/auth.js','namespacedKey(key)');
+        A('sub-keys','データキー群','tasks / schedules / ...','🗝️','storage','branch-storage','機能ごとに独立した22+のキーで管理。','browser localStorage','localStorage.getItem("tasks")');
+        A('sub-pull','pullCloudData','クラウド→ローカル','⬇️','sync','branch-sync','ログイン時や変更検知時にクラウドの値を取得。','js/db-sync.js','pullCloudData(userId);');
+        A('sub-push','pushCloudData','ローカル→クラウド','⬆️','sync','branch-sync','変更キーをまとめてSupabaseへUpsert。','js/db-sync.js','pushCloudData(userId, keys);');
+        A('sub-queue','queueSync / flushSync','500msデバウンス','⏱️','sync','branch-sync','変更キーをSetに溜めて一定時間後に一括送信。','js/db-sync.js','pendingKeys.add(key);');
+        A('sub-auto','autoSync','起動時の自動同期','🔁','sync','branch-sync','ページ起動時にセッションを確認して同期を開始。','js/db-sync.js','autoSync();');
+        A('leaf-diff-detect','差分検知','文字列比較で上書き','≠','sync','sub-pull','ローカルとクラウドが異なる場合のみ上書き。','js/db-sync.js','if (local !== cloud) set(key)');
+        A('leaf-migrate','初回移行','migrateLocalDataToCloud','🚚','sync','sub-auto','ゲストのローカルデータを初回ログイン時にクラウドへ移行。','js/db-sync.js','migrateLocalDataToCloud();');
+        A('leaf-rls','RLS ポリシー','本人のみ読み書き','🛡️','sync','sub-supabase','行レベルセキュリティで他者のデータを遮断。','supabase_setup.sql','auth.uid() = user_id');
+        A('leaf-uuid','UUID検証','isValidUUID()','🆔','sync','sub-auth','ユーザーIDの形式を検証してから通信する。','js/db-sync.js','isValidUUID(id)');
+        A('sub-wish-filter','パートナー絞込','filterByPartner()','👫','wish','branch-wish','自分のみ・一緒にの条件でリストを絞り込む。','js/wishlist.js','filterByPartner(list)');
+        A('sub-wish-done','達成トグル','setAchieved()','🎯','wish','branch-wish','達成状態を切り替え日付を記録。','js/wishlist.js','setAchieved(id);');
+        A('sub-wish-trash','削除・復元','restoreWish()','♻️','wish','branch-wish','ゴミ箱へ移動し、必要なら復元できる。','js/wishlist.js','restoreWish(id);');
+        A('leaf-wish-purge','30日パージ','purgeOldDeletedWishes','🧹','wish','sub-wish-trash','30日以上経過した削除済みを自動で完全削除。','js/wishlist.js','purgeOldDeletedWishes();');
+        A('sub-idea','アイデア保存','ideas.js','💡','wish','branch-wish','思いついたメモを即時に永続化。','js/ideas.js','saveIdeas(list);');
+        A('leaf-idea-done','達成化','setIdeaAchieved()','🏁','wish','sub-idea','実現したアイデアを達成済みへ移す。','js/ideas.js','setIdeaAchieved(id);');
+        A('leaf-idea-restore','アーカイブ復元','restoreIdea()','📤','wish','sub-idea','削除済みアイデアを元に戻す。','js/ideas.js','restoreIdea(id);');
+        A('sub-ui-drawer','ドロワー','openDrawer / closeDrawer','☰','ui','branch-ui','スマホ・PC共通のスライドメニュー。','js/common.js','openDrawer();');
+        A('sub-ui-grid','カードグリッド','auto-fit minmax','🧱','ui','branch-ui','画面幅に応じて列数が変わるカード配置。','css/common.css','repeat(auto-fit, minmax(280px, 1fr))');
+        A('sub-ui-egg','隠しコマンド','Konami / algo','🥚','ui','branch-ui','特定のキー入力で隠しページへワープ。','index.html','if (e.key === SECRET[idx]) idx++;');
+        A('sub-ui-custom','カスタマイズ','customize.js','🎛️','ui','branch-ui','表示や機能のON/OFFを切り替える設定。','js/customize.js','applyCustomize();');
+        A('leaf-algo','algorithm.html','隠しページ','🌌','ui','sub-ui-egg','ワープ演出のあと本ページへ遷移。','algorithm.html','location.href = "algorithm.html";');
+        // 横断リンク（モジュール間のデータ連携）
+        const LINKS = [['branch-notify','branch-kadai'],['branch-notify','branch-habit'],['branch-notify','sub-bday'],['branch-report','branch-kadai'],['branch-report','branch-task'],['branch-report','branch-calendar'],['branch-calendar','branch-kadai'],['sub-bus','sub-pull'],['sub-keys','sub-push'],['branch-ui','branch-notify']];
 
-        let scale = 1;
-        let panX = 0;
-        let panY = 0;
-        let isPanning = false;
-        let startPanX = 0;
-        let startPanY = 0;
+        // ═════════ Diagram Engine: 放射レイアウト / 線の描画アニメ / Pointer操作 ═════════
+        const R = [0, 215, 430, 620], SX = 1.85, SZ = [[230,66],[190,56],[150,46],[140,40]], PAD = 160;
+        const TYPE_COLORS = { core:'var(--color-core)', habit:'var(--color-habit)', kadai:'var(--color-kadai)', task:'var(--color-task)', sync:'var(--color-sync)', calendar:'var(--color-calendar)', report:'var(--color-report)', notify:'var(--color-notify)', storage:'var(--color-storage)', wish:'var(--color-wish)', ui:'var(--color-ui)', x:'var(--text-sub)' };
+        let scale = 1, panX = 0, panY = 0, W = 0, H = 0, edges = [], animT = null, playing = false;
+        const ptrs = new Map(); let drag = null, pan = null, pinch = null;
+        const workspace = document.getElementById('workspace'), world = document.getElementById('canvas-world'),
+              svgLayer = document.getElementById('svg-layer'), nodesContainer = document.getElementById('nodes-container');
+        const byId = id => NODES_DATA.find(n => n.id === id);
+        const SVGNS = 'http://www.w3.org/2000/svg';
 
-        let isDraggingNode = false;
-        let activeNodeEl = null;
-        let dragOffset = { x: 0, y: 0 };
-
-        let pulseActive = false;
-
-        const workspace = document.getElementById('workspace');
-        const world = document.getElementById('canvas-world');
-        const svgLayer = document.getElementById('svg-layer');
-        const nodesContainer = document.getElementById('nodes-container');
-
-        // Color mapper for SVG arrows
-        const TYPE_COLORS = {
-            core: 'var(--color-core)',
-            habit: 'var(--color-habit)',
-            kadai: 'var(--color-kadai)',
-            task: 'var(--color-task)',
-            sync: 'var(--color-sync)',
-            calendar: 'var(--color-calendar)',
-            report: 'var(--color-report)',
-            notify: 'var(--color-notify)',
-            storage: 'var(--color-storage)'
-        };
-
-        // Initialize Nodes in DOM
-        function renderNodes() {
-            nodesContainer.innerHTML = '';
-            NODES_DATA.forEach(node => {
-                const el = document.createElement('div');
-                el.className = `node node-${node.type}`;
-                el.id = `node-${node.id}`;
-                el.style.left = `${node.x}px`;
-                el.style.top = `${node.y}px`;
-
-                el.innerHTML = `
-                    <div class="node-avatar">${node.avatar}</div>
-                    <div class="node-content">
-                        <span class="node-name">${node.name}</span>
-                        <span class="node-role">${node.role}</span>
-                    </div>
-                `;
-
-                // Node Click to open Detail Modal (for mouse)
-                el.addEventListener('click', (e) => {
-                    if (isDraggingNode) return;
-                    openDetailModal(node);
-                });
-
-                // Node Drag Start (Mouse)
-                el.addEventListener('mousedown', (e) => {
-                    if (e.button !== 0) return; // only left click
-                    e.stopPropagation();
-                    isDraggingNode = true;
-                    activeNodeEl = el;
-
-                    const rect = el.getBoundingClientRect();
-                    dragOffset.x = (e.clientX - rect.left) / scale;
-                    dragOffset.y = (e.clientY - rect.top) / scale;
-                });
-
-                // Node Touch Start (Mobile)
-                el.addEventListener('touchstart', (e) => {
-                    if (e.touches.length !== 1) return;
-                    e.stopPropagation();
-                    const touch = e.touches[0];
-                    activeNodeEl = el;
-                    touchNodeStarted = true;
-                    nodeTouchMoved = false;
-                    touchStartPos = { x: touch.clientX, y: touch.clientY };
-
-                    const rect = el.getBoundingClientRect();
-                    dragOffset.x = (touch.clientX - rect.left) / scale;
-                    dragOffset.y = (touch.clientY - rect.top) / scale;
-                }, { passive: false });
-
-                nodesContainer.appendChild(el);
-            });
-
-            // Adjust Canvas Size to accommodate all nodes
-            fitCanvasDimensions();
-            updateConnectors();
-        }
-
-        // Calculate and Draw SVG Curves between parent and child nodes
-        function updateConnectors() {
-            // Keep defs, remove existing lines
-            const defs = svgLayer.querySelector('defs');
-            svgLayer.innerHTML = '';
-            if (defs) svgLayer.appendChild(defs);
-
-            NODES_DATA.forEach(node => {
-                if (!node.parent) return;
-                const parentNode = NODES_DATA.find(n => n.id === node.parent);
-                if (!parentNode) return;
-
-                const parentEl = document.getElementById(`node-${parentNode.id}`);
-                const childEl = document.getElementById(`node-${node.id}`);
-                if (!parentEl || !childEl) return;
-
-                // Center positions of both elements
-                const pW = parentEl.offsetWidth;
-                const pH = parentEl.offsetHeight;
-                const cW = childEl.offsetWidth;
-                const cH = childEl.offsetHeight;
-
-                const pX = parentNode.x + pW / 2;
-                const pY = parentNode.y + pH / 2;
-                const cX = node.x + cW / 2;
-                const cY = node.y + cH / 2;
-
-                // Calculate edge attachment points
-                const angle = Math.atan2(cY - pY, cX - pX);
-                const startX = pX + (pW / 2) * Math.cos(angle);
-                const startY = pY + (pH / 2) * Math.sin(angle);
-                const endX = cX - (cW / 2 + 6) * Math.cos(angle);
-                const endY = cY - (cH / 2 + 6) * Math.sin(angle);
-
-                // Quadratic Bezier Curve for smooth curved arrows
-                const midX = (startX + endX) / 2;
-                const midY = (startY + endY) / 2;
-                // Add gentle natural curve deviation
-                const dx = endX - startX;
-                const dy = endY - startY;
-                const curveFactor = 0.12;
-                const ctrlX = midX - dy * curveFactor;
-                const ctrlY = midY + dx * curveFactor;
-
-                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                path.setAttribute('d', `M ${startX} ${startY} Q ${ctrlX} ${ctrlY} ${endX} ${endY}`);
-                path.setAttribute('class', `connector-line connector-${node.type} ${pulseActive ? 'connector-pulse' : ''}`);
-                path.setAttribute('stroke', TYPE_COLORS[node.type] || '#2563eb');
-                path.setAttribute('marker-end', `url(#arrow-${node.type})`);
-
-                svgLayer.appendChild(path);
-            });
-        }
-
-        // Fit canvas dimensions to encompass all nodes with padding
-        function fitCanvasDimensions() {
-            let maxX = 1600;
-            let maxY = 1200;
-            NODES_DATA.forEach(n => {
-                if (n.x + 300 > maxX) maxX = n.x + 300;
-                if (n.y + 200 > maxY) maxY = n.y + 200;
-            });
-            world.style.width = `${maxX}px`;
-            world.style.height = `${maxY}px`;
-            svgLayer.setAttribute('width', maxX);
-            svgLayer.setAttribute('height', maxY);
-        }
-
-        // ═════════════════════════════════════════════════════════════════
-        // Mouse & Touch Dragging, Canvas Panning, and Pinch Zoom
-        // ═════════════════════════════════════════════════════════════════
-
-        let touchNodeStarted = false;
-        let nodeTouchMoved = false;
-        let touchStartPos = { x: 0, y: 0 };
-        let initialPinchDistance = null;
-        let initialPinchScale = 1;
-
-        // Mouse Drag Move
-        window.addEventListener('mousemove', (e) => {
-            if (isDraggingNode && activeNodeEl) {
-                const worldRect = world.getBoundingClientRect();
-                const newX = (e.clientX - worldRect.left) / scale - dragOffset.x;
-                const newY = (e.clientY - worldRect.top) / scale - dragOffset.y;
-
-                activeNodeEl.style.left = `${newX}px`;
-                activeNodeEl.style.top = `${newY}px`;
-
-                const nodeId = activeNodeEl.id.replace('node-', '');
-                const nodeObj = NODES_DATA.find(n => n.id === nodeId);
-                if (nodeObj) {
-                    nodeObj.x = newX;
-                    nodeObj.y = newY;
-                }
-
-                updateConnectors();
-                return;
-            }
-
-            if (isPanning) {
-                panX = e.clientX - startPanX;
-                panY = e.clientY - startPanY;
-                applyTransform();
-            }
-        });
-
-        window.addEventListener('mouseup', () => {
-            if (isDraggingNode) {
-                setTimeout(() => { isDraggingNode = false; }, 50);
-                activeNodeEl = null;
-            }
-            if (isPanning) {
-                isPanning = false;
-                workspace.classList.remove('panning');
-            }
-        });
-
-        // Mouse Pan Start
-        workspace.addEventListener('mousedown', (e) => {
-            if (e.target === workspace || e.target === world || e.target === svgLayer) {
-                isPanning = true;
-                workspace.classList.add('panning');
-                startPanX = e.clientX - panX;
-                startPanY = e.clientY - panY;
-            }
-        });
-
-        // Wheel Zoom (Desktop)
-        workspace.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const zoomDelta = e.deltaY < 0 ? 1.1 : 0.9;
-            const newScale = Math.min(Math.max(scale * zoomDelta, 0.25), 2.2);
-
-            const rect = workspace.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-
-            panX = mouseX - (mouseX - panX) * (newScale / scale);
-            panY = mouseY - (mouseY - panY) * (newScale / scale);
-            scale = newScale;
-
-            applyTransform();
-        }, { passive: false });
-
-        // ── Mobile Touch Events ──
-        function getTouchDist(t1, t2) {
-            const dx = t1.clientX - t2.clientX;
-            const dy = t1.clientY - t2.clientY;
-            return Math.sqrt(dx * dx + dy * dy);
-        }
-
-        function getTouchCenter(t1, t2) {
-            return {
-                x: (t1.clientX + t2.clientX) / 2,
-                y: (t1.clientY + t2.clientY) / 2
+        function layout() {
+            const by = {}; NODES_DATA.forEach(n => (by[n.parent || ''] = by[n.parent || ''] || []).push(n));
+            const wt = n => (by[n.id] || []).reduce((s, c) => s + wt(c), 0) || 1;
+            let k = 0;
+            const place = (n, s, e, lv) => {
+                n.lv = lv; const m = (s + e) / 2, r = R[lv] + (lv > 1 ? (k++ % 2 ? 28 : -28) : 0);
+                n.x = Math.cos(m) * r * SX; n.y = Math.sin(m) * r;
+                let t = s; const tot = wt(n);
+                (by[n.id] || []).forEach(c => { const w = (e - s) * wt(c) / tot; place(c, t, t + w, lv + 1); t += w; });
             };
+            place(byId('core'), -Math.PI / 2, Math.PI * 1.5, 0);
+            const xs = NODES_DATA.map(n => n.x), ys = NODES_DATA.map(n => n.y);
+            const ox = PAD - Math.min(...xs), oy = PAD - Math.min(...ys);
+            NODES_DATA.forEach(n => { n.x += ox; n.y += oy; });
+            W = Math.max(...xs) + ox + PAD; H = Math.max(...ys) + oy + PAD;
+        }
+        const setPos = n => { const el = document.getElementById('node-' + n.id); if (el) { el.style.left = n.x + 'px'; el.style.top = n.y + 'px'; } };
+
+        function renderNodes() {
+            layout(); nodesContainer.innerHTML = '';
+            NODES_DATA.forEach(n => {
+                const el = document.createElement('div');
+                el.className = `node node-${n.type} lv${n.lv}`; el.id = 'node-' + n.id; el.dataset.id = n.id;
+                el.innerHTML = `<div class="node-avatar">${n.avatar}</div><div class="node-content"><span class="node-name">${n.name}</span><span class="node-role">${n.role}</span></div>`;
+                nodesContainer.appendChild(el); setPos(n);
+            });
+            world.style.width = W + 'px'; world.style.height = H + 'px';
+            svgLayer.setAttribute('width', W); svgLayer.setAttribute('height', H);
+            buildLines();
         }
 
-        // Workspace Touch Start (Background pan & pinch zoom)
-        workspace.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 2) {
-                // Pinch to Zoom start
-                e.preventDefault();
-                isPanning = false;
-                touchNodeStarted = false;
-                isDraggingNode = false;
-                initialPinchDistance = getTouchDist(e.touches[0], e.touches[1]);
-                initialPinchScale = scale;
-                return;
-            }
+        function buildLines() {
+            svgLayer.innerHTML = ''; edges = [];
+            const c = byId('core');
+            [1, 2, 3].forEach(i => {
+                const g = document.createElementNS(SVGNS, 'ellipse');
+                g.setAttribute('class', 'ring'); g.setAttribute('cx', c.x); g.setAttribute('cy', c.y);
+                g.setAttribute('rx', R[i] * SX); g.setAttribute('ry', R[i]); svgLayer.appendChild(g);
+            });
+            const mk = (a, b, link) => {
+                const p = document.createElementNS(SVGNS, 'path');
+                p.setAttribute('class', 'connector-line' + (link ? ' link' : ''));
+                p.setAttribute('stroke', TYPE_COLORS[link ? 'x' : b.type]);
+                svgLayer.appendChild(p); edges.push({ a, b, p, link });
+            };
+            NODES_DATA.forEach(n => n.parent && mk(byId(n.parent), n, false));
+            LINKS.forEach(([a, b]) => mk(byId(a), byId(b), true));
+            updateConnectors(true);
+        }
+        function clip(n, o) {
+            const [w, h] = SZ[n.lv], dx = o.x - n.x, dy = o.y - n.y;
+            const t = Math.min((w / 2 + 4) / Math.abs(dx || 1e-6), (h / 2 + 4) / Math.abs(dy || 1e-6), 0.5);
+            return [n.x + dx * t, n.y + dy * t];
+        }
+        function updateConnectors(measure) {
+            edges.forEach(({ a, b, p }) => {
+                const [s0, s1] = clip(a, b), [e0, e1] = clip(b, a), dx = e0 - s0, dy = e1 - s1;
+                p.setAttribute('d', `M${s0} ${s1}Q${(s0 + e0) / 2 - dy * .08} ${(s1 + e1) / 2 + dx * .08} ${e0} ${e1}`);
+                if (measure) p.style.setProperty('--len', Math.ceil(p.getTotalLength()) + 'px');
+            });
+        }
 
-            if (e.touches.length === 1 && !touchNodeStarted) {
-                // Canvas 1-finger pan start
-                const touch = e.touches[0];
-                isPanning = true;
-                startPanX = touch.clientX - panX;
-                startPanY = touch.clientY - panY;
-            }
-        }, { passive: false });
+        // ── ページ入場アニメ: 中心から放射状に「線が伸びる → ノードが現れる」を階層ごとに連鎖
+        function animateRadialBurst() {
+            clearTimeout(animT);
+            const all = [...nodesContainer.children, ...svgLayer.querySelectorAll('.connector-line, .ring')];
+            all.forEach(e => e.classList.remove('play')); void world.offsetWidth;
+            if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            playing = true; let i = 0;
+            const set = (e, d) => { e.style.setProperty('--d', d.toFixed(2) + 's'); e.classList.add('play'); };
+            set(document.getElementById('node-core'), 0);
+            svgLayer.querySelectorAll('.ring').forEach((r, k) => set(r, .2 + k * .6));
+            edges.forEach(({ b, p, link }) => {
+                const d = link ? 2.9 + (i++ % 10) * .08 : .25 + (b.lv - 1) * .6 + (i++ % 8) * .04;
+                set(p, d); if (!link) set(document.getElementById('node-' + b.id), d + .55);
+            });
+            animT = setTimeout(() => { all.forEach(e => e.classList.remove('play')); playing = false; }, 4600);
+        }
 
-        // Window Touch Move
-        window.addEventListener('touchmove', (e) => {
-            // Pinch Zoom move
-            if (e.touches.length === 2 && initialPinchDistance) {
-                e.preventDefault();
-                const dist = getTouchDist(e.touches[0], e.touches[1]);
-                const center = getTouchCenter(e.touches[0], e.touches[1]);
-                const zoomFactor = dist / initialPinchDistance;
-                const newScale = Math.min(Math.max(initialPinchScale * zoomFactor, 0.25), 2.2);
-
-                const rect = workspace.getBoundingClientRect();
-                const mouseX = center.x - rect.left;
-                const mouseY = center.y - rect.top;
-
-                panX = mouseX - (mouseX - panX) * (newScale / scale);
-                panY = mouseY - (mouseY - panY) * (newScale / scale);
-                scale = newScale;
-                applyTransform();
-                return;
-            }
-
-            if (e.touches.length === 1) {
-                const touch = e.touches[0];
-
-                // Node touch drag move
-                if (touchNodeStarted && activeNodeEl) {
-                    const distMoved = Math.hypot(touch.clientX - touchStartPos.x, touch.clientY - touchStartPos.y);
-                    if (distMoved > 8) {
-                        nodeTouchMoved = true;
-                        isDraggingNode = true;
-                        e.preventDefault();
-
-                        const worldRect = world.getBoundingClientRect();
-                        const newX = (touch.clientX - worldRect.left) / scale - dragOffset.x;
-                        const newY = (touch.clientY - worldRect.top) / scale - dragOffset.y;
-
-                        activeNodeEl.style.left = `${newX}px`;
-                        activeNodeEl.style.top = `${newY}px`;
-
-                        const nodeId = activeNodeEl.id.replace('node-', '');
-                        const nodeObj = NODES_DATA.find(n => n.id === nodeId);
-                        if (nodeObj) {
-                            nodeObj.x = newX;
-                            nodeObj.y = newY;
-                        }
-                        updateConnectors();
-                    }
-                    return;
-                }
-
-                // Canvas pan move
-                if (isPanning) {
-                    e.preventDefault();
-                    panX = touch.clientX - startPanX;
-                    panY = touch.clientY - startPanY;
-                    applyTransform();
-                }
-            }
-        }, { passive: false });
-
-        // Window Touch End
-        window.addEventListener('touchend', (e) => {
-            if (e.touches.length < 2) {
-                initialPinchDistance = null;
-            }
-
-            if (touchNodeStarted && activeNodeEl) {
-                // If moved less than threshold, treat as tap click
-                if (!nodeTouchMoved) {
-                    const nodeId = activeNodeEl.id.replace('node-', '');
-                    const nodeObj = NODES_DATA.find(n => n.id === nodeId);
-                    if (nodeObj) {
-                        openDetailModal(nodeObj);
-                    }
-                }
-                touchNodeStarted = false;
-                nodeTouchMoved = false;
-                setTimeout(() => { isDraggingNode = false; }, 50);
-                activeNodeEl = null;
-            }
-
-            if (e.touches.length === 0 && isPanning) {
-                isPanning = false;
-            }
-        });
-
+        // ── 入力: Pointer Events でマウス/タッチ/ピンチを一本化
+        function toWorld(cx, cy) { const r = world.getBoundingClientRect(); return { x: (cx - r.left) / scale, y: (cy - r.top) / scale }; }
         function applyTransform() {
             world.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
-            document.getElementById('zoom-label').textContent = `${Math.round(scale * 100)}%`;
+            document.getElementById('zoom-label').textContent = Math.round(scale * 100) + '%';
         }
-
-        // ═════════════════════════════════════════════════════════════════
-        // Interactive Controls (Buttons)
-        // ═════════════════════════════════════════════════════════════════
-
-        // 1. Radial Burst Animation
-        function animateRadialBurst() {
-            const core = NODES_DATA.find(n => n.id === 'core');
-            if (!core) return;
-
-            // Collapse to center first
-            NODES_DATA.forEach(node => {
-                if (node.id === 'core') return;
-                const el = document.getElementById(`node-${node.id}`);
-                if (!el) return;
-
-                el.style.transition = 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
-                el.style.left = `${core.x}px`;
-                el.style.top = `${core.y}px`;
-                el.style.opacity = '0';
-                el.style.transform = 'scale(0.2)';
-            });
-            updateConnectors();
-
-            // Burst outward sequentially
-            setTimeout(() => {
-                NODES_DATA.forEach((node, idx) => {
-                    if (node.id === 'core') return;
-                    const el = document.getElementById(`node-${node.id}`);
-                    if (!el) return;
-
-                    setTimeout(() => {
-                        el.style.left = `${node.originalX || node.x}px`;
-                        el.style.top = `${node.originalY || node.y}px`;
-                        el.style.opacity = '1';
-                        el.style.transform = 'scale(1)';
-                        updateConnectors();
-                    }, idx * 45);
-                });
-
-                // Clear transition after finish
-                setTimeout(() => {
-                    NODES_DATA.forEach(node => {
-                        const el = document.getElementById(`node-${node.id}`);
-                        if (el) el.style.transition = '';
-                    });
-                }, 1200);
-            }, 300);
+        function zoomAt(cx, cy, ns) {
+            ns = Math.min(Math.max(ns, .2), 2.2);
+            const r = workspace.getBoundingClientRect(), mx = cx - r.left, my = cy - r.top;
+            panX = mx - (mx - panX) * ns / scale; panY = my - (my - panY) * ns / scale; scale = ns; applyTransform();
         }
+        workspace.addEventListener('pointerdown', e => {
+            if (e.button > 0) return;
+            ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+            try { workspace.setPointerCapture(e.pointerId); } catch (_) {}
+            if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; drag = pan = null; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, s: scale }; return; }
+            const nd = e.target.closest('.node');
+            if (nd && !playing) { const n = byId(nd.dataset.id), w = toWorld(e.clientX, e.clientY); drag = { n, dx: n.x - w.x, dy: n.y - w.y, sx: e.clientX, sy: e.clientY, moved: false }; }
+            else { pan = { x: e.clientX - panX, y: e.clientY - panY }; workspace.classList.add('panning'); }
+        });
+        workspace.addEventListener('pointermove', e => {
+            if (!ptrs.has(e.pointerId)) return;
+            ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+            if (pinch && ptrs.size === 2) { const [a, b] = [...ptrs.values()]; zoomAt((a.x + b.x) / 2, (a.y + b.y) / 2, pinch.s * Math.hypot(a.x - b.x, a.y - b.y) / pinch.d); return; }
+            if (drag) {
+                if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 6) return;
+                drag.moved = true; const w = toWorld(e.clientX, e.clientY);
+                drag.n.x = w.x + drag.dx; drag.n.y = w.y + drag.dy; setPos(drag.n); updateConnectors();
+            } else if (pan) { panX = e.clientX - pan.x; panY = e.clientY - pan.y; applyTransform(); }
+        });
+        const endPtr = e => {
+            if (!ptrs.delete(e.pointerId)) return;
+            if (drag && !drag.moved && e.type === 'pointerup') openDetailModal(drag.n);
+            if (ptrs.size < 2) pinch = null;
+            if (!ptrs.size) { drag = pan = null; workspace.classList.remove('panning'); }
+        };
+        workspace.addEventListener('pointerup', endPtr); workspace.addEventListener('pointercancel', endPtr);
+        workspace.addEventListener('wheel', e => { e.preventDefault(); zoomAt(e.clientX, e.clientY, scale * (e.deltaY < 0 ? 1.1 : .9)); }, { passive: false });
 
-        // 2. Reset Node Positions
-        function resetNodePositions() {
-            NODES_DATA.forEach(node => {
-                if (node.originalX !== undefined) {
-                    node.x = node.originalX;
-                    node.y = node.originalY;
-                }
-                const el = document.getElementById(`node-${node.id}`);
-                if (el) {
-                    el.style.transition = 'all 0.4s ease';
-                    el.style.left = `${node.x}px`;
-                    el.style.top = `${node.y}px`;
-                }
-            });
-            setTimeout(() => {
-                NODES_DATA.forEach(node => {
-                    const el = document.getElementById(`node-${node.id}`);
-                    if (el) el.style.transition = '';
-                });
-                updateConnectors();
-            }, 450);
+        // ── ボタン類
+        function fitAll() {
+            const w = workspace.clientWidth, h = workspace.clientHeight;
+            scale = Math.min(w / W, h / H) * .97; panX = (w - W * scale) / 2; panY = (h - H * scale) / 2; applyTransform();
         }
-
-        // 3. Zoom Controls
-        function zoomIn() {
-            scale = Math.min(scale * 1.15, 2.2);
-            applyTransform();
-        }
-
-        function zoomOut() {
-            scale = Math.max(scale * 0.85, 0.25);
-            applyTransform();
-        }
-
-        // Responsive Zoom and Pan (Mobile auto-fit)
         function resetZoomAndPan() {
-            const wW = workspace.clientWidth || window.innerWidth;
-            const wH = workspace.clientHeight || (window.innerHeight - 80);
-
-            if (wW < 768) {
-                // Mobile: Fit all branches (~1150px x 800px) nicely within viewport
-                scale = Math.min((wW - 20) / 1150, (wH - 40) / 800);
-                if (scale < 0.28) scale = 0.28;
-                if (scale > 0.6) scale = 0.6;
-                panX = (wW - 1200 * scale) / 2;
-                panY = (wH - 850 * scale) / 2;
-            } else {
-                scale = 0.88;
-                panX = (wW - 1200 * scale) / 2;
-                panY = (wH - 850 * scale) / 2;
-            }
-            applyTransform();
+            const w = workspace.clientWidth, h = workspace.clientHeight, c = byId('core');
+            if (w < 768) { scale = .5; panX = w / 2 - c.x * scale; panY = h / 2 - c.y * scale; applyTransform(); } else fitAll();
         }
-
-        // 4. Data Flow Pulse Toggle
-        function togglePulse() {
-            pulseActive = !pulseActive;
-            updateConnectors();
-        }
-
-        // 5. Dark / Light Theme Toggle
+        function resetNodePositions() { layout(); NODES_DATA.forEach(setPos); buildLines(); }
+        function zoomIn() { const r = workspace.getBoundingClientRect(); zoomAt(r.left + r.width / 2, r.top + r.height / 2, scale * 1.2); }
+        function zoomOut() { const r = workspace.getBoundingClientRect(); zoomAt(r.left + r.width / 2, r.top + r.height / 2, scale / 1.2); }
+        function togglePulse() { svgLayer.classList.toggle('pulsing'); }
+        function toggleLinks() { svgLayer.classList.toggle('nolinks'); }
+        function toggleLegend() { document.getElementById('legend-card').classList.toggle('collapsed'); }
         function toggleTheme() {
-            const isDark = document.body.getAttribute('data-theme') === 'dark';
-            if (isDark) {
-                document.body.removeAttribute('data-theme');
-                document.getElementById('theme-icon').textContent = '🌙 ダーク切替';
-            } else {
-                document.body.setAttribute('data-theme', 'dark');
-                document.getElementById('theme-icon').textContent = '☀️ ライト切替';
-            }
+            const dark = document.body.getAttribute('data-theme') === 'dark';
+            dark ? document.body.removeAttribute('data-theme') : document.body.setAttribute('data-theme', 'dark');
+            document.getElementById('theme-icon').textContent = dark ? '🌙 ダーク切替' : '☀️ ライト切替';
         }
-
-        // 6. Detail Modal Flyout
         function openDetailModal(node) {
             document.getElementById('detail-modal-title').textContent = `${node.avatar} ${node.name}`;
             document.getElementById('detail-modal-desc').textContent = node.desc || 'モジュール概要';
             document.getElementById('detail-modal-file').textContent = `📄 ${node.file || 'N/A'}`;
             document.getElementById('detail-modal-code').textContent = node.code || '// 実装コード';
             document.getElementById('detail-modal').classList.add('open');
-
-            const backdrop = document.getElementById('modal-backdrop');
-            if (backdrop) backdrop.classList.add('open');
+            document.getElementById('modal-backdrop').classList.add('open');
         }
-
         function closeDetailModal() {
             document.getElementById('detail-modal').classList.remove('open');
-            const backdrop = document.getElementById('modal-backdrop');
-            if (backdrop) backdrop.classList.remove('open');
+            document.getElementById('modal-backdrop').classList.remove('open');
         }
-
-        // 7. Toggle Legend for Mobile
-        function toggleLegend() {
-            const card = document.getElementById('legend-card');
-            if (card) {
-                card.classList.toggle('collapsed');
-            }
-        }
-
-        // Save original positions on boot
-        window.addEventListener('DOMContentLoaded', () => {
-            NODES_DATA.forEach(n => {
-                n.originalX = n.x;
-                n.originalY = n.y;
-            });
-
-            renderNodes();
-            resetZoomAndPan();
-
-            // Run initial burst animation after a brief delay
-            setTimeout(() => {
-                animateRadialBurst();
-            }, 300);
-        });
-
-        // Resize handler
-        window.addEventListener('resize', () => {
-            updateConnectors();
-        });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetailModal(); });
+        window.addEventListener('DOMContentLoaded', () => { renderNodes(); resetZoomAndPan(); animateRadialBurst(); });
+        window.addEventListener('resize', () => { if (!ptrs.size) resetZoomAndPan(); });
     </script>
 </body>
 
