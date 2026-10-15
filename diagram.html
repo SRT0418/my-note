@@ -10,11 +10,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
-        /* ═══════════════════════════════════════════════════════════
-           MyNote Interactive Network Diagram (Lucidchart Inspired)
-           Features: Draggable nodes, SVG dynamic arrows, Canvas pan/zoom
-        ═══════════════════════════════════════════════════════════ */
-
         :root {
             --bg-canvas: #f8fafc;
             --grid-dot: #cbd5e1;
@@ -24,7 +19,6 @@
             --border-card: #e2e8f0;
             --shadow-card: 0 4px 12px rgba(15, 23, 42, 0.08);
 
-            /* Branch Colors (matching Lucidchart palette) */
             --color-core: #2563eb;
             --color-habit: #dc2626;
             --color-kadai: #ea580c;
@@ -34,6 +28,8 @@
             --color-report: #7c3aed;
             --color-notify: #db2777;
             --color-storage: #0d9488;
+            --color-wish: #c026d3;
+            --color-ui: #4f46e5;
         }
 
         [data-theme="dark"] {
@@ -56,20 +52,19 @@
             margin: 0;
             padding: 0;
             width: 100vw;
-            height: 100vh;
+            height: 100dvh;
             overflow: hidden;
             font-family: 'Inter', 'Noto Sans JP', sans-serif;
             background: var(--bg-canvas);
             color: var(--text-main);
             transition: background 0.3s ease;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* ── Top Toolbar (Lucidchart-like Header) ── */
         .toolbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
+            position: relative;
+            flex: none;
             height: 56px;
             background: var(--card-bg);
             border-bottom: 1px solid var(--border-card);
@@ -77,6 +72,7 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 20px;
+            padding-top: env(safe-area-inset-top);
             z-index: 100;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
@@ -136,6 +132,7 @@
             background: var(--card-bg);
             color: var(--text-main);
             transition: all 0.2s ease;
+            text-decoration: none;
         }
 
         .tool-btn:hover {
@@ -151,23 +148,16 @@
             box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
         }
 
-        .tool-btn.primary:hover {
-            opacity: 0.95;
-            transform: translateY(-1px);
-        }
-
-        /* ── Canvas Workspace ── */
         .workspace {
-            position: absolute;
-            top: 56px;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            position: relative;
+            flex: 1;
+            min-height: 0;
             overflow: hidden;
             background-color: var(--bg-canvas);
             background-image: radial-gradient(var(--grid-dot) 1.2px, transparent 1.2px);
             background-size: 24px 24px;
             cursor: grab;
+            touch-action: none;
         }
 
         .workspace.panning {
@@ -184,7 +174,6 @@
             will-change: transform;
         }
 
-        /* ── SVG Connector Lines Layer ── */
         .svg-layer {
             position: absolute;
             top: 0;
@@ -197,13 +186,20 @@
 
         .connector-line {
             fill: none;
-            stroke-width: 2.2;
+            stroke-width: 2;
             stroke-linecap: round;
             stroke-linejoin: round;
             transition: stroke 0.2s ease;
         }
 
-        .connector-pulse {
+        .connector-line.link {
+            stroke-width: 1.4;
+            stroke-dasharray: 3 6;
+            opacity: .55;
+        }
+
+        .nolinks .link { display: none; }
+        .pulsing .connector-line:not(.play):not(.link) {
             stroke-dasharray: 6 6;
             animation: dashPulse 2s linear infinite;
         }
@@ -212,7 +208,15 @@
             to { stroke-dashoffset: -24; }
         }
 
-        /* ── Lucidchart-Style Box Nodes ── */
+        .ring {
+            fill: none;
+            stroke: var(--grid-dot);
+            stroke-width: 1.2;
+            stroke-dasharray: 4 9;
+            opacity: .8;
+        }
+
+        /* ── Node Styling ── */
         .node {
             position: absolute;
             display: flex;
@@ -222,24 +226,20 @@
             background: var(--card-bg);
             border-radius: 12px;
             box-shadow: var(--shadow-card);
-            cursor: move;
+            cursor: pointer;
             z-index: 10;
             transition: box-shadow 0.2s ease, transform 0.15s ease;
             white-space: nowrap;
-            min-width: 160px;
+            transform: translate(-50%, -50%);
+            touch-action: none;
         }
 
         .node:hover {
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
             z-index: 50;
-            transform: scale(1.03);
+            transform: translate(-50%, -50%) scale(1.05);
         }
 
-        .node.active {
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.4), var(--shadow-card);
-        }
-
-        /* Node Avatar / Icon */
         .node-avatar {
             width: 38px;
             height: 38px;
@@ -251,21 +251,22 @@
             flex-shrink: 0;
             background: rgba(0, 0, 0, 0.05);
             border: 2px solid currentColor;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
         }
 
         .node-content {
             display: flex;
             flex-direction: column;
             text-align: left;
+            min-width: 0;
         }
 
         .node-name {
             font-size: 13.5px;
             font-weight: 700;
             color: var(--text-main);
-            letter-spacing: -0.01em;
-            line-height: 1.3;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .node-role {
@@ -273,52 +274,58 @@
             color: var(--text-sub);
             font-weight: 500;
             margin-top: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
-        .node-tag {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 9.5px;
-            padding: 1px 6px;
-            border-radius: 4px;
-            margin-top: 4px;
-            width: fit-content;
-            font-weight: 600;
-        }
+        .node-core { border: 2.5px solid var(--color-core); background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), var(--card-bg)); }
+        .node-habit { border: 2px solid var(--color-habit); } .node-habit .node-avatar { color: var(--color-habit); }
+        .node-kadai { border: 2px solid var(--color-kadai); } .node-kadai .node-avatar { color: var(--color-kadai); }
+        .node-task { border: 2px solid var(--color-task); } .node-task .node-avatar { color: var(--color-task); }
+        .node-sync { border: 2px solid var(--color-sync); } .node-sync .node-avatar { color: var(--color-sync); }
+        .node-calendar { border: 2px solid var(--color-calendar); } .node-calendar .node-avatar { color: var(--color-calendar); }
+        .node-report { border: 2px solid var(--color-report); } .node-report .node-avatar { color: var(--color-report); }
+        .node-notify { border: 2px solid var(--color-notify); } .node-notify .node-avatar { color: var(--color-notify); }
+        .node-storage { border: 2px solid var(--color-storage); } .node-storage .node-avatar { color: var(--color-storage); }
+        .node-wish { border: 2px solid var(--color-wish); } .node-wish .node-avatar { color: var(--color-wish); }
+        .node-ui { border: 2px solid var(--color-ui); } .node-ui .node-avatar { color: var(--color-ui); }
 
-        /* Specific Node Colors & Borders */
-        .node-core {
-            border: 2.5px solid var(--color-core);
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), var(--card-bg));
-            padding: 14px 22px;
-        }
-        .node-core .node-avatar { color: var(--color-core); width: 44px; height: 44px; font-size: 22px; }
-        .node-core .node-name { font-size: 15px; font-weight: 800; color: var(--color-core); }
+        .node.lv0 { width: 230px; height: 66px; padding: 8px 16px; }
+        .node.lv1 { width: 190px; height: 56px; }
+        .node.lv2 { width: 150px; height: 46px; padding: 5px 8px; gap: 6px; }
+        .node.lv3 { width: 140px; height: 40px; padding: 4px 8px; gap: 6px; border-style: dashed !important; border-width: 1.5px !important; }
+        .node.lv4 { width: 130px; height: 36px; padding: 3px 8px; gap: 6px; border-style: dotted !important; border-width: 1.5px !important; }
+        .node.lvF { width: 124px; height: 18px; padding: 0 8px; border-radius: 9px; border-width: 1.2px !important; justify-content: center; }
 
-        .node-habit { border: 2px solid var(--color-habit); }
-        .node-habit .node-avatar { color: var(--color-habit); }
+        .lv2 .node-avatar { width: 28px; height: 28px; font-size: 14px; }
+        .lv3 .node-avatar { width: 24px; height: 24px; font-size: 12px; }
+        .lv4 .node-avatar { width: 22px; height: 22px; font-size: 11px; }
+        .lv2 .node-name { font-size: 12px; } .lv3 .node-name { font-size: 11px; } .lv4 .node-name { font-size: 10.5px; }
+        .lv2 .node-role, .lv3 .node-role, .lv4 .node-role { font-size: 9.5px; margin-top: 0; }
 
-        .node-kadai { border: 2px solid var(--color-kadai); }
-        .node-kadai .node-avatar { color: var(--color-kadai); }
+        .fn-name { font: 600 9.5px 'JetBrains Mono', monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-main); }
+        .tiny .fn-name { opacity: 0; }
 
-        .node-task { border: 2px solid var(--color-task); }
-        .node-task .node-avatar { color: var(--color-task); }
+        /* Animation Classes */
+        .node.play { animation: popIn .5s cubic-bezier(.175, .885, .32, 1.275) var(--d, 0s) both; }
+        .ring.play { animation: fadeRing .8s ease var(--d, 0s) both; }
+        .connector-line.play { stroke-dasharray: var(--len) !important; animation: drawLine .7s ease-out var(--d, 0s) both !important; }
 
-        .node-sync { border: 2px solid var(--color-sync); }
-        .node-sync .node-avatar { color: var(--color-sync); }
+        @keyframes popIn { from { opacity: 0; transform: translate(-50%, -50%) scale(.4); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+        @keyframes drawLine { from { stroke-dashoffset: var(--len); opacity: 0; } 8% { opacity: 1; } to { stroke-dashoffset: 0; } }
+        @keyframes fadeRing { from { opacity: 0; } to { opacity: .8; } }
 
-        .node-calendar { border: 2px solid var(--color-calendar); }
-        .node-calendar .node-avatar { color: var(--color-calendar); }
+        /* Controls & Bars */
+        .mod-bar { flex: none; display: flex; gap: 8px; padding: 8px 16px; overflow-x: auto; background: var(--card-bg); border-bottom: 1px solid var(--border-card); scrollbar-width: none; z-index: 95; }
+        .mod-bar[hidden] { display: none; }
+        .mod-chip { flex: none; border: 1.5px solid var(--c, #2563eb); background: transparent; color: var(--text-main); font: 600 12px inherit; padding: 6px 12px; border-radius: 999px; cursor: pointer; white-space: nowrap; min-height: 34px; }
+        .mod-chip.on { background: var(--c, #2563eb); color: #fff; }
 
-        .node-report { border: 2px solid var(--color-report); }
-        .node-report .node-avatar { color: var(--color-report); }
+        .mode-switch { display: inline-flex; flex-shrink: 0; border: 1px solid var(--border-card); border-radius: 8px; overflow: hidden; }
+        .mode-btn { border: 0; background: var(--card-bg); color: var(--text-sub); font: 600 12px inherit; padding: 8px 12px; cursor: pointer; white-space: nowrap; }
+        .mode-btn.on { background: #2563eb; color: #fff; }
 
-        .node-notify { border: 2px solid var(--color-notify); }
-        .node-notify .node-avatar { color: var(--color-notify); }
-
-        .node-storage { border: 2px solid var(--color-storage); }
-        .node-storage .node-avatar { color: var(--color-storage); }
-
-        /* ── Floating Controls Bar (Zoom & Layout) ── */
         .floating-controls {
             position: fixed;
             bottom: 24px;
@@ -346,23 +353,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
         }
 
-        .icon-btn:hover {
-            background: rgba(0, 0, 0, 0.06);
-            color: #2563eb;
-        }
+        .icon-btn:hover { background: rgba(0, 0, 0, 0.06); color: #2563eb; }
 
-        .zoom-label {
-            font-size: 11px;
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 600;
-            padding: 0 8px;
-            color: var(--text-sub);
-        }
+        .zoom-label { font-size: 11px; font-family: 'JetBrains Mono', monospace; font-weight: 600; padding: 0 8px; color: var(--text-sub); }
 
-        /* ── Legend Sidebar (Collapsible) ── */
         .legend-card {
             position: fixed;
             bottom: 24px;
@@ -377,42 +373,18 @@
             font-size: 12px;
         }
 
-        .legend-title {
-            font-weight: 700;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: var(--text-main);
-        }
+        .legend-title { font-weight: 700; margin-bottom: 8px; color: var(--text-main); cursor: pointer; }
+        .legend-card.collapsed .legend-items { display: none; }
+        .legend-items { display: flex; flex-direction: column; gap: 6px; }
+        .legend-row { display: flex; align-items: center; gap: 8px; color: var(--text-sub); font-size: 11px; }
+        .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 
-        .legend-items {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .legend-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--text-sub);
-            font-size: 11px;
-        }
-
-        .legend-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        /* ── Detail Modal / Flyout ── */
+        /* Modal Styles */
         .detail-modal {
             position: fixed;
             top: 76px;
             right: 24px;
-            width: 360px;
+            width: 380px;
             max-height: calc(100vh - 120px);
             background: var(--card-bg);
             border: 1px solid var(--border-card);
@@ -425,9 +397,7 @@
             animation: slideInRight 0.25s ease;
         }
 
-        .detail-modal.open {
-            display: flex;
-        }
+        .detail-modal.open { display: flex; }
 
         @keyframes slideInRight {
             from { opacity: 0; transform: translateX(20px); }
@@ -442,21 +412,8 @@
             justify-content: space-between;
         }
 
-        .modal-title {
-            font-size: 15px;
-            font-weight: 700;
-            margin: 0;
-        }
-
-        .modal-close-btn {
-            background: none;
-            border: none;
-            font-size: 20px;
-            color: var(--text-sub);
-            cursor: pointer;
-            padding: 4px;
-            line-height: 1;
-        }
+        .modal-title { font-size: 15px; font-weight: 700; margin: 0; }
+        .modal-close-btn { background: none; border: none; font-size: 20px; color: var(--text-sub); cursor: pointer; padding: 4px; }
 
         .modal-body {
             padding: 18px 20px;
@@ -486,196 +443,34 @@
             font-size: 11px;
             border: 1px solid var(--border-card);
             overflow-x: auto;
+            white-space: pre-wrap;
         }
 
-        /* ── Launch Burst Animation ── */
-        .node.burst-in {
-            animation: burstPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-
-        @keyframes burstPop {
-            0% { transform: scale(0); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        /* ── Mobile & Tablet Responsive Styles ── */
-        @media (max-width: 768px) {
-            .toolbar {
-                height: auto;
-                min-height: 50px;
-                padding: 8px 12px;
-                flex-direction: column;
-                align-items: stretch;
-                gap: 8px;
-            }
-
-            .toolbar-brand {
-                justify-content: space-between;
-                width: 100%;
-            }
-
-            .brand-subtitle {
-                display: none;
-            }
-
-            .toolbar-actions {
-                width: 100%;
-                overflow-x: auto;
-                padding-bottom: 2px;
-                gap: 6px;
-                -webkit-overflow-scrolling: touch;
-                scrollbar-width: none;
-            }
-
-            .toolbar-actions::-webkit-scrollbar {
-                display: none;
-            }
-
-            .tool-btn {
-                padding: 6px 11px;
-                font-size: 11px;
-                white-space: nowrap;
-                flex-shrink: 0;
-            }
-
-            .workspace {
-                top: 92px; /* dynamically accounts for two-row mobile toolbar */
-            }
-
-            /* Floating zoom controls */
-            .floating-controls {
-                bottom: 14px;
-                right: 12px;
-                padding: 4px;
-                gap: 3px;
-                border-radius: 10px;
-            }
-
-            .icon-btn {
-                width: 32px;
-                height: 32px;
-                font-size: 15px;
-            }
-
-            .zoom-label {
-                font-size: 10px;
-                padding: 0 4px;
-            }
-
-            /* Legend Card mobile collapse */
-            .legend-card {
-                bottom: 14px;
-                left: 12px;
-                padding: 8px 12px;
-                max-width: 170px;
-                border-radius: 10px;
-                cursor: pointer;
-            }
-
-            .legend-card.collapsed .legend-items {
-                display: none;
-            }
-
-            .legend-title {
-                margin-bottom: 0;
-                font-size: 11px;
-                user-select: none;
-            }
-
-            .legend-card:not(.collapsed) .legend-title {
-                margin-bottom: 8px;
-            }
-
-            /* Bottom sheet style for detail modal on mobile */
-            .detail-modal {
-                top: auto;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                width: 100%;
-                max-height: 75vh;
-                border-radius: 20px 20px 0 0;
-                box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.35);
-                animation: slideUpSheet 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            }
-
-            @keyframes slideUpSheet {
-                from { transform: translateY(100%); }
-                to { transform: translateY(0); }
-            }
-
-            .modal-head {
-                padding: 14px 18px;
-            }
-
-            .modal-body {
-                padding: 14px 18px 24px;
-                gap: 12px;
-            }
-        }
-
-        /* Modal backdrop for mobile */
         .modal-backdrop {
             display: none;
             position: fixed;
             inset: 0;
             background: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
             z-index: 105;
         }
+        .modal-backdrop.open { display: block; }
 
-        .modal-backdrop.open {
-            display: block;
-        }
-
-        /* ═══ v2: 詳細放射レイアウト / 線の入場アニメ / スマホ最適化 ═══ */
-        :root { --color-wish: #c026d3; --color-ui: #4f46e5; }
-        html, body { height: 100%; width: 100%; }
-        body { display: flex; flex-direction: column; height: 100dvh; }
-        .toolbar { position: relative; flex: none; padding-top: env(safe-area-inset-top); }
-        .workspace { position: relative; top: auto; flex: 1; min-height: 0; touch-action: none; }
-        .node-wish { border: 2px solid var(--color-wish); } .node-wish .node-avatar { color: var(--color-wish); }
-        .node-ui { border: 2px solid var(--color-ui); } .node-ui .node-avatar { color: var(--color-ui); }
-        .node { transform: translate(-50%, -50%); min-width: 0; padding: 6px 10px; gap: 8px; overflow: hidden; touch-action: none; }
-        .node:hover { transform: translate(-50%, -50%) scale(1.05); }
-        .node-content { min-width: 0; }
-        .node-name, .node-role { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .node.lv0 { width: 230px; height: 66px; padding: 8px 16px; }
-        .node.lv1 { width: 190px; height: 56px; }
-        .node.lv2 { width: 150px; height: 46px; padding: 5px 8px; gap: 6px; }
-        .node.lv3 { width: 140px; height: 40px; padding: 4px 8px; gap: 6px; border-style: dashed !important; border-width: 1.5px !important; }
-        .lv2 .node-avatar { width: 28px; height: 28px; font-size: 14px; border-width: 1.5px; }
-        .lv3 .node-avatar { width: 24px; height: 24px; font-size: 12px; border-width: 1.5px; }
-        .lv2 .node-name { font-size: 12px; } .lv3 .node-name { font-size: 11px; }
-        .lv2 .node-role, .lv3 .node-role { font-size: 9.5px; margin-top: 0; }
-        .ring { fill: none; stroke: var(--grid-dot); stroke-width: 1.2; stroke-dasharray: 4 9; opacity: .8; }
-        .connector-line { stroke-width: 2; }
-        .connector-line.link { stroke-width: 1.4; stroke-dasharray: 3 6; opacity: .55; }
-        .nolinks .link { display: none; }
-        .pulsing .connector-line:not(.play):not(.link) { stroke-dasharray: 6 6; animation: dashPulse 2s linear infinite; }
-        .node.play { animation: popIn .5s cubic-bezier(.175, .885, .32, 1.275) var(--d, 0s) both; }
-        .ring.play { animation: fadeRing .8s ease var(--d, 0s) both; }
-        .connector-line.play { stroke-dasharray: var(--len) !important; animation: drawLine .7s ease-out var(--d, 0s) both !important; }
-        @keyframes popIn { from { opacity: 0; transform: translate(-50%, -50%) scale(.4); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
-        @keyframes drawLine { from { stroke-dashoffset: var(--len); opacity: 0; } 8% { opacity: 1; } to { stroke-dashoffset: 0; } }
-        @keyframes fadeRing { from { opacity: 0; } to { opacity: .8; } }
-        .legend-title { white-space: nowrap; }
         @media (max-width: 768px) {
-            .toolbar { padding: 8px 12px; padding-top: max(8px, env(safe-area-inset-top)); }
-            .workspace { top: auto; }
-            .tool-btn { min-height: 38px; }
+            .toolbar { padding: 8px 12px; height: auto; flex-direction: column; gap: 8px; }
+            .toolbar-actions { overflow-x: auto; width: 100%; padding-bottom: 4px; }
             .floating-controls { bottom: max(14px, env(safe-area-inset-bottom)); right: max(12px, env(safe-area-inset-right)); }
             .legend-card { bottom: max(14px, env(safe-area-inset-bottom)); left: max(12px, env(safe-area-inset-left)); }
-            .detail-modal { max-height: 70dvh; padding-bottom: env(safe-area-inset-bottom); }
-            .icon-btn { width: 40px; height: 40px; }
+            .detail-modal {
+                top: auto; bottom: 0; left: 0; right: 0; width: 100%; max-height: 70dvh;
+                border-radius: 20px 20px 0 0; padding-bottom: env(safe-area-inset-bottom);
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <!-- ── Top Lucidchart-Style Toolbar ── -->
     <header class="toolbar">
         <div class="toolbar-brand">
             <div class="brand-icon">MN</div>
@@ -686,6 +481,11 @@
         </div>
 
         <div class="toolbar-actions">
+            <div class="mode-switch" role="group" aria-label="表示モード">
+                <button class="mode-btn" data-m="simple" onclick="setMode('simple')">🔰 シンプル</button>
+                <button class="mode-btn on" data-m="detail" onclick="setMode('detail')">🔬 標準</button>
+                <button class="mode-btn" data-m="full" onclick="setMode('full')">🧬 全ノード</button>
+            </div>
             <button id="btn-burst" class="tool-btn primary" onclick="animateRadialBurst()">
                 <span>🚀 相関図を展開</span>
             </button>
@@ -710,51 +510,14 @@
         </div>
     </header>
 
-    <!-- ── Interactive Canvas Workspace ── -->
+    <div id="mod-bar" class="mod-bar" hidden></div>
     <div id="workspace" class="workspace">
         <div id="canvas-world" class="canvas-world">
-            <!-- SVG Connectors Layer -->
-            <svg id="svg-layer" class="svg-layer">
-                <defs>
-                    <!-- Marker for line arrows -->
-                    <marker id="arrow-core" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                        <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--color-core)" />
-                    </marker>
-                    <marker id="arrow-habit" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                        <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--color-habit)" />
-                    </marker>
-                    <marker id="arrow-kadai" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                        <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--color-kadai)" />
-                    </marker>
-                    <marker id="arrow-task" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                        <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--color-task)" />
-                    </marker>
-                    <marker id="arrow-sync" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                        <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--color-sync)" />
-                    </marker>
-                    <marker id="arrow-calendar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                        <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--color-calendar)" />
-                    </marker>
-                    <marker id="arrow-report" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                        <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--color-report)" />
-                    </marker>
-                    <marker id="arrow-notify" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                        <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--color-notify)" />
-                    </marker>
-                    <marker id="arrow-storage" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                        <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--color-storage)" />
-                    </marker>
-                </defs>
-            </svg>
-
-            <!-- ── Nodes Container ── -->
-            <div id="nodes-container">
-                <!-- Dynamically populated or statically positioned -->
-            </div>
+            <svg id="svg-layer" class="svg-layer"></svg>
+            <div id="nodes-container"></div>
         </div>
     </div>
 
-    <!-- ── Floating Zoom Controls ── -->
     <div class="floating-controls">
         <button class="icon-btn" onclick="zoomIn()" title="拡大">+</button>
         <span id="zoom-label" class="zoom-label">100%</span>
@@ -762,7 +525,6 @@
         <button class="icon-btn" onclick="fitAll()" title="全体を表示">⛶</button>
     </div>
 
-    <!-- ── Legend Sidebar (Collapsible on mobile) ── -->
     <div id="legend-card" class="legend-card collapsed" onclick="toggleLegend()">
         <div class="legend-title">🗺️ モジュール凡例 <span style="font-size: 9px; opacity: 0.7;">(タップ切替)</span></div>
         <div class="legend-items">
@@ -779,10 +541,8 @@
         </div>
     </div>
 
-    <!-- ── Modal Backdrop (Mobile overlay) ── -->
     <div id="modal-backdrop" class="modal-backdrop" onclick="closeDetailModal()"></div>
 
-    <!-- ── Detail Flyout Modal ── -->
     <div id="detail-modal" class="detail-modal">
         <div class="modal-head">
             <h4 id="detail-modal-title" class="modal-title">モジュール詳細</h4>
@@ -790,7 +550,7 @@
         </div>
         <div class="modal-body">
             <div>
-                <div class="modal-section-title">役割 ＆ アルゴリズム</div>
+                <div class="modal-section-title">役割 ＆ 処理内容</div>
                 <div id="detail-modal-desc"></div>
             </div>
             <div>
@@ -798,7 +558,7 @@
                 <div id="detail-modal-file" style="font-family:'JetBrains Mono'; font-size:12px; color:var(--color-core);"></div>
             </div>
             <div>
-                <div class="modal-section-title">主要ロジック</div>
+                <div class="modal-section-title">主要ロジック / 関数実装</div>
                 <pre id="detail-modal-code" class="code-snippet"></pre>
             </div>
         </div>
@@ -806,25 +566,284 @@
 
     <script>
         // ═════════════════════════════════════════════════════════════════
-        // Node & Edge Data Registry (Lucidchart Structure)
+        // Node Registry & Full Function Descriptions Dictionary
         // ═════════════════════════════════════════════════════════════════
 
-        const NODES_DATA = [
-            // Center Core Node (アレンSにあたる中核)
+        const NODES_DATA = [];
+        const byId = id => NODES_DATA.find(n => n.id === id);
+
+        // 全関数の詳細役割・処理内容データ（完全網羅）
+        const FN_DESCS = {
+            "initApp": "DOMロード完了時に呼び出され、アプリケーション全体の表示更新や基本イベントリスナーの設定を行う統合初期化関数です[cite: 1]。",
+
+            // everydayTask.js
+            "getHabitTasks": "ローカルストレージから登録済みの習慣タスク一覧を取得します[cite: 1]。",
+            "getHabitCompleted": "本日完了した習慣タスクの ID リストをローカルストレージから取得します[cite: 1]。",
+            "getHabitDeleted": "ゴミ箱に入っている習慣タスク一覧データを取得します[cite: 1]。",
+            "saveHabitTasks": "習慣タスク一覧をローカルストレージに保存します[cite: 1]。",
+            "saveHabitCompleted": "本日の完了済み習慣タスク ID リストをローカルストレージに保存します[cite: 1]。",
+            "saveHabitDeleted": "削除済み（ゴミ箱内）の習慣タスク一覧を保存します[cite: 1]。",
+            "getDailyHistory": "過去の日次達成実績の履歴データを取得します[cite: 1]。",
+            "saveDailyHistory": "日次達成実績の履歴データを保存します[cite: 1]。",
+            "getTodayKey": "今日の今現在の時間を元に YYYY-MM-DD 形式の日付文字列を取得します[cite: 1]。",
+            "getDaysDiff": "前回アクセス日付と今日の日付との差分日数（diffDays）を計算します[cite: 1]。",
+            "formatDateLabel": "日付キーを「M月D日(木)」などの日本語表示用にフォーマットします[cite: 1]。",
+            "checkDailyReset": "日付跨ぎの初回アクセス時に昨日の実績をアーカイブし、完了状態のリセットやストリーク計算を実行します[cite: 1]。",
+            "archivePreviousDay": "前日までの習慣達成状況を日次履歴オブジェクトに保存・アーカイブします[cite: 1]。",
+            "scheduleMidnightReset": "深夜 0 時（日付変更時）に自動リセット処理を実行するタイマーをセットします[cite: 1]。",
+            "renderHabitTasks": "未完了の習慣タスク一覧を画面にレンダリング表示します[cite: 1]。",
+            "renderCompletedHabitTasks": "本日完了済みの習慣タスク一覧を表示します[cite: 1]。",
+            "renderDeletedHabitTasks": "ゴミ箱に入っている習慣タスク一覧を表示します[cite: 1]。",
+            "updateHabitCounts": "習慣タスクの未完了数・完了数・ゴミ箱数のバッジ表示を更新します[cite: 1]。",
+            "refreshAll": "習慣画面全体のデータ取得と再描画を一括実行します[cite: 1]。",
+            "completeHabitTask": "指定した習慣タスクを「本日完了」状態にし、ストリークを加算します[cite: 1]。",
+            "undoHabitTask": "完了した習慣タスクを未完了に戻し、加算したストリークを取り消します[cite: 1]。",
+            "deleteHabitTask": "習慣タスクをゴミ箱（habitDeleted）へ移動します[cite: 1]。",
+            "deleteHabitCompleted": "本日完了済みのタスクをゴミ箱へ移動します[cite: 1]。",
+            "restoreHabitTask": "ゴミ箱から習慣タスクを元のリストに復元します[cite: 1]。",
+            "deleteHabitForever": "ゴミ箱内の指定タスクを完全に消去します[cite: 1]。",
+            "purgeOldDeletedHabitTasks": "ゴミ箱に入ってから 30 日以上経過した習慣タスクを自動で完全削除します[cite: 1]。",
+
+            // edTaskResult.js
+            "renderTodaySummary": "本日の習慣達成状況のサマリー（達成率や完了件数）を画面に表示します[cite: 1]。",
+            "drawPieChart": "本日の達成率を可視化するための Canvas 円グラフを描画します[cite: 1]。",
+            "renderDailyHistory": "過去の日次実績履歴をカレンダーやリスト形式で表示します[cite: 1]。",
+
+            // kadai.js
+            "renderToday": "今日が締切の課題をダッシュボードや上部に抽出表示します[cite: 1]。",
+            "getTasks": "未完了課題一覧を取得します[cite: 1]。",
+            "getCompletedTasks": "完了した課題一覧を取得します[cite: 1]。",
+            "saveTasks": "未完了課題のリストを保存します[cite: 1]。",
+            "saveCompleted": "完了課題のリストを保存します[cite: 1]。",
+            "getDeletedTasks": "ゴミ箱に入っている課題一覧を取得します[cite: 1]。",
+            "saveDeleted": "削除済み課題のリストを保存します[cite: 1]。",
+            "renderTasks": "全未完了課題を今週・来週・以降などのグループ別に表示します[cite: 1]。",
+            "renderTaskGroup": "指定されたグループ（今週など）単位で課題カードを生成します[cite: 1]。",
+            "renderCompletedTasks": "完了済みの課題一覧を表示します[cite: 1]。",
+            "renderDeletedTasks": "ゴミ箱内の課題一覧を表示します[cite: 1]。",
+            "completeTask": "課題を完了状態にし、完了リストへ移動します[cite: 1]。",
+            "deleteTask": "課題をゴミ箱へ移動します[cite: 1]。",
+            "revertTask": "完了した課題を未完了に戻します[cite: 1]。",
+            "deleteCompletedTask": "完了済みの課題をゴミ箱へ移動します[cite: 1]。",
+            "restoreTask": "ゴミ箱の課題を元のリストに復元します[cite: 1]。",
+            "purgeOldDeletedTasks": "削除から 30 日以上経過した課題を自動消去します[cite: 1]。",
+            "getWeekKey": "指定日付が含まれる週の月曜日の日付キー（YYYY-MM-DD）を取得します[cite: 1]。",
+            "archiveFinishedDeadlineWeeks": "締切週が過ぎた過去の課題グループをアーカイブ領域へ自動移動します[cite: 1]。",
+            "getBucket": "課題の締切日時に応じて「今週」「来週」「再来週以降」の分類バケットを判定します[cite: 1]。",
+            "deleteForever": "課題を完全消去します[cite: 1]。",
+            "updateCounts": "各グループ・ステートごとの課題件数バッジを更新します[cite: 1]。",
+            "editTask": "課題の内容や締切日時の編集を行います[cite: 1]。",
+
+            // result.js
+            "renderUpcomingByWeek": "週ごとの今後の課題予定を表示します[cite: 1]。",
+            "renderList": "全課題の一覧リストを描画します[cite: 1]。",
+            "renderWeeklyHistory": "過去の週別達成実績の履歴を表示します[cite: 1]。",
+
+            // tasks.js
+            "formatDate": "タスクの日付を表示用にフォーマットします[cite: 1]。",
+            "priorityOrder": "優先度「高・中・低」を数値の重み（高:3, 中:2, 低:1）に変換します[cite: 1]。",
+            "priorityClass": "優先度に応じた CSS デザインクラス名（色バッジ用）を返します[cite: 1]。",
+            "getTodoTasks": "未完了の Todo タスク一覧を取得します[cite: 1]。",
+            "getTodoCompleted": "完了済みの Todo タスク一覧を取得します[cite: 1]。",
+            "getTodoDeleted": "ゴミ箱に入っている Todo タスク一覧を取得します[cite: 1]。",
+            "saveTodoTasks": "未完了 Todo リストを保存します[cite: 1]。",
+            "saveTodoCompleted": "完了済み Todo リストを保存します[cite: 1]。",
+            "saveTodoDeleted": "削除済み Todo リストを保存します[cite: 1]。",
+            "initAddButton": "タスク追加ボタンのイベントを設定します[cite: 1]。",
+            "renderTodoAll": "全 Todo タスクを優先度（高→中→低）順に並べ替えて描画します[cite: 1]。",
+            "completeTodoTask": "Todo タスクを完了状態にします[cite: 1]。",
+            "deleteTodoTask": "Todo タスクをゴミ箱へ移動します[cite: 1]。",
+            "deleteTodoCompleted": "完了済みの Todo をゴミ箱へ移動します[cite: 1]。",
+            "restoreTodoTask": "ゴミ箱の Todo を復元します[cite: 1]。",
+            "purgeOldDeletedTodoTasks": "削除から 30 日経過した Todo を自動で完全消去します[cite: 1]。",
+            "deleteTodoForever": "指定した Todo をゴミ箱から即時完全消去します[cite: 1]。",
+            "initAddTaskForm": "新規 Todo タスク追加フォームの送信処理を初期化します[cite: 1]。",
+
+            // calendar.js & birthdays.js & schedule-add.js
+            "getBirthdays": "登録されている誕生日リストを取得します[cite: 1]。",
+            "getBirthdaysOnDate": "指定された日付に該当する誕生日データを抽出します[cite: 1]。",
+            "getSchedules": "予定一覧を取得します[cite: 1]。",
+            "saveSchedules": "予定一覧を保存します[cite: 1]。",
+            "getDeletedSchedules": "削除済みの予定を取得します[cite: 1]。",
+            "saveDeletedSchedules": "削除済みの予定を保存します[cite: 1]。",
+            "toDateKey": "Date オブジェクトを YYYY-MM-DD 形式のキー文字列に変換します[cite: 1]。",
+            "getSchedulesOnDate": "指定した日付キーに該当する予定・課題・誕生日データをまとめて抽出します[cite: 1]。",
+            "formatScheduleDateTime": "予定の開始・終了時刻を表示用にフォーマットします[cite: 1]。",
+            "renderCalendar": "月のカレンダーグリッドを動的に生成・描画します[cite: 1]。",
+            "renderEventList": "選択された日付の予定・課題詳細リストを表示します[cite: 1]。",
+            "renderHistoryList": "過去の予定履歴リストを表示します[cite: 1]。",
+            "renderDeletedList": "ゴミ箱に入っている予定一覧を表示します[cite: 1]。",
+            "refreshAllViews": "カレンダー・イベントリスト・履歴表示を一括更新します[cite: 1]。",
+            "purgeOldDeletedSchedules": "削除から 30 日経過した予定を自動完全削除します[cite: 1]。",
+            "createScheduleCard": "カレンダー上に表示する小さな予定カード要素を生成します[cite: 1]。",
+            "setAllDay": "予定登録時に「終日」チェックボックスに応じて時間入力欄の有効/無効を切り替えます[cite: 1]。",
+            "saveBirthdays": "誕生日リストを保存します[cite: 1]。",
+            "getDaysInMonth": "指定した年月の日数（28〜31日）を計算して返します[cite: 1]。",
+            "buildMonthOptions": "誕生日フォームの「月」セレクトボックス選択肢を動的に生成します[cite: 1]。",
+            "buildDayOptions": "誕生日フォームの「日」セレクトボックス選択肢を動的に生成します[cite: 1]。",
+            "setupTypeRadio": "家族・友人・同僚などの分類ラジオボタンの切り替え処理を行います[cite: 1]。",
+            "updateTypeLabels": "選択されたタイプラベルを更新表示します[cite: 1]。",
+            "saveBirthday": "フォームから入力された誕生日データを新規保存または更新します[cite: 1]。",
+            "resetForm": "誕生日入力フォームを初期化します[cite: 1]。",
+            "startEdit": "既存の誕生日データをフォームに呼び出して編集モードにします[cite: 1]。",
+            "deleteBirthday": "登録されている誕生日データを削除します[cite: 1]。",
+            "renderBirthdayList": "登録済み誕生日一覧（年齢および残り日数）を描画します[cite: 1]。",
+
+            // report.js
+            "toYearMonthKey": "年月キー（YYYY-MM）を生成します[cite: 1]。",
+            "countCharacters": "改行を除いた報告書本文の総文字数をカウントします[cite: 1]。",
+            "formatDateJa": "年月日を「YYYY年M月D日」形式に変換します[cite: 1]。",
+            "injectThemeStyles": "選択されたレポートテーマのスタイルをプレビューへ動的適用します[cite: 1]。",
+            "getCurrentTheme": "現在選択されている報告書テーマの設定オブジェクトを取得します[cite: 1]。",
+            "setTitleExamples": "報告書タイトルの入力例候補をセットします[cite: 1]。",
+            "setupEventListeners": "テーマ変更、期間選択、ソース切り替えなどの UI イベントを設定します[cite: 1]。",
+            "switchSource": "報告書のデータソース（カレンダー予定/課題/Todo）を切り替えます[cite: 1]。",
+            "renderSectionEditors": "報告書の各セクション（目標・成果・課題）の編集フォームを描画します[cite: 1]。",
+            "calculatePeriodRange": "報告書の対象期間（1 ヶ月または 3 ヶ月）の開始日・終了日を計算します[cite: 1]。",
+            "updateItemListAndPreview": "対象期間内の実績項目を抽出し、報告書プレビューを更新します[cite: 1]。",
+            "renderChecklist": "抽出された実績データの中から報告書に含める項目を選択するチェックリストを表示します[cite: 1]。",
+            "getSelectedObjects": "チェックボックスで選択された実績データのオブジェクト配列を取得します[cite: 1]。",
+            "buildReportHTML": "抽出データと編集テキストを組み合わせて完成版の報告書 HTML を構築します[cite: 1]。",
+            "renderPreview": "構築した報告書 HTML をプレビュー領域に描画します[cite: 1]。",
+            "applyDirectEditMode": "プレビュー画面上での直接テキスト編集（contenteditable）を有効化します[cite: 1]。",
+            "getPreviewCurrentHTML": "現在のプレビュー内容を HTML 形式で取得します[cite: 1]。",
+            "getPreviewCurrentText": "現在のプレビュー内容をプレーンテキスト形式で取得します[cite: 1]。",
+            "downloadWordReport": "HTML Blob を生成し、Word (.doc) ファイルとしてダウンロード出力します[cite: 1]。",
+            "copyReportToClipboard": "報告書テキストをクリップボードにコピーします[cite: 1]。",
+            "fallbackCopy": "クリップボード API が使えない環境向けの代替コピー処理です[cite: 1]。",
+            "downloadReportFile": "ファイルダウンロード処理を実行する汎用ヘルパー関数です[cite: 1]。",
+            "collectState": "現在の報告書編集状態（フォーム入力内容や選択項目）を取得します[cite: 1]。",
+            "applyState": "保存された報告書の編集状態を復元適用します[cite: 1]。",
+            "loadDrafts": "報告書の下書きデータをローカルストレージから読み込みます[cite: 1]。",
+            "persistDrafts": "下書きデータをローカルストレージに保存します[cite: 1]。",
+            "loadAuto": "自動保存された最新の下書きを読み込みます[cite: 1]。",
+            "scheduleAutoSave": "一定時間ごとに報告書内容を自動保存するタイマーを管理します[cite: 1]。",
+            "formatSavedAt": "保存完了時刻を表示用にフォーマットします[cite: 1]。",
+            "showToast": "通知トーストメッセージを表示します[cite: 1]。",
+            "saveDraft": "手動で報告書の下書きを保存します[cite: 1]。",
+            "renderDraftPanel": "保存された下書きの一覧パネルを表示します[cite: 1]。",
+            "showRestoreBanner": "自動保存データの復元通知バナーを表示します[cite: 1]。",
+            "initDrafts": "下書き機能の初期化を行います[cite: 1]。",
+
+            // notification.js
+            "getReadNotificationIds": "既読にした通知メッセージの ID 配列を取得します[cite: 1]。",
+            "saveReadNotificationIds": "既読通知 ID 配列を保存します[cite: 1]。",
+            "getDesktopNotifySetting": "ブラウザデスクトップ通知の許可設定を読み込みます[cite: 1]。",
+            "setDesktopNotifySetting": "デスクトップ通知の有効/無効設定を保存します[cite: 1]。",
+            "getFutureDateKey": "今日から N 日後の日付キー（YYYY-MM-DD）を取得します[cite: 1]。",
+            "calculateNotifications": "全データをスキャンし、「今日締切」「直近」等の通知を一括計算抽出します[cite: 1]。",
+            "setupNotificationUI": "通知ベルアイコンのクリックによるモーダル表示イベントを設定します[cite: 1]。",
+            "toggleModal": "通知一覧モーダルの表示/非表示を切り替えます[cite: 1]。",
+            "updateNotificationBadge": "未読通知件数を計算し、ベルアイコンの赤バッジ数字を更新します[cite: 1]。",
+            "renderNotificationList": "抽出された通知アイテムのリストをモーダル内に描画します[cite: 1]。",
+            "triggerDesktopNotifications": "Web Notification API を呼び出し OS デスクトップ通知トレイへアラートを発火させます[cite: 1]。",
+
+            // auth.js & db-sync.js & master-account.js
+            "rawGet": "名前空間を付与しない生の localStorage アクセス（読み込み）を行います[cite: 1]。",
+            "rawSet": "名前空間を付与しない生の localStorage アクセス（書き込み）を行います[cite: 1]。",
+            "namespacedKey": "ログイン中のユーザー ID（UUID）をキーの先頭に付与してデータを隔離します[cite: 1]。",
+            "sha256Hex": "パスワード等のハッシュ化暗号計算を行います[cite: 1]。",
+            "randomSalt": "暗号化用のランダムソルト文字列を生成します[cite: 1]。",
+            "isValidEmail": "メールアドレスのフォーマット妥当性を判定します[cite: 1]。",
+            "getUsers": "ローカルの模擬ユーザーテーブルを取得します[cite: 1]。",
+            "saveUsers": "ローカルの模擬ユーザーテーブルを保存します[cite: 1]。",
+            "findUser": "条件に一致するユーザーを検索します[cite: 1]。",
+            "setSessionProfile": "現在のログインセッション情報を保持設定します[cite: 1]。",
+            "getSessionProfile": "現在のセッション情報を取得します[cite: 1]。",
+            "getCurrentUser": "現在のログインユーザーのオブジェクトを取得します[cite: 1]。",
+            "getCurrentUserId": "現在のログインユーザーの UUID を取得します[cite: 1]。",
+            "getCurrentUserIdAsync": "非同期で安全にユーザー ID を取得します[cite: 1]。",
+            "isAdmin": "ログイン中のユーザーが管理者権限（Master）を持っているか判定します[cite: 1]。",
+            "registerUser": "新規ユーザーのアカウント登録を行います[cite: 1]。",
+            "loginUser": "ログイン認証を実行しセッションを発行します[cite: 1]。",
+            "changePassword": "パスワード変更処理を実行します[cite: 1]。",
+            "updateEmail": "メールアドレスの変更処理を実行します[cite: 1]。",
+            "deleteAccount": "アカウントの削除（退会処理）を実行します[cite: 1]。",
+            "logout": "ログアウト処理を行いセッションを消去します[cite: 1]。",
+            "getProfiles": "管理者用にユーザープロファイル一覧を取得します[cite: 1]。",
+            "updateUserRole": "ユーザーの権限（一般/管理者）を変更します[cite: 1]。",
+            "updateUserStatus": "ユーザーのアカウント状態（有効/停止）を変更します[cite: 1]。",
+            "deleteUserByAdmin": "管理者権限で指定ユーザーを強制削除します[cite: 1]。",
+            "requireAuth": "ログインが必要なページでセッションを確認し、未ログイン時はログイン画面へ戻します[cite: 1]。",
+            "bindLogoutButton": "ログアウトボタンにイベントをバインドします[cite: 1]。",
+            "renderNavMenuAccount": "ナビゲーションメニュー内のユーザー表示エリアを描画します[cite: 1]。",
+            "renderAccountBar": "アカウントバーをレンダリングします[cite: 1]。",
+            "isValidUUID": "ユーザー ID が正規の UUID 形式かを検証します[cite: 1]。",
+            "pullCloudData": "Supabase データベースから最新データを取得しローカルストレージへ反映します[cite: 1]。",
+            "pushCloudData": "ローカルで変更のあったキーのデータを Supabase へ Upsert 送信します[cite: 1]。",
+            "queueSync": "変更があったキーを送信キューに追加しデバウンスタイマーを開始します[cite: 1]。",
+            "flushSync": "キューに溜まった変更キーをまとめて一括送信します[cite: 1]。",
+            "migrateLocalDataToCloud": "初回ログイン時にゲスト状態のローカルデータをクラウドアカウント側へ移行します[cite: 1]。",
+            "autoSync": "起動時に認証セッション状態をチェックし自動同期をスタートします[cite: 1]。",
+            "initSupabase": "Supabase API Key を使用して SDK クライアントを初期化します[cite: 1]。",
+            "checkExistingRequest": "アカウント削除申請や変更申請が存在するかチェックします[cite: 1]。",
+            "switchTab": "ログイン画面での「ログイン/新規登録」タブを切り替えます[cite: 1]。",
+            "fetchAndRenderUsers": "管理者画面で全登録ユーザー一覧を取得してテーブル描画します[cite: 1]。",
+            "updateStats": "全ユーザー数などの統計バッジを更新します[cite: 1]。",
+            "renderFilteredUsers": "検索・絞り込み条件に応じたユーザー一覧を表示します[cite: 1]。",
+            "bindActionEvents": "管理者操作ボタンのイベントを設定します[cite: 1]。",
+            "fetchAndRenderDeleteRequests": "削除申請一覧を取得して描画します[cite: 1]。",
+            "bindDeleteRequestEvents": "削除申請の承認・拒否ボタンのイベントを設定します[cite: 1]。",
+
+            // wishlist.js & ideas.js
+            "getPartnerLabel": "共有タイプ（自分のみ/パートナーと一緒）の表示ラベルを取得します[cite: 1]。",
+            "setupPartnerFilter": "パートナー共有フィルターの切り替え UI を設定します[cite: 1]。",
+            "filterByPartner": "選択された共有フィルター条件に応じてリストを絞り込みます[cite: 1]。",
+            "getWishes": "やりたいこと（Wish）リストを取得します[cite: 1]。",
+            "saveWishes": "やりたいことリストを保存します[cite: 1]。",
+            "getWishDeleted": "削除済み Wish リストを取得します[cite: 1]。",
+            "saveWishDeleted": "削除済み Wish リストを保存します[cite: 1]。",
+            "renderWishes": "未達成のやりたいこと一覧をカード表示します[cite: 1]。",
+            "setAchieved": "指定した Wish を「達成済み」にし達成日時のタイムスタンプを保存します[cite: 1]。",
+            "deleteWish": "Wish をゴミ箱へ移動します[cite: 1]。",
+            "restoreWish": "ゴミ箱の Wish を元に戻します[cite: 1]。",
+            "purgeOldDeletedWishes": "削除から 30 日以上経過した Wish を自動完全削除します[cite: 1]。",
+            "deleteWishForever": "Wish を即時完全消去します[cite: 1]。",
+            "renderDeletedWishes": "ゴミ箱内の Wish 一覧を表示します[cite: 1]。",
+            "getIdeas": "アイデアメモ一覧を取得します[cite: 1]。",
+            "saveIdeas": "アイデアメモ一覧を保存します[cite: 1]。",
+            "getIdeaDeleted": "削除されたアイデアメモ一覧を取得します[cite: 1]。",
+            "saveIdeaDeleted": "削除されたアイデアメモ一覧を保存します[cite: 1]。",
+            "renderIdeas": "登録されているアイデアメモ一覧を表示します[cite: 1]。",
+            "renderAchievedIdeas": "実現・達成したアイデアの一覧を表示します[cite: 1]。",
+            "setIdeaAchieved": "アイデアを「実現済み」ステートに変更します[cite: 1]。",
+            "deleteIdea": "アイデアをゴミ箱へ移動します[cite: 1]。",
+            "restoreIdea": "ゴミ箱のアイデアを復元します[cite: 1]。",
+            "purgeOldDeletedIdeas": "削除から 30 日経過したアイデアを自動完全削除します[cite: 1]。",
+            "deleteIdeaForever": "アイデアを即時完全消去します[cite: 1]。",
+            "renderDeletedIdeas": "ゴミ箱内のアイデア一覧を表示します[cite: 1]。",
+
+            // common.js, customize.js, features.js
+            "openDrawer": "スライド式ナビゲーションドロワーメニューを開きます[cite: 1]。",
+            "closeDrawer": "ナビゲーションドロワーメニューを閉じます[cite: 1]。",
+            "scheduleClose": "ドロワー外ホバー時等に自動で閉じるタイマーをスケジューリングします[cite: 1]。",
+            "cancelClose": "自動で閉じるタイマーをキャンセルします[cite: 1]。",
+            "renderCards": "ダッシュボード上の各機能カードを設定に基づき描画します[cite: 1]。",
+            "updateCountBadge": "カスタマイズ画面内の件数バッジを更新します[cite: 1]。",
+            "bindCardEvents": "カードの並び順変更や表示切り替えイベントを設定します[cite: 1]。",
+            "handleSave": "カードのカスタマイズ表示状態を保存します[cite: 1]。",
+            "getDefaultFeatureIds": "システムの全機能 ID リストを取得します[cite: 1]。",
+            "getEnabledFeatureIds": "現在ユーザーが有効化している機能 ID リストを取得します[cite: 1]。",
+            "saveEnabledFeatureIds": "有効化する機能リストを保存します[cite: 1]。",
+            "applyToNavMenu": "無効化された機能をナビゲーションメニューから非表示化します[cite: 1]。",
+            "applyToHomeMenu": "無効化された機能をホーム画面から除外します[cite: 1]。",
+            "applyCustomFeaturesToUI": "画面全体に機能オン/オフカスタム設定を反映します[cite: 1]。",
+            "escapeHtml": "XSS 防御のため HTML 特殊文字をエスケープ処理します[cite: 1]。"
+        };
+
+        // Core Nodes Registration
+        NODES_DATA.push(
             {
                 id: 'core',
                 name: 'MyNote Core',
                 role: '統合ハブ ＆ UIプラットフォーム',
                 avatar: '🚀',
                 type: 'core',
-                x: 600,
-                y: 400,
-                desc: 'Webサイト全体の基盤。HTML5 UIカードグリッド、イースターエッグポータル、ドロワーナビゲーションを統括します。',
+                x: 600, y: 400,
+                desc: 'Webサイト全体の基盤。HTML5 UIカードグリッド、イースターエッグポータル、ドロワーナビゲーション、アプリ初期化（initApp）を統合管理[cite: 1]。',
                 file: 'index.html / common.js',
                 code: 'window.addEventListener("DOMContentLoaded", initApp);'
             },
-
-            // 1. Habit Branch (Red)
             {
                 id: 'branch-habit',
                 name: '毎日習慣タスク',
@@ -832,9 +851,8 @@
                 avatar: '🔥',
                 type: 'habit',
                 parent: 'core',
-                x: 600,
-                y: 180,
-                desc: '毎日の習慣化を支援。前日アクセスの場合はストリーク+1、2日以上空いた場合は0リセットを自動判定。',
+                x: 600, y: 180,
+                desc: '毎日の習慣化を支援。アクセスの日付差（diffDays）からストリーク維持・リセットを自動判定し、習慣タスクのCRUD処理を行う[cite: 1]。',
                 file: 'js/everydayTask.js',
                 code: 'diffDays = getDaysDiff(lastDate, today);'
             },
@@ -845,9 +863,8 @@
                 avatar: '📈',
                 type: 'habit',
                 parent: 'branch-habit',
-                x: 430,
-                y: 80,
-                desc: 'diffDays === 1 の場合にのみ streak++ を実行。',
+                x: 430, y: 80,
+                desc: '前日からの連続アクセス時（diffDays === 1）に達成済み習慣タスクの streak（連続達成数）を +1 加算する[cite: 1]。',
                 file: 'js/everydayTask.js',
                 code: 'completed.forEach(t => t.streak++);'
             },
@@ -858,9 +875,8 @@
                 avatar: '🔄',
                 type: 'habit',
                 parent: 'branch-habit',
-                x: 600,
-                y: 60,
-                desc: '日付を跨いだ初回オープン時に昨日の実績を日次履歴にアーカイブ。',
+                x: 600, y: 60,
+                desc: '日付を跨いだ初回オープン時に昨日の実績を日次履歴へアーカイブし、完了状態のリセットを実行する[cite: 1]。',
                 file: 'js/everydayTask.js',
                 code: 'archivePreviousDay(lastDate);'
             },
@@ -871,14 +887,11 @@
                 avatar: '📊',
                 type: 'habit',
                 parent: 'branch-habit',
-                x: 770,
-                y: 80,
-                desc: '過去の達成率カレンダーやグラフ表示のための日別スナップショット。',
+                x: 770, y: 80,
+                desc: '過去の達成率カレンダーやグラフ表示のために、過去の日付ごとの達成率や完了数をスナップショットとして保持[cite: 1]。',
                 file: 'js/everydayTask.js',
                 code: 'saveDailyHistory(history);'
             },
-
-            // 2. Kadai Branch (Orange)
             {
                 id: 'branch-kadai',
                 name: '課題締切管理',
@@ -886,9 +899,8 @@
                 avatar: '📚',
                 type: 'kadai',
                 parent: 'core',
-                x: 950,
-                y: 280,
-                desc: '課題の締切日時をパースし、今週・来週・再来週以降に自動分類。達成率プログレスバーを動的計算。',
+                x: 950, y: 280,
+                desc: '課題の締切日時をパースし、今週・来週・以降に自動分類。達成率プログレスバーを動的計算[cite: 1]。',
                 file: 'js/kadai.js',
                 code: 'tasks.sort((a,b) => deadlineA - deadlineB);'
             },
@@ -899,9 +911,8 @@
                 avatar: '🗓️',
                 type: 'kadai',
                 parent: 'branch-kadai',
-                x: 1140,
-                y: 200,
-                desc: '基準月曜日の日付キー（YYYY-MM-DD）により今週/来週を等値判定。',
+                x: 1140, y: 200,
+                desc: '月曜日を基準とした日付キー（YYYY-MM-DD）により今週・来週の課題群を等値判定してグループ化[cite: 1]。',
                 file: 'js/kadai.js',
                 code: 'wk === currentWeekKey ? thisWeek : later;'
             },
@@ -912,14 +923,11 @@
                 avatar: '📦',
                 type: 'kadai',
                 parent: 'branch-kadai',
-                x: 1170,
-                y: 320,
-                desc: '期限が過ぎた週の課題を自動的に過去アーカイブに移動。',
+                x: 1170, y: 320,
+                desc: '期限が過ぎた週の課題グループをメイン一覧から自動的に過去アーカイブ領域へ移動[cite: 1]。',
                 file: 'js/kadai.js',
                 code: 'tasks.filter(t => t.deadline < now);'
             },
-
-            // 3. Task Branch (Yellow/Amber)
             {
                 id: 'branch-task',
                 name: '優先度タスク',
@@ -927,9 +935,8 @@
                 avatar: '📋',
                 type: 'task',
                 parent: 'core',
-                x: 950,
-                y: 470,
-                desc: '締切のない日常のToDoを「高・中・低」の優先度で整理。',
+                x: 950, y: 470,
+                desc: '締切のない日常のToDoを「高・中・低」の優先度で整理し、完了・削除状態を別ストレージキーで管理[cite: 1]。',
                 file: 'js/tasks.js',
                 code: 'priorityWeight[b.priority] - priorityWeight[a.priority]'
             },
@@ -940,14 +947,11 @@
                 avatar: '🏷️',
                 type: 'task',
                 parent: 'branch-task',
-                x: 1150,
-                y: 470,
-                desc: '重要度の高いタスクを上部に固定配置。',
+                x: 1150, y: 470,
+                desc: '重要度の高いタスク（高）をリストの最上部に固定配置するソート処理[cite: 1]。',
                 file: 'js/tasks.js',
                 code: 'renderTodoAll();'
             },
-
-            // 4. Report Branch (Purple)
             {
                 id: 'branch-report',
                 name: '報告書自動作成',
@@ -955,9 +959,8 @@
                 avatar: '📝',
                 type: 'report',
                 parent: 'core',
-                x: 820,
-                y: 620,
-                desc: '過去の予定・課題・タスクから1/3ヶ月の実績を抽出し、6種類のデザインテーマでWord/MD出力。',
+                x: 820, y: 620,
+                desc: '過去の予定・課題・タスクから1/3ヶ月の実績を自動抽出し、6種類のデザインテーマでWord/MDファイルへ出力[cite: 1]。',
                 file: 'js/report.js',
                 code: 'schedules.filter(s => s.date >= rangeStart)'
             },
@@ -968,9 +971,8 @@
                 avatar: '🎨',
                 type: 'report',
                 parent: 'branch-report',
-                x: 960,
-                y: 720,
-                desc: 'クラシックブルー、ミッドナイト、エディトリアルなど多様な体裁。',
+                x: 960, y: 720,
+                desc: 'クラシックブルー、ミッドナイト、エディトリアルなど6種類の装飾スタイルをプレビューへ切り替え[cite: 1]。',
                 file: 'js/report.js',
                 code: 'applyTheme(REPORT_THEMES[selected]);'
             },
@@ -981,14 +983,11 @@
                 avatar: '💾',
                 type: 'report',
                 parent: 'branch-report',
-                x: 800,
-                y: 760,
-                desc: 'HTML Blobを生成してクライアント完結ダウンロード。',
+                x: 800, y: 760,
+                desc: 'HTML Blobを生成し、クライアント側のみでWord（.doc）やMarkdownファイルを即時生成・ダウンロード[cite: 1]。',
                 file: 'js/report.js',
                 code: 'new Blob([docHtml], { type: "application/msword" });'
             },
-
-            // 5. Calendar & Birthday Branch (Light Blue)
             {
                 id: 'branch-calendar',
                 name: 'カレンダー＆予定',
@@ -996,9 +995,8 @@
                 avatar: '📅',
                 type: 'calendar',
                 parent: 'core',
-                x: 520,
-                y: 650,
-                desc: '月度グリッドの生成と、予定・課題締切の同一日付マルチドット重畳。',
+                x: 520, y: 650,
+                desc: '月度グリッドの生成と、予定・課題締切・誕生日の同一日付マルチドット重畳表示[cite: 1]。',
                 file: 'js/calendar.js',
                 code: 'new Date(year, month + 1, 0).getDate()'
             },
@@ -1009,14 +1007,11 @@
                 avatar: '🎂',
                 type: 'calendar',
                 parent: 'branch-calendar',
-                x: 480,
-                y: 770,
-                desc: '年齢自動計算と次の誕生日までのカウントダウン。',
+                x: 480, y: 770,
+                desc: '年齢の自動計算と次の誕生日までのカウントダウン、通知連携[cite: 1]。',
                 file: 'js/birthdays.js',
                 code: 'daysRemaining = Math.ceil((nextBday - now) / 86400000);'
             },
-
-            // 6. Notification Center (Pink)
             {
                 id: 'branch-notify',
                 name: '通知センター',
@@ -1024,9 +1019,8 @@
                 avatar: '🔔',
                 type: 'notify',
                 parent: 'core',
-                x: 270,
-                y: 530,
-                desc: '全データを一括スキャンし、締切当日・直前・未達成習慣・誕生日を抽出。',
+                x: 270, y: 530,
+                desc: '全データを一括スキャンし、締切当日・直前・未達成習慣・誕生日を抽出して通知リストを生成[cite: 1]。',
                 file: 'js/notification.js',
                 code: 'calculateNotifications();'
             },
@@ -1037,14 +1031,11 @@
                 avatar: '📢',
                 type: 'notify',
                 parent: 'branch-notify',
-                x: 100,
-                y: 610,
-                desc: 'ブラウザ通知権限でOSトレイにアラートを発火。',
+                x: 100, y: 610,
+                desc: 'Web Notification APIを呼び出し、ブラウザ/OSのトレイへアラートを発火させる[cite: 1]。',
                 file: 'js/notification.js',
                 code: 'new Notification("MyNote", { body });'
             },
-
-            // 7. Local Storage Cache (Teal)
             {
                 id: 'branch-storage',
                 name: '22 Key Storage',
@@ -1052,9 +1043,8 @@
                 avatar: '💾',
                 type: 'storage',
                 parent: 'core',
-                x: 230,
-                y: 370,
-                desc: '全22キーの完全分離データストア。通信状態に関わらず0ms即時描画。',
+                x: 230, y: 370,
+                desc: '全22キーの完全分離ローカルデータストア。オフライン状態でも0msの即時描画を実現[cite: 1]。',
                 file: 'browser localStorage',
                 code: 'localStorage.setItem(key, JSON.stringify(val));'
             },
@@ -1065,14 +1055,11 @@
                 avatar: '📡',
                 type: 'storage',
                 parent: 'branch-storage',
-                x: 60,
-                y: 430,
-                desc: 'クラウド同期完了時に全画面の renderAll() を自動実行。',
+                x: 60, y: 430,
+                desc: 'クラウド同期完了時にイベントを発火させ、全画面の再描画（renderAll）を指示する[cite: 1]。',
                 file: 'js/db-sync.js',
                 code: 'window.dispatchEvent(new CustomEvent("myNoteDataSynced"));'
             },
-
-            // 8. Cloud Sync & Supabase (Green)
             {
                 id: 'branch-sync',
                 name: 'クラウド同期エンジン',
@@ -1080,9 +1067,8 @@
                 avatar: '⚡',
                 type: 'sync',
                 parent: 'core',
-                x: 270,
-                y: 220,
-                desc: '500msデバウンスキューによる一括バッチUpsertとバックグラウンド差分同期。',
+                x: 270, y: 220,
+                desc: '500msデバウンスキューによる一括バッチUpsertとバックグラウンド差分同期エンジン[cite: 1]。',
                 file: 'js/db-sync.js',
                 code: 'pendingKeys.add(key); clearTimeout(syncTimer);'
             },
@@ -1093,9 +1079,8 @@
                 avatar: '🗄️',
                 type: 'sync',
                 parent: 'branch-sync',
-                x: 100,
-                y: 160,
-                desc: 'Row Level Securityでユーザー自身のUUIDデータのみ保護。',
+                x: 100, y: 160,
+                desc: 'Row Level Security (RLS) により、ログインユーザー本人の UUID データのみ保護・アクセス許可[cite: 1]。',
                 file: 'supabase_setup.sql',
                 code: 'USING (auth.uid() = user_id)'
             },
@@ -1106,98 +1091,245 @@
                 avatar: '🔐',
                 type: 'sync',
                 parent: 'branch-sync',
-                x: 180,
-                y: 80,
-                desc: 'OAuth 2.0 / Emailパスワードによるクラウドログイン。',
+                x: 180, y: 80,
+                desc: 'OAuth 2.0 / Emailパスワードによる認証とセッション永続化管理[cite: 1]。',
                 file: 'js/auth.js',
                 code: 'supabase.auth.getSession();'
             }
-        ];
+        );
 
-        // ── 追加ノード（詳細化）: [id,name,role,avatar,type,parent,desc,file,code]
         const A = (...a) => NODES_DATA.push(Object.fromEntries(['id','name','role','avatar','type','parent','desc','file','code'].map((k, i) => [k, a[i]])));
-        A('branch-wish','やりたいこと＆アイデア','wishlist.js / ideas.js','✨','wish','core','やりたいことリストとアイデアメモ。達成ステート・ゴミ箱・復元を管理。','js/wishlist.js','renderWishes(); renderIdeas();');
-        A('branch-ui','UI基盤','common.js / common.css','🎨','ui','core','全ページ共通のドロワー・カードグリッド・テーマ・隠しコマンド。','js/common.js','openDrawer(); closeDrawer();');
-        A('leaf-streak-inc','+1 加算','diffDays === 1','➕','habit','sub-habit-streak','前日アクセスかつ達成済みのタスクのみ streak を加算。','js/everydayTask.js','t.streak = (t.streak || 0) + 1;');
-        A('leaf-streak-zero','0 リセット','diffDays >= 2','⛔','habit','sub-habit-streak','2日以上空いた場合は全タスクの連続記録を0に戻す。','js/everydayTask.js','allTasks.forEach(t => t.streak = 0);');
-        A('leaf-today','getTodayKey','日付キー生成','🗝️','habit','sub-habit-reset','YYYY-MM-DD 形式の今日の日付キーを返す。','js/everydayTask.js','getTodayKey()');
-        A('leaf-diff','getDaysDiff','日数差分','➗','habit','sub-habit-reset','前回アクセス日と今日の差を日数で算出。','js/everydayTask.js','getDaysDiff(last, today)');
-        A('sub-habit-crud','習慣データ保存','save/getHabitTasks','✏️','habit','branch-habit','習慣タスク・完了・削除の3系統を個別キーで保存。','js/everydayTask.js','saveHabitTasks(list);');
-        A('sub-kadai-progress','達成率計算','完了 ÷ 全体','📶','kadai','branch-kadai','完了数と未完了数から達成率(%)を算出しバーを更新。','js/kadai.js','Math.round(comp / (act + comp) * 100)');
-        A('sub-kadai-purge','30日パージ','削除済みの自動消去','🗑️','kadai','branch-kadai','ゴミ箱に30日以上残った課題を自動で完全削除。','js/kadai.js','purgeOldDeletedTasks();');
-        A('leaf-kadai-sort','締切昇順ソート','近い順に並べる','↕️','kadai','sub-kadai-cluster','締切をDate化して近い順に並べ替える。','js/kadai.js','sort((a,b) => new Date(a.deadline) - new Date(b.deadline))');
-        A('sub-task-done','完了・ゴミ箱','todoCompleted / Deleted','✅','task','branch-task','完了タスクと削除済みタスクを別キーで保持。','js/tasks.js','saveTodoCompleted(list);');
-        A('sub-task-badge','優先度クラス','priorityClass()','🎚️','task','branch-task','高・中・低に応じた色クラスを返す。','js/tasks.js','priorityClass(p)');
-        A('sub-cal-grid','月グリッド生成','renderCalendar()','🔲','calendar','branch-calendar','月の日数と曜日オフセットから7列グリッドを生成。','js/calendar.js','new Date(y, m + 1, 0).getDate()');
-        A('sub-cal-map','日付別マッピング','getSchedulesOnDate()','📍','calendar','branch-calendar','日付キーで予定・課題・誕生日を引き当てる。','js/calendar.js','getSchedulesOnDate(key)');
-        A('leaf-cal-dot','ドット重畳','予定＋課題＋誕生日','🔵','calendar','sub-cal-map','同じ日の複数種別を色違いのドットで重ねて表示。','js/calendar.js','renderCalendar();');
-        A('leaf-leap','うるう年補正','2/29 生まれ対応','📆','calendar','sub-bday','2月29日生まれの誕生日を平年は繰り上げて判定。','js/birthdays.js','getDaysInMonth(y, m)');
-        A('sub-report-src','データ抽出','予定・課題・タスク','📥','report','branch-report','3系統のデータを期間(1/3ヶ月)で絞り込む。','js/report.js','getKadaiTasks(); getTodoTasks();');
-        A('leaf-inject','CSS動的注入','injectThemeStyles()','💉','report','sub-report-theme','選んだテーマのCSSをプレビューへ即時注入。','js/report.js','injectThemeStyles(theme)');
-        A('leaf-count','文字数カウント','countCharacters()','🔢','report','sub-report-doc','改行を除いた純粋な文字数をリアルタイム算出。','js/report.js','text.replace(/\\r?\\n/g, "").length');
-        A('sub-notify-calc','期日スキャン','calculateNotifications()','🔍','notify','branch-notify','全データを走査し当日・直前の項目を抽出。','js/notification.js','calculateNotifications();');
-        A('leaf-3days','3日以内フィルタ','getFutureDateKey(3)','📆','notify','sub-notify-calc','今日から3日後までの未完了のみを対象にする。','js/notification.js','getFutureDateKey(3)');
-        A('sub-notify-read','既読ID管理','readNotificationIds','👁️','notify','branch-notify','既読の通知IDを保存し未読との差分を取る。','js/notification.js','saveReadNotificationIds(ids);');
-        A('sub-notify-badge','未読バッジ','updateNotificationBadge()','🔴','notify','branch-notify','未読件数をベルの赤バッジに反映。','js/notification.js','updateNotificationBadge();');
-        A('sub-ns','ユーザー名前空間','namespacedKey()','🏷️','storage','branch-storage','ユーザーごとにキーへ接頭辞を付けデータを分離。','js/auth.js','namespacedKey(key)');
-        A('sub-keys','データキー群','tasks / schedules / ...','🗝️','storage','branch-storage','機能ごとに独立した22+のキーで管理。','browser localStorage','localStorage.getItem("tasks")');
-        A('sub-pull','pullCloudData','クラウド→ローカル','⬇️','sync','branch-sync','ログイン時や変更検知時にクラウドの値を取得。','js/db-sync.js','pullCloudData(userId);');
-        A('sub-push','pushCloudData','ローカル→クラウド','⬆️','sync','branch-sync','変更キーをまとめてSupabaseへUpsert。','js/db-sync.js','pushCloudData(userId, keys);');
-        A('sub-queue','queueSync / flushSync','500msデバウンス','⏱️','sync','branch-sync','変更キーをSetに溜めて一定時間後に一括送信。','js/db-sync.js','pendingKeys.add(key);');
-        A('sub-auto','autoSync','起動時の自動同期','🔁','sync','branch-sync','ページ起動時にセッションを確認して同期を開始。','js/db-sync.js','autoSync();');
-        A('leaf-diff-detect','差分検知','文字列比較で上書き','≠','sync','sub-pull','ローカルとクラウドが異なる場合のみ上書き。','js/db-sync.js','if (local !== cloud) set(key)');
-        A('leaf-migrate','初回移行','migrateLocalDataToCloud','🚚','sync','sub-auto','ゲストのローカルデータを初回ログイン時にクラウドへ移行。','js/db-sync.js','migrateLocalDataToCloud();');
-        A('leaf-rls','RLS ポリシー','本人のみ読み書き','🛡️','sync','sub-supabase','行レベルセキュリティで他者のデータを遮断。','supabase_setup.sql','auth.uid() = user_id');
-        A('leaf-uuid','UUID検証','isValidUUID()','🆔','sync','sub-auth','ユーザーIDの形式を検証してから通信する。','js/db-sync.js','isValidUUID(id)');
-        A('sub-wish-filter','パートナー絞込','filterByPartner()','👫','wish','branch-wish','自分のみ・一緒にの条件でリストを絞り込む。','js/wishlist.js','filterByPartner(list)');
-        A('sub-wish-done','達成トグル','setAchieved()','🎯','wish','branch-wish','達成状態を切り替え日付を記録。','js/wishlist.js','setAchieved(id);');
-        A('sub-wish-trash','削除・復元','restoreWish()','♻️','wish','branch-wish','ゴミ箱へ移動し、必要なら復元できる。','js/wishlist.js','restoreWish(id);');
-        A('leaf-wish-purge','30日パージ','purgeOldDeletedWishes','🧹','wish','sub-wish-trash','30日以上経過した削除済みを自動で完全削除。','js/wishlist.js','purgeOldDeletedWishes();');
-        A('sub-idea','アイデア保存','ideas.js','💡','wish','branch-wish','思いついたメモを即時に永続化。','js/ideas.js','saveIdeas(list);');
-        A('leaf-idea-done','達成化','setIdeaAchieved()','🏁','wish','sub-idea','実現したアイデアを達成済みへ移す。','js/ideas.js','setIdeaAchieved(id);');
-        A('leaf-idea-restore','アーカイブ復元','restoreIdea()','📤','wish','sub-idea','削除済みアイデアを元に戻す。','js/ideas.js','restoreIdea(id);');
-        A('sub-ui-drawer','ドロワー','openDrawer / closeDrawer','☰','ui','branch-ui','スマホ・PC共通のスライドメニュー。','js/common.js','openDrawer();');
-        A('sub-ui-grid','カードグリッド','auto-fit minmax','🧱','ui','branch-ui','画面幅に応じて列数が変わるカード配置。','css/common.css','repeat(auto-fit, minmax(280px, 1fr))');
-        A('sub-ui-egg','隠しコマンド','Konami / algo','🥚','ui','branch-ui','特定のキー入力で隠しページへワープ。','index.html','if (e.key === SECRET[idx]) idx++;');
-        A('sub-ui-custom','カスタマイズ','customize.js','🎛️','ui','branch-ui','表示や機能のON/OFFを切り替える設定。','js/customize.js','applyCustomize();');
-        A('leaf-algo','algorithm.html','隠しページ','🌌','ui','sub-ui-egg','ワープ演出のあと本ページへ遷移。','algorithm.html','location.href = "algorithm.html";');
-        // 横断リンク（モジュール間のデータ連携）
+
+        A('branch-wish','やりたいこと＆アイデア','wishlist.js / ideas.js','✨','wish','core','ウィッシュリストとアイデアメモの作成・達成ステート管理・ゴミ箱復元処理[cite: 1]。','js/wishlist.js','renderWishes(); renderIdeas();');
+        A('branch-ui','UI基盤','common.js / common.css','🎨','ui','core','全ページ共通のドロワーメニュー、カードグリッド、テーマ切替、隠しコマンドを統括[cite: 1]。','js/common.js','openDrawer(); closeDrawer();');
+
+        A('leaf-streak-inc','+1 加算','diffDays === 1','➕','habit','sub-habit-streak','前日アクセスかつ達成済みのタスクのみ streak（連続達成数）を +1 加算する[cite: 1]。','js/everydayTask.js','t.streak = (t.streak || 0) + 1;');
+        A('leaf-streak-zero','0 リセット','diffDays >= 2','⛔','habit','sub-habit-streak','2日以上空いた（diffDays >= 2）場合に連続記録を 0 にリセットする[cite: 1]。','js/everydayTask.js','allTasks.forEach(t => t.streak = 0);');
+        A('leaf-today','getTodayKey','日付キー生成','🗝️','habit','sub-habit-reset','YYYY-MM-DD 形式の今日の日付キー文字列を生成して返す[cite: 1]。','js/everydayTask.js','getTodayKey()');
+        A('leaf-diff','getDaysDiff','日数差分','➗','habit','sub-habit-reset','前回アクセス日と今日の差分（日数）を計算する[cite: 1]。','js/everydayTask.js','getDaysDiff(last, today)');
+        A('sub-habit-crud','習慣データ保存','save/getHabitTasks','✏️','habit','branch-habit','習慣タスク・完了状態・削除データをそれぞれ個別のキーで保存管理[cite: 1]。','js/everydayTask.js','saveHabitTasks(list);');
+
+        A('sub-kadai-progress','達成率計算','完了 ÷ 全体','📶','kadai','branch-kadai','完了数と全体数から達成率（%）をリアルタイム計算し進捗バーを更新[cite: 1]。','js/kadai.js','Math.round(comp / (act + comp) * 100)');
+        A('sub-kadai-purge','30日パージ','削除済みの自動消去','🗑️','kadai','branch-kadai','ゴミ箱に30日以上残った課題を自動で完全消去[cite: 1]。','js/kadai.js','purgeOldDeletedTasks();');
+        A('leaf-kadai-sort','締切昇順ソート','近い順に並べる','↕️','kadai','sub-kadai-cluster','締切日時を Date 化して日付が近い順に昇順並べ替え[cite: 1]。','js/kadai.js','sort((a,b) => new Date(a.deadline) - new Date(b.deadline))');
+
+        A('sub-task-done','完了・ゴミ箱','todoCompleted / Deleted','✅','task','branch-task','完了タスクと削除済みタスクを別キーで独立保持[cite: 1]。','js/tasks.js','saveTodoCompleted(list);');
+        A('sub-task-badge','優先度クラス','priorityClass()','🎚️','task','branch-task','優先度（高・中・低）に応じた色バッジクラスを返す[cite: 1]。','js/tasks.js','priorityClass(p)');
+
+        A('sub-cal-grid','月グリッド生成','renderCalendar()','🔲','calendar','branch-calendar','月の日数と曜日オフセットから7列グリッドを動的生成[cite: 1]。','js/calendar.js','new Date(y, m + 1, 0).getDate()');
+        A('sub-cal-map','日付別マッピング','getSchedulesOnDate()','📍','calendar','branch-calendar','日付キーで予定・課題締切・誕生日を引き当てる[cite: 1]。','js/calendar.js','getSchedulesOnDate(key)');
+        A('leaf-cal-dot','ドット重畳','予定＋課題＋誕生日','🔵','calendar','sub-cal-map','同一日の複数種別のデータを色違いドットで重ねて表示[cite: 1]。','js/calendar.js','renderCalendar();');
+        A('leaf-leap','うるう年補正','2/29 生まれ対応','📆','calendar','sub-bday','2月29日生まれの誕生日を平年（365日）でも正確に判定処理[cite: 1]。','js/birthdays.js','getDaysInMonth(y, m)');
+
+        A('sub-report-src','データ抽出','予定・課題・タスク','📥','report','branch-report','予定・課題・タスクから指定期間（1/3ヶ月）の実績を抽出[cite: 1]。','js/report.js','getKadaiTasks(); getTodoTasks();');
+        A('leaf-inject','CSS動的注入','injectThemeStyles()','💉','report','sub-report-theme','選択されたテーマの CSS をプレビューへ即時適用[cite: 1]。','js/report.js','injectThemeStyles(theme)');
+        A('leaf-count','文字数カウント','countCharacters()','🔢','report','sub-report-doc','改行を除いた純粋な本文の文字数をリアルタイム算出[cite: 1]。','js/report.js','text.replace(/\\r?\\n/g, "").length');
+
+        A('sub-notify-calc','期日スキャン','calculateNotifications()','🔍','notify','branch-notify','全データを走査し、今日・直近に迫っている項目をリスト抽出[cite: 1]。','js/notification.js','calculateNotifications();');
+        A('leaf-3days','3日以内フィルタ','getFutureDateKey(3)','📆','notify','sub-notify-calc','今日から3日後までの未完了項目を優先して抽出[cite: 1]。','js/notification.js','getFutureDateKey(3)');
+        A('sub-notify-read','既読ID管理','readNotificationIds','👁️','notify','branch-notify','確認済みの既読通知 ID を保存し、未読分のみ判定[cite: 1]。','js/notification.js','saveReadNotificationIds(ids);');
+        A('sub-notify-badge','未読バッジ','updateNotificationBadge()','🔴','notify','branch-notify','未読件数を計算し、ベルアイコンの赤バッジに反映[cite: 1]。','js/notification.js','updateNotificationBadge();');
+
+        A('sub-ns','ユーザー名前空間','namespacedKey()','🏷️','storage','branch-storage','ユーザー ID（UUID）を接頭辞に付け、複数アカウントのデータを完全分離[cite: 1]。','js/auth.js','namespacedKey(key)');
+        A('sub-keys','データキー群','tasks / schedules / ...','🗝️','storage','branch-storage','機能ごとに独立した 22+ のストレージキー構造[cite: 1]。','browser localStorage','localStorage.getItem("tasks")');
+
+        A('sub-pull','pullCloudData','クラウド→ローカル','⬇️','sync','branch-sync','ログイン時や変更検知時に Supabase から最新データを取得[cite: 1]。','js/db-sync.js','pullCloudData(userId);');
+        A('sub-push','pushCloudData','ローカル→クラウド','⬆️','sync','branch-sync','変更があったキーのデータをまとめて Supabase へ Upsert[cite: 1]。','js/db-sync.js','pushCloudData(userId, keys);');
+        A('sub-queue','queueSync / flushSync','500msデバウンス','⏱️','sync','branch-sync','変更キーをキューに溜め、500ms 後に一括送信[cite: 1]。','js/db-sync.js','pendingKeys.add(key);');
+        A('sub-auto','autoSync','起動時の自動同期','🔁','sync','branch-sync','起動時に認証セッションを確認し、自動同期を開始[cite: 1]。','js/db-sync.js','autoSync();');
+
+        A('leaf-diff-detect','差分検知','文字列比較で上書き','≠','sync','sub-pull','ローカルとクラウドの JSON 文字列比較で不一致時のみ更新[cite: 1]。','js/db-sync.js','if (local !== cloud) set(key)');
+        A('leaf-migrate','初回移行','migrateLocalDataToCloud','🚚','sync','sub-auto','ゲスト利用時のローカルデータを初回ログイン時にクラウドへ移行[cite: 1]。','js/db-sync.js','migrateLocalDataToCloud();');
+        A('leaf-rls','RLS ポリシー','本人のみ読み書き','🛡️','sync','sub-supabase','データベース側で他人のデータへの読み書きを遮断[cite: 1]。','supabase_setup.sql','auth.uid() = user_id');
+        A('leaf-uuid','UUID検証','isValidUUID()','🆔','sync','sub-auth','ユーザー ID の形式（8-4-4-4-12）を検証[cite: 1]。','js/db-sync.js','isValidUUID(id)');
+
+        A('sub-wish-filter','パートナー絞込','filterByPartner()','👫','wish','branch-wish','自分のみ / パートナーと一緒 の条件でリストを絞り込む[cite: 1]。','js/wishlist.js','filterByPartner(list)');
+        A('sub-wish-done','達成トグル','setAchieved()','🎯','wish','branch-wish','達成状態を切り替え、達成日時のタイムスタンプを記録[cite: 1]。','js/wishlist.js','setAchieved(id);');
+        A('sub-wish-trash','削除・復元','restoreWish()','♻️','wish','branch-wish','項目をゴミ箱へ移動し、必要時に復元処理を行う[cite: 1]。','js/wishlist.js','restoreWish(id);');
+        A('leaf-wish-purge','30日パージ','purgeOldDeletedWishes','🧹','wish','sub-wish-trash','30日以上経過した削除済み項目を自動で完全削除[cite: 1]。','js/wishlist.js','purgeOldDeletedWishes();');
+
+        A('sub-idea','アイデア保存','ideas.js','💡','wish','branch-wish','思いついたメモを即時にローカルストレージへ永続化[cite: 1]。','js/ideas.js','saveIdeas(list);');
+        A('leaf-idea-done','達成化','setIdeaAchieved()','🏁','wish','sub-idea','実現できたアイデアを達成済みステートへ移行[cite: 1]。','js/ideas.js','setIdeaAchieved(id);');
+        A('leaf-idea-restore','アーカイブ復元','restoreIdea()','📤','wish','sub-idea','削除済みまたはアーカイブされたアイデアを復元[cite: 1]。','js/ideas.js','restoreIdea(id);');
+
+        A('sub-ui-drawer','ドロワー','openDrawer / closeDrawer','☰','ui','branch-ui','共通のスライド式ドロワーナビゲーションを開閉制御[cite: 1]。','js/common.js','openDrawer();');
+        A('sub-ui-grid','カードグリッド','auto-fit minmax','🧱','ui','branch-ui','CSS Grid により画面幅に応じた動的レイアウト配置[cite: 1]。','css/common.css','repeat(auto-fit, minmax(280px, 1fr))');
+        A('sub-ui-egg','隠しコマンド','Konami / algo','🥚','ui','branch-ui','特定の隠しキー入力で隠しページ（algorithm.html）へ遷移[cite: 1]。','index.html','if (e.key === SECRET[idx]) idx++;');
+        A('sub-ui-custom','カスタマイズ','customize.js','🎛️','ui','branch-ui','ダッシュボードカードの表示/非表示切り替え設定を適用[cite: 1]。','js/customize.js','applyCustomize();');
+        A('leaf-algo','algorithm.html','隠しページ','🌌','ui','sub-ui-egg','演出のあとアルゴリズム詳細解説ページへ遷移[cite: 1]。','algorithm.html','location.href = "algorithm.html";');
+
+        A('m-completed','habitCompleted','達成済み配列','☑️','habit','leaf-streak-inc','本日達成した習慣タスクの ID 一覧を保持[cite: 1]。','js/everydayTask.js','getHabitCompleted()');
+        A('m-lastdate','habitLastDate','前回アクセス日','🕘','habit','leaf-diff','日次リセット判定で使用する前回アクセス日付キー[cite: 1]。','js/everydayTask.js','localStorage.habitLastDate');
+        A('m-weekkey','getWeekKey','月曜起点キー','🗓️','kadai','leaf-kadai-sort','指定日付が属する週の月曜日 YYYY-MM-DD キーを返す[cite: 1]。','js/kadai.js','getWeekKey(date)');
+        A('m-dkey','toDateKey','日付キー化','🔑','calendar','leaf-cal-dot','Date オブジェクトを YYYY-MM-DD 文字列キーに変換[cite: 1]。','js/calendar.js','toDateKey(d)');
+        A('m-days','getDaysInMonth','月の日数','🔢','calendar','leaf-leap','指定された年月の日数（月末日）を計算して返す[cite: 1]。','js/birthdays.js','getDaysInMonth(y, m)');
+        A('m-themes','REPORT_THEMES','6テーマ定義','🎨','report','leaf-inject','6種類のテーマ定義（配色やスタイル）を保持[cite: 1]。','js/report.js','REPORT_THEMES[key]');
+        A('m-escape','escapeHtml','XSS対策','🧼','report','leaf-count','出力前に HTML 特殊文字をエスケープ処理[cite: 1]。','js/report.js','escapeHtml(str)');
+        A('m-today','todayKey','今日の日付','📌','notify','leaf-3days','通知判定範囲の下限となる今日の日付キー[cite: 1]。','js/notification.js','getTodayKey()');
+        A('m-in3','in3DaysKey','3日後の日付','📌','notify','leaf-3days','通知判定範囲の上限となる3日後の日付キー[cite: 1]。','js/notification.js','getFutureDateKey(3)');
+        A('m-cmp','!== 比較','文字列比較','🔣','sync','leaf-diff-detect','JSON 文字列比較で差分を検出[cite: 1]。','js/db-sync.js','local !== cloud');
+        A('m-guest','ゲストUUID','端末固有ID','👤','sync','leaf-migrate','未ログイン時に端末固有で一時生成されるユーザー ID[cite: 1]。','js/auth.js','getCurrentUserId()');
+        A('m-uid','auth.uid()','JWTのuser_id','🔑','sync','leaf-rls','認証済みユーザーの UUID を返す Supabase 関数[cite: 1]。','supabase_setup.sql','auth.uid()');
+        A('m-regex','UUID正規表現','形式検証','🧩','sync','leaf-uuid','UUID 形式（8-4-4-4-12）かをチェックする正規表現[cite: 1]。','js/db-sync.js','/^[0-9a-f-]{36}$/i');
+        A('m-ideadel','ideaDeleted','削除済みキー','🗃️','wish','leaf-idea-restore','ゴミ箱に入っている削除済みアイデアの保管キー[cite: 1]。','js/ideas.js','getIdeaDeleted()');
+        A('m-30d','30日閾値','経過日数判定','⏳','wish','leaf-wish-purge','削除日時から 30 日を超えているか計算判定[cite: 1]。','js/wishlist.js','now - deletedAt > 30d');
+        A('m-konami','コナミコマンド','↑↑↓↓←→←→BA','🎮','ui','leaf-algo','キー入力順序の一致で発動する隠しコマンド判定[cite: 1]。','index.html','idx === SECRET.length');
+
         const LINKS = [['branch-notify','branch-kadai'],['branch-notify','branch-habit'],['branch-notify','sub-bday'],['branch-report','branch-kadai'],['branch-report','branch-task'],['branch-report','branch-calendar'],['branch-calendar','branch-kadai'],['sub-bus','sub-pull'],['sub-keys','sub-push'],['branch-ui','branch-notify']];
 
-        // ═════════ Diagram Engine: 放射レイアウト / 線の描画アニメ / Pointer操作 ═════════
-        const R = [0, 215, 430, 620], SX = 1.85, SZ = [[230,66],[190,56],[150,46],[140,40]], PAD = 160;
+        // JS Files Descriptions
+        const FULL_DESCS = {
+            "everydayTask.js": "習慣タスクの全管理ロジック。取得・保存・リセット・ストリーク計算などを定義[cite: 1]。",
+            "edTaskResult.js": "習慣タスクの今日の実績サマリー描画と円グラフ・履歴表示処理[cite: 1]。",
+            "kadai.js": "課題のCRUD・週別グループ表示・進捗計算・期限切れ自動移動[cite: 1]。",
+            "result.js": "課題の週別予定・達成実績・過去履歴一覧のレンダリング[cite: 1]。",
+            "tasks.js": "優先度タスク（Todo）のCRUD・完了・ゴミ箱管理[cite: 1]。",
+            "tasks-add.js": "タスク追加フォームの初期化と入力イベントハンドリング[cite: 1]。",
+            "calendar.js": "月度カレンダー・予定カード・履歴一覧の動的描画[cite: 1]。",
+            "schedule-add.js": "予定登録時の「終日」フラグ切替イベント設定[cite: 1]。",
+            "birthdays.js": "誕生日登録・月日オプション構築・年齢計算・一覧表示[cite: 1]。",
+            "report.js": "報告書データ集計・テーマ適用・Word出力・自動保存タイマー[cite: 1]。",
+            "notification.js": "期日スキャン・デスクトップ通知発火・未読バッジ更新[cite: 1]。",
+            "auth.js": "ユーザー認証・ログイン/登録・アカウント管理・名前空間付与[cite: 1]。",
+            "db-sync.js": "Supabase とのデータ同期・バッチ Upsert・初回データ移行[cite: 1]。",
+            "supabase-client.js": "Supabase クライアント SDK の初期化設定[cite: 1]。",
+            "account-page.js": "アカウント画面での各種申請チェック処理[cite: 1]。",
+            "auth-page.js": "ログイン/登録フォームの表示タブ切り替え[cite: 1]。",
+            "master-account.js": "管理者用アカウント一覧表示・統計・削除申請ハンドリング[cite: 1]。",
+            "wishlist.js": "やりたいことのCRUD・達成・パートナー絞り込み[cite: 1]。",
+            "ideas.js": "アイデアメモのCRUD・達成化・復元処理[cite: 1]。",
+            "common.js": "ヘッダーの今日の日付表示・共通ドロワー開閉制御[cite: 1]。",
+            "customize.js": "ダッシュボードカードの表示設定とカウントバッジ更新[cite: 1]。",
+            "features.js": "有効化機能 ID に基づくナビゲーションメニューの動的構築[cite: 1]。"
+        };
+
+        const FULL = [
+            ["everydayTask.js", "branch-habit", "escapeHtml getHabitTasks getHabitCompleted getHabitDeleted saveHabitTasks saveHabitCompleted saveHabitDeleted getDailyHistory saveDailyHistory getTodayKey getDaysDiff formatDateLabel checkDailyReset archivePreviousDay scheduleMidnightReset renderHabitTasks renderCompletedHabitTasks renderDeletedHabitTasks updateHabitCounts refreshAll completeHabitTask undoHabitTask deleteHabitTask deleteHabitCompleted restoreHabitTask deleteHabitForever purgeOldDeletedHabitTasks"],
+            ["edTaskResult.js", "branch-habit", "escapeHtml getTodayKey getDaysDiff formatDateLabel checkDailyReset refreshAll renderTodaySummary drawPieChart renderDailyHistory"],
+            ["kadai.js", "branch-kadai", "escapeHtml renderToday getTasks getCompletedTasks saveTasks saveCompleted getDeletedTasks saveDeleted renderTasks renderTaskGroup renderCompletedTasks renderDeletedTasks completeTask deleteTask revertTask deleteCompletedTask restoreTask purgeOldDeletedTasks getWeekKey archiveFinishedDeadlineWeeks getBucket deleteForever updateCounts editTask"],
+            ["result.js", "branch-kadai", "getWeekKey renderUpcomingByWeek renderList renderWeeklyHistory"],
+            ["tasks.js", "branch-task", "escapeHtml formatDate priorityOrder priorityClass getTodoTasks getTodoCompleted getTodoDeleted saveTodoTasks saveTodoCompleted saveTodoDeleted initAddButton renderTodoAll completeTodoTask deleteTodoTask deleteTodoCompleted restoreTodoTask purgeOldDeletedTodoTasks deleteTodoForever"],
+            ["tasks-add.js", "branch-task", "initAddTaskForm"],
+            ["calendar.js", "branch-calendar", "getBirthdays getBirthdaysOnDate escapeHtml getSchedules saveSchedules getDeletedSchedules saveDeletedSchedules toDateKey getSchedulesOnDate formatScheduleDateTime formatDateLabel renderCalendar renderEventList renderHistoryList renderDeletedList refreshAllViews purgeOldDeletedSchedules createScheduleCard"],
+            ["schedule-add.js", "branch-calendar", "setAllDay"],
+            ["birthdays.js", "sub-bday", "getBirthdays saveBirthdays escapeHtml getDaysInMonth buildMonthOptions buildDayOptions setupTypeRadio updateTypeLabels saveBirthday resetForm startEdit deleteBirthday renderBirthdayList"],
+            ["report.js", "branch-report", "getSchedules getKadaiTasks getTodoTasks toYearMonthKey toDateKey getTodayKey escapeHtml countCharacters formatDateJa injectThemeStyles getCurrentTheme setTitleExamples setupEventListeners switchSource renderSectionEditors calculatePeriodRange updateItemListAndPreview renderChecklist getSelectedObjects buildReportHTML renderPreview applyDirectEditMode getPreviewCurrentHTML getPreviewCurrentText downloadWordReport copyReportToClipboard fallbackCopy downloadReportFile collectState applyState loadDrafts persistDrafts loadAuto scheduleAutoSave formatSavedAt showToast saveDraft renderDraftPanel showRestoreBanner initDrafts"],
+            ["notification.js", "branch-notify", "getReadNotificationIds saveReadNotificationIds getDesktopNotifySetting setDesktopNotifySetting getTodayKey getFutureDateKey calculateNotifications setupNotificationUI toggleModal updateNotificationBadge renderNotificationList triggerDesktopNotifications escapeHtml"],
+            ["auth.js", "branch-sync", "rawGet rawSet namespacedKey sha256Hex randomSalt isValidEmail getUsers saveUsers findUser setSessionProfile getSessionProfile getCurrentUser getCurrentUserId getCurrentUserIdAsync getCurrentUserInfo isAdmin registerUser loginUser changePassword updateEmail deleteAccount logout getProfiles updateUserRole updateUserStatus deleteUserByAdmin requireAuth escapeHtml bindLogoutButton renderNavMenuAccount renderAccountBar"],
+            ["db-sync.js", "branch-sync", "isValidUUID pullCloudData pushCloudData queueSync flushSync migrateLocalDataToCloud autoSync"],
+            ["supabase-client.js", "branch-sync", "initSupabase"],
+            ["account-page.js", "branch-sync", "checkExistingRequest"],
+            ["auth-page.js", "branch-sync", "switchTab"],
+            ["master-account.js", "branch-sync", "fetchAndRenderUsers updateStats formatDate renderFilteredUsers escapeHtml bindActionEvents fetchAndRenderDeleteRequests bindDeleteRequestEvents"],
+            ["wishlist.js", "branch-wish", "getPartnerLabel setupPartnerFilter filterByPartner getWishes saveWishes getWishDeleted saveWishDeleted renderWishes setAchieved deleteWish restoreWish purgeOldDeletedWishes deleteWishForever renderDeletedWishes"],
+            ["ideas.js", "branch-wish", "getIdeas saveIdeas getIdeaDeleted saveIdeaDeleted renderIdeas renderAchievedIdeas setIdeaAchieved deleteIdea restoreIdea purgeOldDeletedIdeas deleteIdeaForever renderDeletedIdeas"],
+            ["common.js", "branch-ui", "renderToday openDrawer closeDrawer scheduleClose cancelClose"],
+            ["customize.js", "branch-ui", "renderCards updateCountBadge bindCardEvents handleSave showToast"],
+            ["features.js", "branch-ui", "getDefaultFeatureIds getEnabledFeatureIds saveEnabledFeatureIds applyToNavMenu applyToHomeMenu applyCustomFeaturesToUI"]
+        ];
+
+        const KEYS = "todoTasks todoCompleted todoDeleted schedules deletedSchedules secret_base_schedules ideaItems ideaDeleted habitTasks habitCompleted habitDeleted habitDailyHistory habitLastDate wishItems wishDeleted wishPartnerFilter birthdays deletedBirthdays tasks completedTasks deletedTasks weeklyHistory";
+
+       FULL.forEach(([f, par, fs]) => {
+            const parentObj = byId(par);
+            const type = parentObj ? parentObj.type : 'x';
+            const arr = fs.split(' ');
+             NODES_DATA.push({
+               id: 'f:' + f,
+               name: f,
+               role: arr.length + ' 個の関数を定義',
+               avatar: '📄',
+              type, parent: par,
+              desc: FULL_DESCS[f] || (f + ' に定義されている関数群です。'),
+               file: 'js/' + f,
+               code: arr.slice(0, 8).map(n => n + '()').join('\n') + '\n...',
+              full: true
+            });
+            arr.forEach(n => NODES_DATA.push({
+           id: 'fn:' + f + ':' + n,
+           name: n + '()',
+           type, parent: 'f:' + f,
+           desc: FN_DESCS[n] || `${f} 内で呼び出される関数 ${n}() です。`,
+           file: 'js/' + f,
+           code: 'function ' + n + '() {\n  // ' + (FN_DESCS[n] ? FN_DESCS[n].replace(/\\/g, '') : '実装ロジック') + '\n}',
+           fn: true, full: true
+            }));
+        });
+
+        NODES_DATA.push({
+            id: 'f:KEYS',
+            name: 'DATA_KEYS',
+            role: KEYS.split(' ').length + ' キー',
+            avatar: '🗝️',
+            type: 'storage', parent: 'branch-storage',
+            desc: 'クラウド同期およびローカルストレージ管理の対象となる全 localStorage キーの定義リスト[cite: 1]。',
+            file: 'js/db-sync.js',
+            code: 'const DATA_KEYS = [\n  "' + KEYS.split(' ').join('",\n  "') + '"\n];',
+            full: true
+        });
+
+        KEYS.split(' ').forEach(k => NODES_DATA.push({
+            id: 'k:' + k,
+            name: k,
+            type: 'storage', parent: 'f:KEYS',
+            desc: 'localStorage キー "' + k + '" のデータ管理ノード[cite: 1]。',
+            file: 'js/db-sync.js',
+            code: 'localStorage.getItem("' + k + '");\nlocalStorage.setItem("' + k + '", JSON.stringify(data));',
+            fn: true, full: true
+        }));
+
+        // ═════════ Engine Logic ═════════
+        let mode = 'detail';
+        const R = [0, 215, 430, 620, 800], SX = 1.85, RF = [0, 330, 850, 1700, 2050, 2400], SZ = [[230,66],[190,56],[150,46],[140,40],[130,36]], PAD = 160;
         const TYPE_COLORS = { core:'var(--color-core)', habit:'var(--color-habit)', kadai:'var(--color-kadai)', task:'var(--color-task)', sync:'var(--color-sync)', calendar:'var(--color-calendar)', report:'var(--color-report)', notify:'var(--color-notify)', storage:'var(--color-storage)', wish:'var(--color-wish)', ui:'var(--color-ui)', x:'var(--text-sub)' };
         let scale = 1, panX = 0, panY = 0, W = 0, H = 0, edges = [], animT = null, playing = false;
         const ptrs = new Map(); let drag = null, pan = null, pinch = null;
         const workspace = document.getElementById('workspace'), world = document.getElementById('canvas-world'),
               svgLayer = document.getElementById('svg-layer'), nodesContainer = document.getElementById('nodes-container');
-        const byId = id => NODES_DATA.find(n => n.id === id);
         const SVGNS = 'http://www.w3.org/2000/svg';
+        const sel = new Set();
+
+        const modOf = n => n.parent === 'core' ? n.id : n.parent ? modOf(byId(n.parent)) : null;
+        const dep = n => n.parent ? 1 + dep(byId(n.parent)) : 0;
+        const VIS = () => NODES_DATA.filter(n => (mode === 'full' && (!sel.size || !n.parent || sel.has(modOf(n)))) || (mode !== 'full' && !n.full && (mode === 'detail' || dep(n) <= 1)));
+
+        const RT = () => mode === 'full' ? RF.map(r => r * Math.max(.3, VIS().length / 393)) : mode === 'detail' ? R :[0, 330];
+        const SXm = () => mode === 'full' ? 1.15 : mode === 'detail' ? SX : Math.min(1.8, Math.max(1, workspace.clientWidth / workspace.clientHeight));
 
         function layout() {
-            const by = {}; NODES_DATA.forEach(n => (by[n.parent || ''] = by[n.parent || ''] || []).push(n));
-            const wt = n => (by[n.id] || []).reduce((s, c) => s + wt(c), 0) || 1;
+            const RR = RT(), sx = SXm();
+            const by = {}; VIS().forEach(n => (by[n.parent || ''] = by[n.parent || ''] || []).push(n));
+            const wt = n => (by[n.id] || []).reduce((s, c) => s + wt(c), 0) || (n.fn ? 1 : 3);
             let k = 0;
             const place = (n, s, e, lv) => {
-                n.lv = lv; const m = (s + e) / 2, r = R[lv] + (lv > 1 ? (k++ % 2 ? 28 : -28) : 0);
-                n.x = Math.cos(m) * r * SX; n.y = Math.sin(m) * r;
+                n.lv = lv; const m = (s + e) / 2, r = RR[lv] + (lv > 1 ? (n.fn ? [0, 30, 60, 90][k++ % 4] : mode === 'full' ? [-40, 0, 40][k++ % 3] : (k++ % 2 ? 28 : -28)) : 0);
+                n.x = Math.cos(m) * r * sx; n.y = Math.sin(m) * r;
                 let t = s; const tot = wt(n);
                 (by[n.id] || []).forEach(c => { const w = (e - s) * wt(c) / tot; place(c, t, t + w, lv + 1); t += w; });
             };
             place(byId('core'), -Math.PI / 2, Math.PI * 1.5, 0);
-            const xs = NODES_DATA.map(n => n.x), ys = NODES_DATA.map(n => n.y);
-            const ox = PAD - Math.min(...xs), oy = PAD - Math.min(...ys);
-            NODES_DATA.forEach(n => { n.x += ox; n.y += oy; });
-            W = Math.max(...xs) + ox + PAD; H = Math.max(...ys) + oy + PAD;
+            const sz = n => n.fn ? [124, 18] : SZ[n.lv], placed = [];
+            VIS().slice().sort((p, q) => p.lv - q.lv).forEach(n => {
+                if (n.lv) {
+                    const len = Math.hypot(n.x, n.y) || 1, ux = n.x / len, uy = n.y / len, [w, h] = sz(n);
+                    for (let t = 0; t < 60 && placed.some(o => { const [ow, oh] = sz(o); return Math.abs(n.x - o.x) < (w + ow) / 2 + 4 && Math.abs(n.y - o.y) < (h + oh) / 2 + 3; }); t++) { n.x += ux * 14; n.y += uy * 14; }
+                }
+                placed.push(n);
+            });
+            const V = VIS(), xs = V.map(n => n.x), ys = V.map(n => n.y);
+            const pd = mode === 'simple' ? 90 : PAD, ox = pd - Math.min(...xs), oy = pd - Math.min(...ys);
+            V.forEach(n => { n.x += ox; n.y += oy; });
+            W = Math.max(...xs) + ox + pd; H = Math.max(...ys) + oy + pd;
         }
+
         const setPos = n => { const el = document.getElementById('node-' + n.id); if (el) { el.style.left = n.x + 'px'; el.style.top = n.y + 'px'; } };
 
         function renderNodes() {
             layout(); nodesContainer.innerHTML = '';
-            NODES_DATA.forEach(n => {
+            VIS().forEach(n => {
                 const el = document.createElement('div');
-                el.className = `node node-${n.type} lv${n.lv}`; el.id = 'node-' + n.id; el.dataset.id = n.id;
-                el.innerHTML = `<div class="node-avatar">${n.avatar}</div><div class="node-content"><span class="node-name">${n.name}</span><span class="node-role">${n.role}</span></div>`;
+                el.className = n.fn ? `node node-${n.type} lvF` : `node node-${n.type} lv${n.lv}`; el.id = 'node-' + n.id; el.dataset.id = n.id;
+                el.innerHTML = n.fn ? `<span class="fn-name">${n.name}</span>` : `<div class="node-avatar">${n.avatar || '⚙️'}</div><div class="node-content"><span class="node-name">${n.name}</span><span class="node-role">${n.role || ''}</span></div>`;
                 nodesContainer.appendChild(el); setPos(n);
             });
             world.style.width = W + 'px'; world.style.height = H + 'px';
@@ -1208,10 +1340,10 @@
         function buildLines() {
             svgLayer.innerHTML = ''; edges = [];
             const c = byId('core');
-            [1, 2, 3].forEach(i => {
+            (mode === 'simple' ? [1] : mode === 'full' ? [1, 2, 3, 4, 5] : [1, 2, 3, 4]).forEach(i => {
                 const g = document.createElementNS(SVGNS, 'ellipse');
                 g.setAttribute('class', 'ring'); g.setAttribute('cx', c.x); g.setAttribute('cy', c.y);
-                g.setAttribute('rx', R[i] * SX); g.setAttribute('ry', R[i]); svgLayer.appendChild(g);
+                const rr = RT()[i]; g.setAttribute('rx', rr * SXm()); g.setAttribute('ry', rr); svgLayer.appendChild(g);
             });
             const mk = (a, b, link) => {
                 const p = document.createElementNS(SVGNS, 'path');
@@ -1219,15 +1351,17 @@
                 p.setAttribute('stroke', TYPE_COLORS[link ? 'x' : b.type]);
                 svgLayer.appendChild(p); edges.push({ a, b, p, link });
             };
-            NODES_DATA.forEach(n => n.parent && mk(byId(n.parent), n, false));
-            LINKS.forEach(([a, b]) => mk(byId(a), byId(b), true));
+            VIS().forEach(n => n.parent && mk(byId(n.parent), n, false));
+            LINKS.filter(([a, b]) => VIS().includes(byId(a)) && VIS().includes(byId(b))).forEach(([a, b]) => mk(byId(a), byId(b), true));
             updateConnectors(true);
         }
+
         function clip(n, o) {
-            const [w, h] = SZ[n.lv], dx = o.x - n.x, dy = o.y - n.y;
+            const [w, h] = n.fn ? [124, 18] : SZ[n.lv], dx = o.x - n.x, dy = o.y - n.y;
             const t = Math.min((w / 2 + 4) / Math.abs(dx || 1e-6), (h / 2 + 4) / Math.abs(dy || 1e-6), 0.5);
             return [n.x + dx * t, n.y + dy * t];
         }
+
         function updateConnectors(measure) {
             edges.forEach(({ a, b, p }) => {
                 const [s0, s1] = clip(a, b), [e0, e1] = clip(b, a), dx = e0 - s0, dy = e1 - s1;
@@ -1236,7 +1370,6 @@
             });
         }
 
-        // ── ページ入場アニメ: 中心から放射状に「線が伸びる → ノードが現れる」を階層ごとに連鎖
         function animateRadialBurst() {
             clearTimeout(animT);
             const all = [...nodesContainer.children, ...svgLayer.querySelectorAll('.connector-line, .ring')];
@@ -1253,17 +1386,19 @@
             animT = setTimeout(() => { all.forEach(e => e.classList.remove('play')); playing = false; }, 4600);
         }
 
-        // ── 入力: Pointer Events でマウス/タッチ/ピンチを一本化
         function toWorld(cx, cy) { const r = world.getBoundingClientRect(); return { x: (cx - r.left) / scale, y: (cy - r.top) / scale }; }
         function applyTransform() {
             world.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+            world.classList.toggle('tiny', scale < .35);
             document.getElementById('zoom-label').textContent = Math.round(scale * 100) + '%';
         }
+
         function zoomAt(cx, cy, ns) {
             ns = Math.min(Math.max(ns, .2), 2.2);
             const r = workspace.getBoundingClientRect(), mx = cx - r.left, my = cy - r.top;
             panX = mx - (mx - panX) * ns / scale; panY = my - (my - panY) * ns / scale; scale = ns; applyTransform();
         }
+
         workspace.addEventListener('pointerdown', e => {
             if (e.button > 0) return;
             ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -1273,6 +1408,7 @@
             if (nd && !playing) { const n = byId(nd.dataset.id), w = toWorld(e.clientX, e.clientY); drag = { n, dx: n.x - w.x, dy: n.y - w.y, sx: e.clientX, sy: e.clientY, moved: false }; }
             else { pan = { x: e.clientX - panX, y: e.clientY - panY }; workspace.classList.add('panning'); }
         });
+
         workspace.addEventListener('pointermove', e => {
             if (!ptrs.has(e.pointerId)) return;
             ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -1283,24 +1419,45 @@
                 drag.n.x = w.x + drag.dx; drag.n.y = w.y + drag.dy; setPos(drag.n); updateConnectors();
             } else if (pan) { panX = e.clientX - pan.x; panY = e.clientY - pan.y; applyTransform(); }
         });
+
         const endPtr = e => {
             if (!ptrs.delete(e.pointerId)) return;
             if (drag && !drag.moved && e.type === 'pointerup') openDetailModal(drag.n);
             if (ptrs.size < 2) pinch = null;
             if (!ptrs.size) { drag = pan = null; workspace.classList.remove('panning'); }
         };
+
         workspace.addEventListener('pointerup', endPtr); workspace.addEventListener('pointercancel', endPtr);
         workspace.addEventListener('wheel', e => { e.preventDefault(); zoomAt(e.clientX, e.clientY, scale * (e.deltaY < 0 ? 1.1 : .9)); }, { passive: false });
 
-        // ── ボタン類
         function fitAll() {
             const w = workspace.clientWidth, h = workspace.clientHeight;
             scale = Math.min(w / W, h / H) * .97; panX = (w - W * scale) / 2; panY = (h - H * scale) / 2; applyTransform();
         }
+
         function resetZoomAndPan() {
             const w = workspace.clientWidth, h = workspace.clientHeight, c = byId('core');
-            if (w < 768) { scale = .5; panX = w / 2 - c.x * scale; panY = h / 2 - c.y * scale; applyTransform(); } else fitAll();
+            if (w < 768 && mode !== 'simple') { scale = .5; panX = w / 2 - c.x * scale; panY = h / 2 - c.y * scale; applyTransform(); } else fitAll();
         }
+
+        function buildModBar() {
+            const bar = document.getElementById('mod-bar');
+            bar.innerHTML = '<button class="mod-chip on" data-id="*" onclick="toggleMod(\'*\')">すべて</button>' +
+                NODES_DATA.filter(n => n.parent === 'core').map(n => `<button class="mod-chip" data-id="${n.id}" style="--c:${TYPE_COLORS[n.type]}" onclick="toggleMod('${n.id}')">${n.avatar || ''} ${n.name.replace(/＆.*/, '')}</button>`).join('');
+        }
+
+        function toggleMod(id) {
+            id === '*' ? sel.clear() : (sel.has(id) ? sel.delete(id) : sel.add(id));
+            document.querySelectorAll('.mod-chip').forEach(c => c.classList.toggle('on', c.dataset.id === '*' ? !sel.size : sel.has(c.dataset.id)));
+            renderNodes(); fitAll(); animateRadialBurst();
+        }
+
+        function setMode(m) {
+            mode = m; document.getElementById('mod-bar').hidden = m !== 'full'; clearTimeout(animT); closeDetailModal();
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+            renderNodes(); resetZoomAndPan(); animateRadialBurst();
+        }
+
         function resetNodePositions() { layout(); NODES_DATA.forEach(setPos); buildLines(); }
         function zoomIn() { const r = workspace.getBoundingClientRect(); zoomAt(r.left + r.width / 2, r.top + r.height / 2, scale * 1.2); }
         function zoomOut() { const r = workspace.getBoundingClientRect(); zoomAt(r.left + r.width / 2, r.top + r.height / 2, scale / 1.2); }
@@ -1312,20 +1469,24 @@
             dark ? document.body.removeAttribute('data-theme') : document.body.setAttribute('data-theme', 'dark');
             document.getElementById('theme-icon').textContent = dark ? '🌙 ダーク切替' : '☀️ ライト切替';
         }
+
         function openDetailModal(node) {
-            document.getElementById('detail-modal-title').textContent = `${node.avatar} ${node.name}`;
-            document.getElementById('detail-modal-desc').textContent = node.desc || 'モジュール概要';
+            const avatar = node.avatar || (node.fn ? '⚙️' : '📄');
+            document.getElementById('detail-modal-title').textContent = `${avatar} ${node.name}`;
+            document.getElementById('detail-modal-desc').textContent = node.desc || 'モジュールの主要機能と処理ロジックです。';
             document.getElementById('detail-modal-file').textContent = `📄 ${node.file || 'N/A'}`;
             document.getElementById('detail-modal-code').textContent = node.code || '// 実装コード';
             document.getElementById('detail-modal').classList.add('open');
             document.getElementById('modal-backdrop').classList.add('open');
         }
+
         function closeDetailModal() {
             document.getElementById('detail-modal').classList.remove('open');
             document.getElementById('modal-backdrop').classList.remove('open');
         }
+
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetailModal(); });
-        window.addEventListener('DOMContentLoaded', () => { renderNodes(); resetZoomAndPan(); animateRadialBurst(); });
+        window.addEventListener('DOMContentLoaded', () => { buildModBar(); renderNodes(); resetZoomAndPan(); animateRadialBurst(); });
         window.addEventListener('resize', () => { if (!ptrs.size) resetZoomAndPan(); });
     </script>
 </body>
