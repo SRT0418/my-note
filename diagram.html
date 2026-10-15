@@ -292,8 +292,8 @@
         .node-ui { border: 2px solid var(--color-ui); } .node-ui .node-avatar { color: var(--color-ui); }
 
         .node.lv0 { width: 230px; height: 66px; padding: 8px 16px; }
-        .node.lv1 { width: 190px; height: 56px; }
-        .node.lv2 { width: 150px; height: 46px; padding: 5px 8px; gap: 6px; }
+        .node.lv1 { width: 215px; height: 58px; }
+        .node.lv2 { width: 160px; height: 46px; padding: 5px 8px; gap: 6px; }
         .node.lv3 { width: 140px; height: 40px; padding: 4px 8px; gap: 6px; border-style: dashed !important; border-width: 1.5px !important; }
         .node.lv4 { width: 130px; height: 36px; padding: 3px 8px; gap: 6px; border-style: dotted !important; border-width: 1.5px !important; }
         .node.lvF { width: 124px; height: 18px; padding: 0 8px; border-radius: 9px; border-width: 1.2px !important; justify-content: center; }
@@ -457,8 +457,29 @@
         .modal-backdrop.open { display: block; }
 
         @media (max-width: 768px) {
-            .toolbar { padding: 8px 12px; height: auto; flex-direction: column; gap: 8px; }
-            .toolbar-actions { overflow-x: auto; width: 100%; padding-bottom: 4px; }
+            .toolbar { 
+                padding: 8px 12px; 
+                height: auto; 
+                flex-direction: column; 
+                align-items: stretch; /* 子要素を幅いっぱいに広げる */
+                gap: 8px; 
+            }
+            .toolbar-actions { 
+                display: flex;             /* 横並びを維持 */
+                flex-wrap: nowrap;          /* 折り返しを禁止 */
+                overflow-x: auto;           /* 横スクロールを有効化 */
+                width: 100%; 
+                padding-bottom: 6px; 
+                -webkit-overflow-scrolling: touch; /* iOSでの慣性スクロール */
+                scrollbar-width: none;      /* スクロールバーを非表示（Firefox） */
+            }
+            .toolbar-actions::-webkit-scrollbar {
+                display: none;              /* スクロールバーを非表示（Chrome/Safari） */
+            }
+            .toolbar-actions .tool-btn,
+            .toolbar-actions .mode-switch {
+                flex-shrink: 0;             /* ボタンが縮むのを防止 */
+            }
             .floating-controls { bottom: max(14px, env(safe-area-inset-bottom)); right: max(12px, env(safe-area-inset-right)); }
             .legend-card { bottom: max(14px, env(safe-area-inset-bottom)); left: max(12px, env(safe-area-inset-left)); }
             .detail-modal {
@@ -572,287 +593,264 @@
         const NODES_DATA = [];
         const byId = id => NODES_DATA.find(n => n.id === id);
 
-        // 全関数の詳細役割・処理内容データ（完全網羅）
         const FN_DESCS = {
-            "initApp": "DOMロード完了時に呼び出され、アプリケーション全体の表示更新や基本イベントリスナーの設定を行う統合初期化関数です[cite: 1]。",
-
-            // everydayTask.js
-            "getHabitTasks": "ローカルストレージから登録済みの習慣タスク一覧を取得します[cite: 1]。",
-            "getHabitCompleted": "本日完了した習慣タスクの ID リストをローカルストレージから取得します[cite: 1]。",
-            "getHabitDeleted": "ゴミ箱に入っている習慣タスク一覧データを取得します[cite: 1]。",
-            "saveHabitTasks": "習慣タスク一覧をローカルストレージに保存します[cite: 1]。",
-            "saveHabitCompleted": "本日の完了済み習慣タスク ID リストをローカルストレージに保存します[cite: 1]。",
-            "saveHabitDeleted": "削除済み（ゴミ箱内）の習慣タスク一覧を保存します[cite: 1]。",
-            "getDailyHistory": "過去の日次達成実績の履歴データを取得します[cite: 1]。",
-            "saveDailyHistory": "日次達成実績の履歴データを保存します[cite: 1]。",
-            "getTodayKey": "今日の今現在の時間を元に YYYY-MM-DD 形式の日付文字列を取得します[cite: 1]。",
-            "getDaysDiff": "前回アクセス日付と今日の日付との差分日数（diffDays）を計算します[cite: 1]。",
-            "formatDateLabel": "日付キーを「M月D日(木)」などの日本語表示用にフォーマットします[cite: 1]。",
-            "checkDailyReset": "日付跨ぎの初回アクセス時に昨日の実績をアーカイブし、完了状態のリセットやストリーク計算を実行します[cite: 1]。",
-            "archivePreviousDay": "前日までの習慣達成状況を日次履歴オブジェクトに保存・アーカイブします[cite: 1]。",
-            "scheduleMidnightReset": "深夜 0 時（日付変更時）に自動リセット処理を実行するタイマーをセットします[cite: 1]。",
-            "renderHabitTasks": "未完了の習慣タスク一覧を画面にレンダリング表示します[cite: 1]。",
-            "renderCompletedHabitTasks": "本日完了済みの習慣タスク一覧を表示します[cite: 1]。",
-            "renderDeletedHabitTasks": "ゴミ箱に入っている習慣タスク一覧を表示します[cite: 1]。",
-            "updateHabitCounts": "習慣タスクの未完了数・完了数・ゴミ箱数のバッジ表示を更新します[cite: 1]。",
-            "refreshAll": "習慣画面全体のデータ取得と再描画を一括実行します[cite: 1]。",
-            "completeHabitTask": "指定した習慣タスクを「本日完了」状態にし、ストリークを加算します[cite: 1]。",
-            "undoHabitTask": "完了した習慣タスクを未完了に戻し、加算したストリークを取り消します[cite: 1]。",
-            "deleteHabitTask": "習慣タスクをゴミ箱（habitDeleted）へ移動します[cite: 1]。",
-            "deleteHabitCompleted": "本日完了済みのタスクをゴミ箱へ移動します[cite: 1]。",
-            "restoreHabitTask": "ゴミ箱から習慣タスクを元のリストに復元します[cite: 1]。",
-            "deleteHabitForever": "ゴミ箱内の指定タスクを完全に消去します[cite: 1]。",
-            "purgeOldDeletedHabitTasks": "ゴミ箱に入ってから 30 日以上経過した習慣タスクを自動で完全削除します[cite: 1]。",
-
-            // edTaskResult.js
-            "renderTodaySummary": "本日の習慣達成状況のサマリー（達成率や完了件数）を画面に表示します[cite: 1]。",
-            "drawPieChart": "本日の達成率を可視化するための Canvas 円グラフを描画します[cite: 1]。",
-            "renderDailyHistory": "過去の日次実績履歴をカレンダーやリスト形式で表示します[cite: 1]。",
-
-            // kadai.js
-            "renderToday": "今日が締切の課題をダッシュボードや上部に抽出表示します[cite: 1]。",
-            "getTasks": "未完了課題一覧を取得します[cite: 1]。",
-            "getCompletedTasks": "完了した課題一覧を取得します[cite: 1]。",
-            "saveTasks": "未完了課題のリストを保存します[cite: 1]。",
-            "saveCompleted": "完了課題のリストを保存します[cite: 1]。",
-            "getDeletedTasks": "ゴミ箱に入っている課題一覧を取得します[cite: 1]。",
-            "saveDeleted": "削除済み課題のリストを保存します[cite: 1]。",
-            "renderTasks": "全未完了課題を今週・来週・以降などのグループ別に表示します[cite: 1]。",
-            "renderTaskGroup": "指定されたグループ（今週など）単位で課題カードを生成します[cite: 1]。",
-            "renderCompletedTasks": "完了済みの課題一覧を表示します[cite: 1]。",
-            "renderDeletedTasks": "ゴミ箱内の課題一覧を表示します[cite: 1]。",
-            "completeTask": "課題を完了状態にし、完了リストへ移動します[cite: 1]。",
-            "deleteTask": "課題をゴミ箱へ移動します[cite: 1]。",
-            "revertTask": "完了した課題を未完了に戻します[cite: 1]。",
-            "deleteCompletedTask": "完了済みの課題をゴミ箱へ移動します[cite: 1]。",
-            "restoreTask": "ゴミ箱の課題を元のリストに復元します[cite: 1]。",
-            "purgeOldDeletedTasks": "削除から 30 日以上経過した課題を自動消去します[cite: 1]。",
-            "getWeekKey": "指定日付が含まれる週の月曜日の日付キー（YYYY-MM-DD）を取得します[cite: 1]。",
-            "archiveFinishedDeadlineWeeks": "締切週が過ぎた過去の課題グループをアーカイブ領域へ自動移動します[cite: 1]。",
-            "getBucket": "課題の締切日時に応じて「今週」「来週」「再来週以降」の分類バケットを判定します[cite: 1]。",
-            "deleteForever": "課題を完全消去します[cite: 1]。",
-            "updateCounts": "各グループ・ステートごとの課題件数バッジを更新します[cite: 1]。",
-            "editTask": "課題の内容や締切日時の編集を行います[cite: 1]。",
-
-            // result.js
-            "renderUpcomingByWeek": "週ごとの今後の課題予定を表示します[cite: 1]。",
-            "renderList": "全課題の一覧リストを描画します[cite: 1]。",
-            "renderWeeklyHistory": "過去の週別達成実績の履歴を表示します[cite: 1]。",
-
-            // tasks.js
-            "formatDate": "タスクの日付を表示用にフォーマットします[cite: 1]。",
-            "priorityOrder": "優先度「高・中・低」を数値の重み（高:3, 中:2, 低:1）に変換します[cite: 1]。",
-            "priorityClass": "優先度に応じた CSS デザインクラス名（色バッジ用）を返します[cite: 1]。",
-            "getTodoTasks": "未完了の Todo タスク一覧を取得します[cite: 1]。",
-            "getTodoCompleted": "完了済みの Todo タスク一覧を取得します[cite: 1]。",
-            "getTodoDeleted": "ゴミ箱に入っている Todo タスク一覧を取得します[cite: 1]。",
-            "saveTodoTasks": "未完了 Todo リストを保存します[cite: 1]。",
-            "saveTodoCompleted": "完了済み Todo リストを保存します[cite: 1]。",
-            "saveTodoDeleted": "削除済み Todo リストを保存します[cite: 1]。",
-            "initAddButton": "タスク追加ボタンのイベントを設定します[cite: 1]。",
-            "renderTodoAll": "全 Todo タスクを優先度（高→中→低）順に並べ替えて描画します[cite: 1]。",
-            "completeTodoTask": "Todo タスクを完了状態にします[cite: 1]。",
-            "deleteTodoTask": "Todo タスクをゴミ箱へ移動します[cite: 1]。",
-            "deleteTodoCompleted": "完了済みの Todo をゴミ箱へ移動します[cite: 1]。",
-            "restoreTodoTask": "ゴミ箱の Todo を復元します[cite: 1]。",
-            "purgeOldDeletedTodoTasks": "削除から 30 日経過した Todo を自動で完全消去します[cite: 1]。",
-            "deleteTodoForever": "指定した Todo をゴミ箱から即時完全消去します[cite: 1]。",
-            "initAddTaskForm": "新規 Todo タスク追加フォームの送信処理を初期化します[cite: 1]。",
-
-            // calendar.js & birthdays.js & schedule-add.js
-            "getBirthdays": "登録されている誕生日リストを取得します[cite: 1]。",
-            "getBirthdaysOnDate": "指定された日付に該当する誕生日データを抽出します[cite: 1]。",
-            "getSchedules": "予定一覧を取得します[cite: 1]。",
-            "saveSchedules": "予定一覧を保存します[cite: 1]。",
-            "getDeletedSchedules": "削除済みの予定を取得します[cite: 1]。",
-            "saveDeletedSchedules": "削除済みの予定を保存します[cite: 1]。",
-            "toDateKey": "Date オブジェクトを YYYY-MM-DD 形式のキー文字列に変換します[cite: 1]。",
-            "getSchedulesOnDate": "指定した日付キーに該当する予定・課題・誕生日データをまとめて抽出します[cite: 1]。",
-            "formatScheduleDateTime": "予定の開始・終了時刻を表示用にフォーマットします[cite: 1]。",
-            "renderCalendar": "月のカレンダーグリッドを動的に生成・描画します[cite: 1]。",
-            "renderEventList": "選択された日付の予定・課題詳細リストを表示します[cite: 1]。",
-            "renderHistoryList": "過去の予定履歴リストを表示します[cite: 1]。",
-            "renderDeletedList": "ゴミ箱に入っている予定一覧を表示します[cite: 1]。",
-            "refreshAllViews": "カレンダー・イベントリスト・履歴表示を一括更新します[cite: 1]。",
-            "purgeOldDeletedSchedules": "削除から 30 日経過した予定を自動完全削除します[cite: 1]。",
-            "createScheduleCard": "カレンダー上に表示する小さな予定カード要素を生成します[cite: 1]。",
-            "setAllDay": "予定登録時に「終日」チェックボックスに応じて時間入力欄の有効/無効を切り替えます[cite: 1]。",
-            "saveBirthdays": "誕生日リストを保存します[cite: 1]。",
-            "getDaysInMonth": "指定した年月の日数（28〜31日）を計算して返します[cite: 1]。",
-            "buildMonthOptions": "誕生日フォームの「月」セレクトボックス選択肢を動的に生成します[cite: 1]。",
-            "buildDayOptions": "誕生日フォームの「日」セレクトボックス選択肢を動的に生成します[cite: 1]。",
-            "setupTypeRadio": "家族・友人・同僚などの分類ラジオボタンの切り替え処理を行います[cite: 1]。",
-            "updateTypeLabels": "選択されたタイプラベルを更新表示します[cite: 1]。",
-            "saveBirthday": "フォームから入力された誕生日データを新規保存または更新します[cite: 1]。",
-            "resetForm": "誕生日入力フォームを初期化します[cite: 1]。",
-            "startEdit": "既存の誕生日データをフォームに呼び出して編集モードにします[cite: 1]。",
-            "deleteBirthday": "登録されている誕生日データを削除します[cite: 1]。",
-            "renderBirthdayList": "登録済み誕生日一覧（年齢および残り日数）を描画します[cite: 1]。",
-
-            // report.js
-            "toYearMonthKey": "年月キー（YYYY-MM）を生成します[cite: 1]。",
-            "countCharacters": "改行を除いた報告書本文の総文字数をカウントします[cite: 1]。",
-            "formatDateJa": "年月日を「YYYY年M月D日」形式に変換します[cite: 1]。",
-            "injectThemeStyles": "選択されたレポートテーマのスタイルをプレビューへ動的適用します[cite: 1]。",
-            "getCurrentTheme": "現在選択されている報告書テーマの設定オブジェクトを取得します[cite: 1]。",
-            "setTitleExamples": "報告書タイトルの入力例候補をセットします[cite: 1]。",
-            "setupEventListeners": "テーマ変更、期間選択、ソース切り替えなどの UI イベントを設定します[cite: 1]。",
-            "switchSource": "報告書のデータソース（カレンダー予定/課題/Todo）を切り替えます[cite: 1]。",
-            "renderSectionEditors": "報告書の各セクション（目標・成果・課題）の編集フォームを描画します[cite: 1]。",
-            "calculatePeriodRange": "報告書の対象期間（1 ヶ月または 3 ヶ月）の開始日・終了日を計算します[cite: 1]。",
-            "updateItemListAndPreview": "対象期間内の実績項目を抽出し、報告書プレビューを更新します[cite: 1]。",
-            "renderChecklist": "抽出された実績データの中から報告書に含める項目を選択するチェックリストを表示します[cite: 1]。",
-            "getSelectedObjects": "チェックボックスで選択された実績データのオブジェクト配列を取得します[cite: 1]。",
-            "buildReportHTML": "抽出データと編集テキストを組み合わせて完成版の報告書 HTML を構築します[cite: 1]。",
-            "renderPreview": "構築した報告書 HTML をプレビュー領域に描画します[cite: 1]。",
-            "applyDirectEditMode": "プレビュー画面上での直接テキスト編集（contenteditable）を有効化します[cite: 1]。",
-            "getPreviewCurrentHTML": "現在のプレビュー内容を HTML 形式で取得します[cite: 1]。",
-            "getPreviewCurrentText": "現在のプレビュー内容をプレーンテキスト形式で取得します[cite: 1]。",
-            "downloadWordReport": "HTML Blob を生成し、Word (.doc) ファイルとしてダウンロード出力します[cite: 1]。",
-            "copyReportToClipboard": "報告書テキストをクリップボードにコピーします[cite: 1]。",
-            "fallbackCopy": "クリップボード API が使えない環境向けの代替コピー処理です[cite: 1]。",
-            "downloadReportFile": "ファイルダウンロード処理を実行する汎用ヘルパー関数です[cite: 1]。",
-            "collectState": "現在の報告書編集状態（フォーム入力内容や選択項目）を取得します[cite: 1]。",
-            "applyState": "保存された報告書の編集状態を復元適用します[cite: 1]。",
-            "loadDrafts": "報告書の下書きデータをローカルストレージから読み込みます[cite: 1]。",
-            "persistDrafts": "下書きデータをローカルストレージに保存します[cite: 1]。",
-            "loadAuto": "自動保存された最新の下書きを読み込みます[cite: 1]。",
-            "scheduleAutoSave": "一定時間ごとに報告書内容を自動保存するタイマーを管理します[cite: 1]。",
-            "formatSavedAt": "保存完了時刻を表示用にフォーマットします[cite: 1]。",
-            "showToast": "通知トーストメッセージを表示します[cite: 1]。",
-            "saveDraft": "手動で報告書の下書きを保存します[cite: 1]。",
-            "renderDraftPanel": "保存された下書きの一覧パネルを表示します[cite: 1]。",
-            "showRestoreBanner": "自動保存データの復元通知バナーを表示します[cite: 1]。",
-            "initDrafts": "下書き機能の初期化を行います[cite: 1]。",
-
-            // notification.js
-            "getReadNotificationIds": "既読にした通知メッセージの ID 配列を取得します[cite: 1]。",
-            "saveReadNotificationIds": "既読通知 ID 配列を保存します[cite: 1]。",
-            "getDesktopNotifySetting": "ブラウザデスクトップ通知の許可設定を読み込みます[cite: 1]。",
-            "setDesktopNotifySetting": "デスクトップ通知の有効/無効設定を保存します[cite: 1]。",
-            "getFutureDateKey": "今日から N 日後の日付キー（YYYY-MM-DD）を取得します[cite: 1]。",
-            "calculateNotifications": "全データをスキャンし、「今日締切」「直近」等の通知を一括計算抽出します[cite: 1]。",
-            "setupNotificationUI": "通知ベルアイコンのクリックによるモーダル表示イベントを設定します[cite: 1]。",
-            "toggleModal": "通知一覧モーダルの表示/非表示を切り替えます[cite: 1]。",
-            "updateNotificationBadge": "未読通知件数を計算し、ベルアイコンの赤バッジ数字を更新します[cite: 1]。",
-            "renderNotificationList": "抽出された通知アイテムのリストをモーダル内に描画します[cite: 1]。",
-            "triggerDesktopNotifications": "Web Notification API を呼び出し OS デスクトップ通知トレイへアラートを発火させます[cite: 1]。",
-
-            // auth.js & db-sync.js & master-account.js
-            "rawGet": "名前空間を付与しない生の localStorage アクセス（読み込み）を行います[cite: 1]。",
-            "rawSet": "名前空間を付与しない生の localStorage アクセス（書き込み）を行います[cite: 1]。",
-            "namespacedKey": "ログイン中のユーザー ID（UUID）をキーの先頭に付与してデータを隔離します[cite: 1]。",
-            "sha256Hex": "パスワード等のハッシュ化暗号計算を行います[cite: 1]。",
-            "randomSalt": "暗号化用のランダムソルト文字列を生成します[cite: 1]。",
-            "isValidEmail": "メールアドレスのフォーマット妥当性を判定します[cite: 1]。",
-            "getUsers": "ローカルの模擬ユーザーテーブルを取得します[cite: 1]。",
-            "saveUsers": "ローカルの模擬ユーザーテーブルを保存します[cite: 1]。",
-            "findUser": "条件に一致するユーザーを検索します[cite: 1]。",
-            "setSessionProfile": "現在のログインセッション情報を保持設定します[cite: 1]。",
-            "getSessionProfile": "現在のセッション情報を取得します[cite: 1]。",
-            "getCurrentUser": "現在のログインユーザーのオブジェクトを取得します[cite: 1]。",
-            "getCurrentUserId": "現在のログインユーザーの UUID を取得します[cite: 1]。",
-            "getCurrentUserIdAsync": "非同期で安全にユーザー ID を取得します[cite: 1]。",
-            "isAdmin": "ログイン中のユーザーが管理者権限（Master）を持っているか判定します[cite: 1]。",
-            "registerUser": "新規ユーザーのアカウント登録を行います[cite: 1]。",
-            "loginUser": "ログイン認証を実行しセッションを発行します[cite: 1]。",
-            "changePassword": "パスワード変更処理を実行します[cite: 1]。",
-            "updateEmail": "メールアドレスの変更処理を実行します[cite: 1]。",
-            "deleteAccount": "アカウントの削除（退会処理）を実行します[cite: 1]。",
-            "logout": "ログアウト処理を行いセッションを消去します[cite: 1]。",
-            "getProfiles": "管理者用にユーザープロファイル一覧を取得します[cite: 1]。",
-            "updateUserRole": "ユーザーの権限（一般/管理者）を変更します[cite: 1]。",
-            "updateUserStatus": "ユーザーのアカウント状態（有効/停止）を変更します[cite: 1]。",
-            "deleteUserByAdmin": "管理者権限で指定ユーザーを強制削除します[cite: 1]。",
-            "requireAuth": "ログインが必要なページでセッションを確認し、未ログイン時はログイン画面へ戻します[cite: 1]。",
-            "bindLogoutButton": "ログアウトボタンにイベントをバインドします[cite: 1]。",
-            "renderNavMenuAccount": "ナビゲーションメニュー内のユーザー表示エリアを描画します[cite: 1]。",
-            "renderAccountBar": "アカウントバーをレンダリングします[cite: 1]。",
-            "isValidUUID": "ユーザー ID が正規の UUID 形式かを検証します[cite: 1]。",
-            "pullCloudData": "Supabase データベースから最新データを取得しローカルストレージへ反映します[cite: 1]。",
-            "pushCloudData": "ローカルで変更のあったキーのデータを Supabase へ Upsert 送信します[cite: 1]。",
-            "queueSync": "変更があったキーを送信キューに追加しデバウンスタイマーを開始します[cite: 1]。",
-            "flushSync": "キューに溜まった変更キーをまとめて一括送信します[cite: 1]。",
-            "migrateLocalDataToCloud": "初回ログイン時にゲスト状態のローカルデータをクラウドアカウント側へ移行します[cite: 1]。",
-            "autoSync": "起動時に認証セッション状態をチェックし自動同期をスタートします[cite: 1]。",
-            "initSupabase": "Supabase API Key を使用して SDK クライアントを初期化します[cite: 1]。",
-            "checkExistingRequest": "アカウント削除申請や変更申請が存在するかチェックします[cite: 1]。",
-            "switchTab": "ログイン画面での「ログイン/新規登録」タブを切り替えます[cite: 1]。",
-            "fetchAndRenderUsers": "管理者画面で全登録ユーザー一覧を取得してテーブル描画します[cite: 1]。",
-            "updateStats": "全ユーザー数などの統計バッジを更新します[cite: 1]。",
-            "renderFilteredUsers": "検索・絞り込み条件に応じたユーザー一覧を表示します[cite: 1]。",
-            "bindActionEvents": "管理者操作ボタンのイベントを設定します[cite: 1]。",
-            "fetchAndRenderDeleteRequests": "削除申請一覧を取得して描画します[cite: 1]。",
-            "bindDeleteRequestEvents": "削除申請の承認・拒否ボタンのイベントを設定します[cite: 1]。",
-
-            // wishlist.js & ideas.js
-            "getPartnerLabel": "共有タイプ（自分のみ/パートナーと一緒）の表示ラベルを取得します[cite: 1]。",
-            "setupPartnerFilter": "パートナー共有フィルターの切り替え UI を設定します[cite: 1]。",
-            "filterByPartner": "選択された共有フィルター条件に応じてリストを絞り込みます[cite: 1]。",
-            "getWishes": "やりたいこと（Wish）リストを取得します[cite: 1]。",
-            "saveWishes": "やりたいことリストを保存します[cite: 1]。",
-            "getWishDeleted": "削除済み Wish リストを取得します[cite: 1]。",
-            "saveWishDeleted": "削除済み Wish リストを保存します[cite: 1]。",
-            "renderWishes": "未達成のやりたいこと一覧をカード表示します[cite: 1]。",
-            "setAchieved": "指定した Wish を「達成済み」にし達成日時のタイムスタンプを保存します[cite: 1]。",
-            "deleteWish": "Wish をゴミ箱へ移動します[cite: 1]。",
-            "restoreWish": "ゴミ箱の Wish を元に戻します[cite: 1]。",
-            "purgeOldDeletedWishes": "削除から 30 日以上経過した Wish を自動完全削除します[cite: 1]。",
-            "deleteWishForever": "Wish を即時完全消去します[cite: 1]。",
-            "renderDeletedWishes": "ゴミ箱内の Wish 一覧を表示します[cite: 1]。",
-            "getIdeas": "アイデアメモ一覧を取得します[cite: 1]。",
-            "saveIdeas": "アイデアメモ一覧を保存します[cite: 1]。",
-            "getIdeaDeleted": "削除されたアイデアメモ一覧を取得します[cite: 1]。",
-            "saveIdeaDeleted": "削除されたアイデアメモ一覧を保存します[cite: 1]。",
-            "renderIdeas": "登録されているアイデアメモ一覧を表示します[cite: 1]。",
-            "renderAchievedIdeas": "実現・達成したアイデアの一覧を表示します[cite: 1]。",
-            "setIdeaAchieved": "アイデアを「実現済み」ステートに変更します[cite: 1]。",
-            "deleteIdea": "アイデアをゴミ箱へ移動します[cite: 1]。",
-            "restoreIdea": "ゴミ箱のアイデアを復元します[cite: 1]。",
-            "purgeOldDeletedIdeas": "削除から 30 日経過したアイデアを自動完全削除します[cite: 1]。",
-            "deleteIdeaForever": "アイデアを即時完全消去します[cite: 1]。",
-            "renderDeletedIdeas": "ゴミ箱内のアイデア一覧を表示します[cite: 1]。",
-
-            // common.js, customize.js, features.js
-            "openDrawer": "スライド式ナビゲーションドロワーメニューを開きます[cite: 1]。",
-            "closeDrawer": "ナビゲーションドロワーメニューを閉じます[cite: 1]。",
-            "scheduleClose": "ドロワー外ホバー時等に自動で閉じるタイマーをスケジューリングします[cite: 1]。",
-            "cancelClose": "自動で閉じるタイマーをキャンセルします[cite: 1]。",
-            "renderCards": "ダッシュボード上の各機能カードを設定に基づき描画します[cite: 1]。",
-            "updateCountBadge": "カスタマイズ画面内の件数バッジを更新します[cite: 1]。",
-            "bindCardEvents": "カードの並び順変更や表示切り替えイベントを設定します[cite: 1]。",
-            "handleSave": "カードのカスタマイズ表示状態を保存します[cite: 1]。",
-            "getDefaultFeatureIds": "システムの全機能 ID リストを取得します[cite: 1]。",
-            "getEnabledFeatureIds": "現在ユーザーが有効化している機能 ID リストを取得します[cite: 1]。",
-            "saveEnabledFeatureIds": "有効化する機能リストを保存します[cite: 1]。",
-            "applyToNavMenu": "無効化された機能をナビゲーションメニューから非表示化します[cite: 1]。",
-            "applyToHomeMenu": "無効化された機能をホーム画面から除外します[cite: 1]。",
-            "applyCustomFeaturesToUI": "画面全体に機能オン/オフカスタム設定を反映します[cite: 1]。",
-            "escapeHtml": "XSS 防御のため HTML 特殊文字をエスケープ処理します[cite: 1]。"
+            "initApp": "DOMロード完了時に呼び出され、アプリケーション全体の表示更新や基本イベントリスナーの設定を行う統合初期化関数です。",
+            "getHabitTasks": "ローカルストレージから登録済みの習慣タスク一覧を取得します。",
+            "getHabitCompleted": "本日完了した習慣タスクの ID リストをローカルストレージから取得します。",
+            "getHabitDeleted": "ゴミ箱に入っている習慣タスク一覧データを取得します。",
+            "saveHabitTasks": "習慣タスク一覧をローカルストレージに保存します。",
+            "saveHabitCompleted": "本日の完了済み習慣タスク ID リストをローカルストレージに保存します。",
+            "saveHabitDeleted": "削除済み（ゴミ箱内）の習慣タスク一覧を保存します。",
+            "getDailyHistory": "過去の日次達成実績の履歴データを取得します。",
+            "saveDailyHistory": "日次達成実績の履歴データを保存します。",
+            "getTodayKey": "今日の今現在の時間を元に YYYY-MM-DD 形式の日付文字列を取得します。",
+            "getDaysDiff": "前回アクセス日付と今日の日付との差分日数（diffDays）を計算します。",
+            "formatDateLabel": "日付キーを「M月D日(木)」などの日本語表示用にフォーマットします。",
+            "checkDailyReset": "日付跨ぎの初回アクセス時に昨日の実績をアーカイブし、完了状態のリセットやストリーク計算を実行します。",
+            "archivePreviousDay": "前日までの習慣達成状況を日次履歴オブジェクトに保存・アーカイブします。",
+            "scheduleMidnightReset": "深夜 0 時（日付変更時）に自動リセット処理を実行するタイマーをセットします。",
+            "renderHabitTasks": "未完了の習慣タスク一覧を画面にレンダリング表示します。",
+            "renderCompletedHabitTasks": "本日完了済みの習慣タスク一覧を表示します。",
+            "renderDeletedHabitTasks": "ゴミ箱に入っている習慣タスク一覧を表示します。",
+            "updateHabitCounts": "習慣タスクの未完了数・完了数・ゴミ箱数のバッジ表示を更新します。",
+            "refreshAll": "習慣画面全体のデータ取得と再描画を一括実行します。",
+            "completeHabitTask": "指定した習慣タスクを「本日完了」状態にし、ストリークを加算します。",
+            "undoHabitTask": "完了した習慣タスクを未完了に戻し、加算したストリークを取り消します。",
+            "deleteHabitTask": "習慣タスクをゴミ箱（habitDeleted）へ移動します。",
+            "deleteHabitCompleted": "本日完了済みのタスクをゴミ箱へ移動します。",
+            "restoreHabitTask": "ゴミ箱から習慣タスクを元のリストに復元します。",
+            "deleteHabitForever": "ゴミ箱内の指定タスクを完全に消去します。",
+            "purgeOldDeletedHabitTasks": "ゴミ箱に入ってから 30 日以上経過した習慣タスクを自動で完全削除します。",
+            "renderTodaySummary": "本日の習慣達成状況のサマリー（達成率や完了件数）を画面に表示します。",
+            "drawPieChart": "本日の達成率を可視化するための Canvas 円グラフを描画します。",
+            "renderDailyHistory": "過去の日次実績履歴をカレンダーやリスト形式で表示します。",
+            "renderToday": "今日が締切の課題をダッシュボードや上部に抽出表示します。",
+            "getTasks": "未完了課題一覧を取得します。",
+            "getCompletedTasks": "完了した課題一覧を取得します。",
+            "saveTasks": "未完了課題のリストを保存します。",
+            "saveCompleted": "完了課題のリストを保存します。",
+            "getDeletedTasks": "ゴミ箱に入っている課題一覧を取得します。",
+            "saveDeleted": "削除済み課題のリストを保存します。",
+            "renderTasks": "全未完了課題を今週・来週・以降などのグループ別に表示します。",
+            "renderTaskGroup": "指定されたグループ（今週など）単位で課題カードを生成します。",
+            "renderCompletedTasks": "完了済みの課題一覧を表示します。",
+            "renderDeletedTasks": "ゴミ箱内の課題一覧を表示します。",
+            "completeTask": "課題を完了状態にし、完了リストへ移動します。",
+            "deleteTask": "課題をゴミ箱へ移動します。",
+            "revertTask": "完了した課題を未完了に戻します。",
+            "deleteCompletedTask": "完了済みの課題をゴミ箱へ移動します。",
+            "restoreTask": "ゴミ箱の課題を元のリストに復元します。",
+            "purgeOldDeletedTasks": "削除から 30 日以上経過した課題を自動消去します。",
+            "getWeekKey": "指定日付が含まれる週の月曜日の日付キー（YYYY-MM-DD）を取得します。",
+            "archiveFinishedDeadlineWeeks": "締切週が過ぎた過去の課題グループをアーカイブ領域へ自動移動します。",
+            "getBucket": "課題の締切日時に応じて「今週」「来週」「再来週以降」の分類バケットを判定します。",
+            "deleteForever": "課題を完全消去します。",
+            "updateCounts": "各グループ・ステートごとの課題件数バッジを更新します。",
+            "editTask": "課題の内容や締切日時の編集を行います。",
+            "renderUpcomingByWeek": "週ごとの今後の課題予定を表示します。",
+            "renderList": "全課題の一覧リストを描画します。",
+            "renderWeeklyHistory": "過去の週別達成実績の履歴を表示します。",
+            "formatDate": "タスクの日付を表示用にフォーマットします。",
+            "priorityOrder": "優先度「高・中・低」を数値の重み（高:3, 中:2, 低:1）に変換します。",
+            "priorityClass": "優先度に応じた CSS デザインクラス名（色バッジ用）を返します。",
+            "getTodoTasks": "未完了の Todo タスク一覧を取得します。",
+            "getTodoCompleted": "完了済みの Todo タスク一覧を取得します。",
+            "getTodoDeleted": "ゴミ箱に入っている Todo タスク一覧を取得します。",
+            "saveTodoTasks": "未完了 Todo リストを保存します。",
+            "saveTodoCompleted": "完了済み Todo リストを保存します。",
+            "saveTodoDeleted": "削除済み Todo リストを保存します。",
+            "initAddButton": "タスク追加ボタンのイベントを設定します。",
+            "renderTodoAll": "全 Todo タスクを優先度（高→中→低）順に並べ替えて描画します。",
+            "completeTodoTask": "Todo タスクを完了状態にします。",
+            "deleteTodoTask": "Todo タスクをゴミ箱へ移動します。",
+            "deleteTodoCompleted": "完了済みの Todo をゴミ箱へ移動します。",
+            "restoreTodoTask": "ゴミ箱の Todo を復元します。",
+            "purgeOldDeletedTodoTasks": "削除から 30 日経過した Todo を自動で完全消去します。",
+            "deleteTodoForever": "指定した Todo をゴミ箱から即時完全消去します。",
+            "initAddTaskForm": "新規 Todo タスク追加フォームの送信処理を初期化します。",
+            "getBirthdays": "登録されている誕生日リストを取得します。",
+            "getBirthdaysOnDate": "指定された日付に該当する誕生日データを抽出します。",
+            "getSchedules": "予定一覧を取得します。",
+            "saveSchedules": "予定一覧を保存します。",
+            "getDeletedSchedules": "削除済みの予定を取得します。",
+            "saveDeletedSchedules": "削除済みの予定を保存します。",
+            "toDateKey": "Date オブジェクトを YYYY-MM-DD 形式のキー文字列に変換します。",
+            "getSchedulesOnDate": "指定した日付キーに該当する予定・課題・誕生日データをまとめて抽出します。",
+            "formatScheduleDateTime": "予定の開始・終了時刻を表示用にフォーマットします。",
+            "renderCalendar": "月のカレンダーグリッドを動的に生成・描画します。",
+            "renderEventList": "選択された日付の予定・課題詳細リストを表示します。",
+            "renderHistoryList": "過去の予定履歴リストを表示します。",
+            "renderDeletedList": "ゴミ箱に入っている予定一覧を表示します。",
+            "refreshAllViews": "カレンダー・イベントリスト・履歴表示を一括更新します。",
+            "purgeOldDeletedSchedules": "削除から 30 日経過した予定を自動完全削除します。",
+            "createScheduleCard": "カレンダー上に表示する小さな予定カード要素を生成します。",
+            "setAllDay": "予定登録時に「終日」チェックボックスに応じて時間入力欄の有効/無効を切り替えます。",
+            "saveBirthdays": "誕生日リストを保存します。",
+            "getDaysInMonth": "指定した年月の日数（28〜31日）を計算して返します。",
+            "buildMonthOptions": "誕生日フォームの「月」セレクトボックス選択肢を動的に生成します。",
+            "buildDayOptions": "誕生日フォームの「日」セレクトボックス選択肢を動的に生成します。",
+            "setupTypeRadio": "家族・友人・同僚などの分類ラジオボタンの切り替え処理を行います。",
+            "updateTypeLabels": "選択されたタイプラベルを更新表示します。",
+            "saveBirthday": "フォームから入力された誕生日データを新規保存または更新します。",
+            "resetForm": "誕生日入力フォームを初期化します。",
+            "startEdit": "既存の誕生日データをフォームに呼び出して編集モードにします。",
+            "deleteBirthday": "登録されている誕生日データを削除します。",
+            "renderBirthdayList": "登録済み誕生日一覧（年齢および残り日数）を描画します。",
+            "toYearMonthKey": "年月キー（YYYY-MM）を生成します。",
+            "countCharacters": "改行を除いた報告書本文の総文字数をカウントします。",
+            "formatDateJa": "年月日を「YYYY年M月D日」形式に変換します。",
+            "injectThemeStyles": "選択されたレポートテーマのスタイルをプレビューへ動的適用します。",
+            "getCurrentTheme": "現在選択されている報告書テーマの設定オブジェクトを取得します。",
+            "setTitleExamples": "報告書タイトルの入力例候補をセットします。",
+            "setupEventListeners": "テーマ変更、期間選択、ソース切り替えなどの UI イベントを設定します。",
+            "switchSource": "報告書のデータソース（カレンダー予定/課題/Todo）を切り替えます。",
+            "renderSectionEditors": "報告書の各セクション（目標・成果・課題）の編集フォームを描画します。",
+            "calculatePeriodRange": "報告書の対象期間（1 ヶ月または 3 ヶ月）の開始日・終了日を計算します。",
+            "updateItemListAndPreview": "対象期間内の実績項目を抽出し、報告書プレビューを更新します。",
+            "renderChecklist": "抽出された実績データの中から報告書に含める項目を選択するチェックリストを表示します。",
+            "getSelectedObjects": "チェックボックスで選択された実績データのオブジェクト配列を取得します。",
+            "buildReportHTML": "抽出データと編集テキストを組み合わせて完成版の報告書 HTML を構築します。",
+            "renderPreview": "構築した報告書 HTML をプレビュー領域に描画します。",
+            "applyDirectEditMode": "プレビュー画面上での直接テキスト編集（contenteditable）を有効化します。",
+            "getPreviewCurrentHTML": "現在のプレビュー内容を HTML 形式で取得します。",
+            "getPreviewCurrentText": "現在のプレビュー内容をプレーンテキスト形式で取得します。",
+            "downloadWordReport": "HTML Blob を生成し、Word (.doc) ファイルとしてダウンロード出力します。",
+            "copyReportToClipboard": "報告書テキストをクリップボードにコピーします。",
+            "fallbackCopy": "クリップボード API が使えない環境向けの代替コピー処理です。",
+            "downloadReportFile": "ファイルダウンロード処理を実行する汎用ヘルパー関数です。",
+            "collectState": "現在の報告書編集状態（フォーム入力内容や選択項目）を取得します。",
+            "applyState": "保存された報告書の編集状態を復元適用します。",
+            "loadDrafts": "報告書の下書きデータをローカルストレージから読み込みます。",
+            "persistDrafts": "下書きデータをローカルストレージに保存します。",
+            "loadAuto": "自動保存された最新の下書きを読み込みます。",
+            "scheduleAutoSave": "一定時間ごとに報告書内容を自動保存するタイマーを管理します。",
+            "formatSavedAt": "保存完了時刻を表示用にフォーマットします。",
+            "showToast": "通知トーストメッセージを表示します。",
+            "saveDraft": "手動で報告書の下書きを保存します。",
+            "renderDraftPanel": "保存された下書きの一覧パネルを表示します。",
+            "showRestoreBanner": "自動保存データの復元通知バナーを表示します。",
+            "initDrafts": "下書き機能の初期化を行います。",
+            "getReadNotificationIds": "既読にした通知メッセージの ID 配列を取得します。",
+            "saveReadNotificationIds": "既読通知 ID 配列を保存します。",
+            "getDesktopNotifySetting": "ブラウザデスクトップ通知の許可設定を読み込みます。",
+            "setDesktopNotifySetting": "デスクトップ通知の有効/無効設定を保存します。",
+            "getFutureDateKey": "今日から N 日後の日付キー（YYYY-MM-DD）を取得します。",
+            "calculateNotifications": "全データをスキャンし、「今日締切」「直近」等の通知を一括計算抽出します。",
+            "setupNotificationUI": "通知ベルアイコンのクリックによるモーダル表示イベントを設定します。",
+            "toggleModal": "通知一覧モーダルの表示/非表示を切り替えます。",
+            "updateNotificationBadge": "未読通知件数を計算し、ベルアイコンの赤バッジ数字を更新します。",
+            "renderNotificationList": "抽出された通知アイテムのリストをモーダル内に描画します。",
+            "triggerDesktopNotifications": "Web Notification API を呼び出し OS デスクトップ通知トレイへアラートを発火させます。",
+            "rawGet": "名前空間を付与しない生の localStorage アクセス（読み込み）を行います。",
+            "rawSet": "名前空間を付与しない生の localStorage アクセス（書き込み）を行います。",
+            "namespacedKey": "ログイン中のユーザー ID（UUID）をキーの先頭に付与してデータを隔離します。",
+            "sha256Hex": "パスワード等のハッシュ化暗号計算を行います。",
+            "randomSalt": "暗号化用のランダムソルト文字列を生成します。",
+            "isValidEmail": "メールアドレスのフォーマット妥当性を判定します。",
+            "getUsers": "ローカルの模擬ユーザーテーブルを取得します。",
+            "saveUsers": "ローカルの模擬ユーザーテーブルを保存します。",
+            "findUser": "条件に一致するユーザーを検索します。",
+            "setSessionProfile": "現在のログインセッション情報を保持設定します。",
+            "getSessionProfile": "現在のセッション情報を取得します。",
+            "getCurrentUser": "現在のログインユーザーのオブジェクトを取得します。",
+            "getCurrentUserId": "現在のログインユーザーの UUID を取得します。",
+            "getCurrentUserIdAsync": "非同期で安全にユーザー ID を取得します。",
+            "isAdmin": "ログイン中のユーザーが管理者権限（Master）を持っているか判定します。",
+            "registerUser": "新規ユーザーのアカウント登録を行います。",
+            "loginUser": "ログイン認証を実行しセッションを発行します。",
+            "changePassword": "パスワード変更処理を実行します。",
+            "updateEmail": "メールアドレスの変更処理を実行します。",
+            "deleteAccount": "アカウントの削除（退会処理）を実行します。",
+            "logout": "ログアウト処理を行いセッションを消去します。",
+            "getProfiles": "管理者用にユーザープロファイル一覧を取得します。",
+            "updateUserRole": "ユーザーの権限（一般/管理者）を変更します。",
+            "updateUserStatus": "ユーザーのアカウント状態（有効/停止）を変更します。",
+            "deleteUserByAdmin": "管理者権限で指定ユーザーを強制削除します。",
+            "requireAuth": "ログインが必要なページでセッションを確認し、未ログイン時はログイン画面へ戻します。",
+            "bindLogoutButton": "ログアウトボタンにイベントをバインドします。",
+            "renderNavMenuAccount": "ナビゲーションメニュー内のユーザー表示エリアを描画します。",
+            "renderAccountBar": "アカウントバーをレンダリングします。",
+            "isValidUUID": "ユーザー ID が正規の UUID 形式かを検証します。",
+            "pullCloudData": "Supabase データベースから最新データを取得しローカルストレージへ反映します。",
+            "pushCloudData": "ローカルで変更のあったキーのデータを Supabase へ Upsert 送信します。",
+            "queueSync": "変更があったキーを送信キューに追加しデバウンスタイマーを開始します。",
+            "flushSync": "キューに溜まった変更キーをまとめて一括送信します。",
+            "migrateLocalDataToCloud": "初回ログイン時にゲスト状態のローカルデータをクラウドアカウント側へ移行します。",
+            "autoSync": "起動時に認証セッション状態をチェックし自動同期をスタートします。",
+            "initSupabase": "Supabase API Key を使用して SDK クライアントを初期化します。",
+            "checkExistingRequest": "アカウント削除申請や変更申請が存在するかチェックします。",
+            "switchTab": "ログイン画面での「ログイン/新規登録」タブを切り替えます。",
+            "fetchAndRenderUsers": "管理者画面で全登録ユーザー一覧を取得してテーブル描画します。",
+            "updateStats": "全ユーザー数などの統計バッジを更新します。",
+            "renderFilteredUsers": "検索・絞り込み条件に応じたユーザー一覧を表示します。",
+            "bindActionEvents": "管理者操作ボタンのイベントを設定します。",
+            "fetchAndRenderDeleteRequests": "削除申請一覧を取得して描画します。",
+            "bindDeleteRequestEvents": "削除申請の承認・拒否ボタンのイベントを設定します。",
+            "getPartnerLabel": "共有タイプ（自分のみ/パートナーと一緒）の表示ラベルを取得します。",
+            "setupPartnerFilter": "パートナー共有フィルターの切り替え UI を設定します。",
+            "filterByPartner": "選択された共有フィルター条件に応じてリストを絞り込みます。",
+            "getWishes": "やりたいこと（Wish）リストを取得します。",
+            "saveWishes": "やりたいことリストを保存します。",
+            "getWishDeleted": "削除済み Wish リストを取得します。",
+            "saveWishDeleted": "削除済み Wish リストを保存します。",
+            "renderWishes": "未達成のやりたいこと一覧をカード表示します。",
+            "setAchieved": "指定した Wish を「達成済み」にし達成日時のタイムスタンプを保存します。",
+            "deleteWish": "Wish をゴミ箱へ移動します。",
+            "restoreWish": "ゴミ箱の Wish を元に戻します。",
+            "purgeOldDeletedWishes": "削除から 30 日以上経過した Wish を自動完全削除します。",
+            "deleteWishForever": "Wish を即時完全消去します。",
+            "renderDeletedWishes": "ゴミ箱内の Wish 一覧を表示します。",
+            "getIdeas": "アイデアメモ一覧を取得します。",
+            "saveIdeas": "アイデアメモ一覧を保存します。",
+            "getIdeaDeleted": "削除されたアイデアメモ一覧を取得します。",
+            "saveIdeaDeleted": "削除されたアイデアメモ一覧を保存します。",
+            "renderIdeas": "登録されているアイデアメモ一覧を表示します。",
+            "renderAchievedIdeas": "実現・達成したアイデアの一覧を表示します。",
+            "setIdeaAchieved": "アイデアを「実現済み」ステートに変更します。",
+            "deleteIdea": "アイデアをゴミ箱へ移動します。",
+            "restoreIdea": "ゴミ箱のアイデアを復元します。",
+            "purgeOldDeletedIdeas": "削除から 30 日経過したアイデアを自動完全削除します。",
+            "deleteIdeaForever": "アイデアを即時完全消去します。",
+            "renderDeletedIdeas": "ゴミ箱内のアイデア一覧を表示します。",
+            "openDrawer": "スライド式ナビゲーションドロワーメニューを開きます。",
+            "closeDrawer": "ナビゲーションドロワーメニューを閉じます。",
+            "scheduleClose": "ドロワー外ホバー時等に自動で閉じるタイマーをスケジューリングします。",
+            "cancelClose": "自動で閉じるタイマーをキャンセルします。",
+            "renderCards": "ダッシュボード上の各機能カードを設定に基づき描画します。",
+            "updateCountBadge": "カスタマイズ画面内の件数バッジを更新します。",
+            "bindCardEvents": "カードの並び順変更や表示切り替えイベントを設定します。",
+            "handleSave": "カードのカスタマイズ表示状態を保存します。",
+            "getDefaultFeatureIds": "システムの全機能 ID リストを取得します。",
+            "getEnabledFeatureIds": "現在ユーザーが有効化している機能 ID リストを取得します。",
+            "saveEnabledFeatureIds": "有効化する機能リストを保存します。",
+            "applyToNavMenu": "無効化された機能をナビゲーションメニューから非表示化します。",
+            "applyToHomeMenu": "無効化された機能をホーム画面から除外します。",
+            "applyCustomFeaturesToUI": "画面全体に機能オン/オフカスタム設定を反映します。",
+            "escapeHtml": "XSS 防御のため HTML 特殊文字をエスケープ処理します。"
         };
 
-        // Core Nodes Registration
+        // Core Nodes Registration（シンプルモード対応：関数数を明確化）
         NODES_DATA.push(
             {
                 id: 'core',
                 name: 'MyNote Core',
-                role: '統合ハブ ＆ UIプラットフォーム',
+                role: '統合ハブ ｜ 全 22+ 関数統括',
                 avatar: '🚀',
                 type: 'core',
                 x: 600, y: 400,
-                desc: 'Webサイト全体の基盤。HTML5 UIカードグリッド、イースターエッグポータル、ドロワーナビゲーション、アプリ初期化（initApp）を統合管理[cite: 1]。',
+                desc: 'Webサイト全体の基盤。HTML5 UIカードグリッド、イースターエッグポータル、ドロワーナビゲーション、アプリ初期化（initApp）を統合管理。',
                 file: 'index.html / common.js',
                 code: 'window.addEventListener("DOMContentLoaded", initApp);'
             },
             {
                 id: 'branch-habit',
                 name: '毎日習慣タスク',
-                role: 'everydayTask.js',
+                role: 'everydayTask.js ｜ 全 35 関数',
                 avatar: '🔥',
                 type: 'habit',
                 parent: 'core',
                 x: 600, y: 180,
-                desc: '毎日の習慣化を支援。アクセスの日付差（diffDays）からストリーク維持・リセットを自動判定し、習慣タスクのCRUD処理を行う[cite: 1]。',
+                desc: '毎日の習慣化を支援。アクセスの日付差（diffDays）からストリーク維持・リセットを自動判定し、習慣タスクのCRUD処理を行う。',
                 file: 'js/everydayTask.js',
                 code: 'diffDays = getDaysDiff(lastDate, today);'
             },
@@ -864,7 +862,7 @@
                 type: 'habit',
                 parent: 'branch-habit',
                 x: 430, y: 80,
-                desc: '前日からの連続アクセス時（diffDays === 1）に達成済み習慣タスクの streak（連続達成数）を +1 加算する[cite: 1]。',
+                desc: '前日からの連続アクセス時（diffDays === 1）に達成済み習慣タスクの streak（連続達成数）を +1 加算する。',
                 file: 'js/everydayTask.js',
                 code: 'completed.forEach(t => t.streak++);'
             },
@@ -876,7 +874,7 @@
                 type: 'habit',
                 parent: 'branch-habit',
                 x: 600, y: 60,
-                desc: '日付を跨いだ初回オープン時に昨日の実績を日次履歴へアーカイブし、完了状態のリセットを実行する[cite: 1]。',
+                desc: '日付を跨いだ初回オープン時に昨日の実績を日次履歴へアーカイブし、完了状態のリセットを実行する。',
                 file: 'js/everydayTask.js',
                 code: 'archivePreviousDay(lastDate);'
             },
@@ -888,19 +886,19 @@
                 type: 'habit',
                 parent: 'branch-habit',
                 x: 770, y: 80,
-                desc: '過去の達成率カレンダーやグラフ表示のために、過去の日付ごとの達成率や完了数をスナップショットとして保持[cite: 1]。',
+                desc: '過去の達成率カレンダーやグラフ表示のために、過去の日付ごとの達成率や完了数をスナップショットとして保持。',
                 file: 'js/everydayTask.js',
                 code: 'saveDailyHistory(history);'
             },
             {
                 id: 'branch-kadai',
                 name: '課題締切管理',
-                role: 'kadai.js',
+                role: 'kadai.js ｜ 全 25 関数',
                 avatar: '📚',
                 type: 'kadai',
                 parent: 'core',
                 x: 950, y: 280,
-                desc: '課題の締切日時をパースし、今週・来週・以降に自動分類。達成率プログレスバーを動的計算[cite: 1]。',
+                desc: '課題の締切日時をパースし、今週・来週・以降に自動分類。達成率プログレスバーを動的計算。',
                 file: 'js/kadai.js',
                 code: 'tasks.sort((a,b) => deadlineA - deadlineB);'
             },
@@ -912,7 +910,7 @@
                 type: 'kadai',
                 parent: 'branch-kadai',
                 x: 1140, y: 200,
-                desc: '月曜日を基準とした日付キー（YYYY-MM-DD）により今週・来週の課題群を等値判定してグループ化[cite: 1]。',
+                desc: '月曜日を基準とした日付キー（YYYY-MM-DD）により今週・来週の課題群を等値判定してグループ化。',
                 file: 'js/kadai.js',
                 code: 'wk === currentWeekKey ? thisWeek : later;'
             },
@@ -924,19 +922,19 @@
                 type: 'kadai',
                 parent: 'branch-kadai',
                 x: 1170, y: 320,
-                desc: '期限が過ぎた週の課題グループをメイン一覧から自動的に過去アーカイブ領域へ移動[cite: 1]。',
+                desc: '期限が過ぎた週の課題グループをメイン一覧から自動的に過去アーカイブ領域へ移動。',
                 file: 'js/kadai.js',
                 code: 'tasks.filter(t => t.deadline < now);'
             },
             {
                 id: 'branch-task',
                 name: '優先度タスク',
-                role: 'tasks.js',
+                role: 'tasks.js ｜ 全 19 関数',
                 avatar: '📋',
                 type: 'task',
                 parent: 'core',
                 x: 950, y: 470,
-                desc: '締切のない日常のToDoを「高・中・低」の優先度で整理し、完了・削除状態を別ストレージキーで管理[cite: 1]。',
+                desc: '締切のない日常のToDoを「高・中・低」の優先度で整理し、完了・削除状態を別ストレージキーで管理。',
                 file: 'js/tasks.js',
                 code: 'priorityWeight[b.priority] - priorityWeight[a.priority]'
             },
@@ -948,19 +946,19 @@
                 type: 'task',
                 parent: 'branch-task',
                 x: 1150, y: 470,
-                desc: '重要度の高いタスク（高）をリストの最上部に固定配置するソート処理[cite: 1]。',
+                desc: '重要度の高いタスク（高）をリストの最上部に固定配置するソート処理。',
                 file: 'js/tasks.js',
                 code: 'renderTodoAll();'
             },
             {
                 id: 'branch-report',
                 name: '報告書自動作成',
-                role: 'report.js',
+                role: 'report.js ｜ 全 35 関数',
                 avatar: '📝',
                 type: 'report',
                 parent: 'core',
                 x: 820, y: 620,
-                desc: '過去の予定・課題・タスクから1/3ヶ月の実績を自動抽出し、6種類のデザインテーマでWord/MDファイルへ出力[cite: 1]。',
+                desc: '過去の予定・課題・タスクから1/3ヶ月の実績を自動抽出し、6種類のデザインテーマでWord/MDファイルへ出力。',
                 file: 'js/report.js',
                 code: 'schedules.filter(s => s.date >= rangeStart)'
             },
@@ -972,7 +970,7 @@
                 type: 'report',
                 parent: 'branch-report',
                 x: 960, y: 720,
-                desc: 'クラシックブルー、ミッドナイト、エディトリアルなど6種類の装飾スタイルをプレビューへ切り替え[cite: 1]。',
+                desc: 'クラシックブルー、ミッドナイト、エディトリアルなど6種類の装飾スタイルをプレビューへ切り替え。',
                 file: 'js/report.js',
                 code: 'applyTheme(REPORT_THEMES[selected]);'
             },
@@ -984,43 +982,43 @@
                 type: 'report',
                 parent: 'branch-report',
                 x: 800, y: 760,
-                desc: 'HTML Blobを生成し、クライアント側のみでWord（.doc）やMarkdownファイルを即時生成・ダウンロード[cite: 1]。',
+                desc: 'HTML Blobを生成し、クライアント側のみでWord（.doc）やMarkdownファイルを即時生成・ダウンロード。',
                 file: 'js/report.js',
                 code: 'new Blob([docHtml], { type: "application/msword" });'
             },
             {
                 id: 'branch-calendar',
                 name: 'カレンダー＆予定',
-                role: 'calendar.js',
+                role: 'calendar.js ｜ 全 31 関数',
                 avatar: '📅',
                 type: 'calendar',
                 parent: 'core',
                 x: 520, y: 650,
-                desc: '月度グリッドの生成と、予定・課題締切・誕生日の同一日付マルチドット重畳表示[cite: 1]。',
+                desc: '月度グリッドの生成と、予定・課題締切・誕生日の同一日付マルチドット重畳表示。',
                 file: 'js/calendar.js',
                 code: 'new Date(year, month + 1, 0).getDate()'
             },
             {
                 id: 'sub-bday',
                 name: '誕生日管理',
-                role: 'birthdays.js',
+                role: 'birthdays.js ｜ 全 13 関数',
                 avatar: '🎂',
                 type: 'calendar',
                 parent: 'branch-calendar',
                 x: 480, y: 770,
-                desc: '年齢の自動計算と次の誕生日までのカウントダウン、通知連携[cite: 1]。',
+                desc: '年齢の自動計算と次の誕生日までのカウントダウン、通知連携。',
                 file: 'js/birthdays.js',
                 code: 'daysRemaining = Math.ceil((nextBday - now) / 86400000);'
             },
             {
                 id: 'branch-notify',
                 name: '通知センター',
-                role: 'notification.js',
+                role: 'notification.js ｜ 全 12 関数',
                 avatar: '🔔',
                 type: 'notify',
                 parent: 'core',
                 x: 270, y: 530,
-                desc: '全データを一括スキャンし、締切当日・直前・未達成習慣・誕生日を抽出して通知リストを生成[cite: 1]。',
+                desc: '全データを一括スキャンし、締切当日・直前・未達成習慣・誕生日を抽出して通知リストを生成。',
                 file: 'js/notification.js',
                 code: 'calculateNotifications();'
             },
@@ -1032,19 +1030,19 @@
                 type: 'notify',
                 parent: 'branch-notify',
                 x: 100, y: 610,
-                desc: 'Web Notification APIを呼び出し、ブラウザ/OSのトレイへアラートを発火させる[cite: 1]。',
+                desc: 'Web Notification APIを呼び出し、ブラウザ/OSのトレイへアラートを発火させる。',
                 file: 'js/notification.js',
                 code: 'new Notification("MyNote", { body });'
             },
             {
                 id: 'branch-storage',
                 name: '22 Key Storage',
-                role: 'localStorage API',
+                role: 'localStorage ｜ 全 22 データキー',
                 avatar: '💾',
                 type: 'storage',
                 parent: 'core',
                 x: 230, y: 370,
-                desc: '全22キーの完全分離ローカルデータストア。オフライン状態でも0msの即時描画を実現[cite: 1]。',
+                desc: '全22キーの完全分離ローカルデータストア。オフライン状態でも0msの即時描画を実現。',
                 file: 'browser localStorage',
                 code: 'localStorage.setItem(key, JSON.stringify(val));'
             },
@@ -1056,19 +1054,19 @@
                 type: 'storage',
                 parent: 'branch-storage',
                 x: 60, y: 430,
-                desc: 'クラウド同期完了時にイベントを発火させ、全画面の再描画（renderAll）を指示する[cite: 1]。',
+                desc: 'クラウド同期完了時にイベントを発火させ、全画面の再描画（renderAll）を指示する。',
                 file: 'js/db-sync.js',
                 code: 'window.dispatchEvent(new CustomEvent("myNoteDataSynced"));'
             },
             {
                 id: 'branch-sync',
                 name: 'クラウド同期エンジン',
-                role: 'db-sync.js',
+                role: 'db-sync.js ｜ 全 14 関数',
                 avatar: '⚡',
                 type: 'sync',
                 parent: 'core',
                 x: 270, y: 220,
-                desc: '500msデバウンスキューによる一括バッチUpsertとバックグラウンド差分同期エンジン[cite: 1]。',
+                desc: '500msデバウンスキューによる一括バッチUpsertとバックグラウンド差分同期エンジン。',
                 file: 'js/db-sync.js',
                 code: 'pendingKeys.add(key); clearTimeout(syncTimer);'
             },
@@ -1080,19 +1078,19 @@
                 type: 'sync',
                 parent: 'branch-sync',
                 x: 100, y: 160,
-                desc: 'Row Level Security (RLS) により、ログインユーザー本人の UUID データのみ保護・アクセス許可[cite: 1]。',
+                desc: 'Row Level Security (RLS) により、ログインユーザー本人の UUID データのみ保護・アクセス許可。',
                 file: 'supabase_setup.sql',
                 code: 'USING (auth.uid() = user_id)'
             },
             {
                 id: 'sub-auth',
                 name: 'JWT セッション認証',
-                role: 'auth.js',
+                role: 'auth.js ｜ 全 29 関数',
                 avatar: '🔐',
                 type: 'sync',
                 parent: 'branch-sync',
                 x: 180, y: 80,
-                desc: 'OAuth 2.0 / Emailパスワードによる認証とセッション永続化管理[cite: 1]。',
+                desc: 'OAuth 2.0 / Emailパスワードによる認証とセッション永続化管理。',
                 file: 'js/auth.js',
                 code: 'supabase.auth.getSession();'
             }
@@ -1100,107 +1098,106 @@
 
         const A = (...a) => NODES_DATA.push(Object.fromEntries(['id','name','role','avatar','type','parent','desc','file','code'].map((k, i) => [k, a[i]])));
 
-        A('branch-wish','やりたいこと＆アイデア','wishlist.js / ideas.js','✨','wish','core','ウィッシュリストとアイデアメモの作成・達成ステート管理・ゴミ箱復元処理[cite: 1]。','js/wishlist.js','renderWishes(); renderIdeas();');
-        A('branch-ui','UI基盤','common.js / common.css','🎨','ui','core','全ページ共通のドロワーメニュー、カードグリッド、テーマ切替、隠しコマンドを統括[cite: 1]。','js/common.js','openDrawer(); closeDrawer();');
+        A('branch-wish','やりたいこと＆アイデア','wishlist.js ｜ 全 27 関数','✨','wish','core','ウィッシュリストとアイデアメモの作成・達成ステート管理・ゴミ箱復元処理。','js/wishlist.js','renderWishes(); renderIdeas();');
+        A('branch-ui','UI基盤＆設定','common.js ｜ 全 18 関数','🎨','ui','core','全ページ共通のドロワーメニュー、カードグリッド、テーマ切替、隠しコマンドを統括。','js/common.js','openDrawer(); closeDrawer();');
 
-        A('leaf-streak-inc','+1 加算','diffDays === 1','➕','habit','sub-habit-streak','前日アクセスかつ達成済みのタスクのみ streak（連続達成数）を +1 加算する[cite: 1]。','js/everydayTask.js','t.streak = (t.streak || 0) + 1;');
-        A('leaf-streak-zero','0 リセット','diffDays >= 2','⛔','habit','sub-habit-streak','2日以上空いた（diffDays >= 2）場合に連続記録を 0 にリセットする[cite: 1]。','js/everydayTask.js','allTasks.forEach(t => t.streak = 0);');
-        A('leaf-today','getTodayKey','日付キー生成','🗝️','habit','sub-habit-reset','YYYY-MM-DD 形式の今日の日付キー文字列を生成して返す[cite: 1]。','js/everydayTask.js','getTodayKey()');
-        A('leaf-diff','getDaysDiff','日数差分','➗','habit','sub-habit-reset','前回アクセス日と今日の差分（日数）を計算する[cite: 1]。','js/everydayTask.js','getDaysDiff(last, today)');
-        A('sub-habit-crud','習慣データ保存','save/getHabitTasks','✏️','habit','branch-habit','習慣タスク・完了状態・削除データをそれぞれ個別のキーで保存管理[cite: 1]。','js/everydayTask.js','saveHabitTasks(list);');
+        A('leaf-streak-inc','+1 加算','diffDays === 1','➕','habit','sub-habit-streak','前日アクセスかつ達成済みのタスクのみ streak（連続達成数）を +1 加算する。','js/everydayTask.js','t.streak = (t.streak || 0) + 1;');
+        A('leaf-streak-zero','0 リセット','diffDays >= 2','⛔','habit','sub-habit-streak','2日以上空いた（diffDays >= 2）場合に連続記録を 0 にリセットする。','js/everydayTask.js','allTasks.forEach(t => t.streak = 0);');
+        A('leaf-today','getTodayKey','日付キー生成','🗝️','habit','sub-habit-reset','YYYY-MM-DD 形式の今日の日付キー文字列を生成して返す。','js/everydayTask.js','getTodayKey()');
+        A('leaf-diff','getDaysDiff','日数差分','➗','habit','sub-habit-reset','前回アクセス日と今日の差分（日数）を計算する。','js/everydayTask.js','getDaysDiff(last, today)');
+        A('sub-habit-crud','習慣データ保存','save/getHabitTasks','✏️','habit','branch-habit','習慣タスク・完了状態・削除データをそれぞれ個別のキーで保存管理。','js/everydayTask.js','saveHabitTasks(list);');
 
-        A('sub-kadai-progress','達成率計算','完了 ÷ 全体','📶','kadai','branch-kadai','完了数と全体数から達成率（%）をリアルタイム計算し進捗バーを更新[cite: 1]。','js/kadai.js','Math.round(comp / (act + comp) * 100)');
-        A('sub-kadai-purge','30日パージ','削除済みの自動消去','🗑️','kadai','branch-kadai','ゴミ箱に30日以上残った課題を自動で完全消去[cite: 1]。','js/kadai.js','purgeOldDeletedTasks();');
-        A('leaf-kadai-sort','締切昇順ソート','近い順に並べる','↕️','kadai','sub-kadai-cluster','締切日時を Date 化して日付が近い順に昇順並べ替え[cite: 1]。','js/kadai.js','sort((a,b) => new Date(a.deadline) - new Date(b.deadline))');
+        A('sub-kadai-progress','達成率計算','完了 ÷ 全体','📶','kadai','branch-kadai','完了数と全体数から達成率（%）をリアルタイム計算し進捗バーを更新。','js/kadai.js','Math.round(comp / (act + comp) * 100)');
+        A('sub-kadai-purge','30日パージ','削除済みの自動消去','🗑️','kadai','branch-kadai','ゴミ箱に30日以上残った課題を自動で完全消去。','js/kadai.js','purgeOldDeletedTasks();');
+        A('leaf-kadai-sort','締切昇順ソート','近い順に並べる','↕️','kadai','sub-kadai-cluster','締切日時を Date 化して日付が近い順に昇順並べ替え。','js/kadai.js','sort((a,b) => new Date(a.deadline) - new Date(b.deadline))');
 
-        A('sub-task-done','完了・ゴミ箱','todoCompleted / Deleted','✅','task','branch-task','完了タスクと削除済みタスクを別キーで独立保持[cite: 1]。','js/tasks.js','saveTodoCompleted(list);');
-        A('sub-task-badge','優先度クラス','priorityClass()','🎚️','task','branch-task','優先度（高・中・低）に応じた色バッジクラスを返す[cite: 1]。','js/tasks.js','priorityClass(p)');
+        A('sub-task-done','完了・ゴミ箱','todoCompleted / Deleted','✅','task','branch-task','完了タスクと削除済みタスクを別キーで独立保持。','js/tasks.js','saveTodoCompleted(list);');
+        A('sub-task-badge','優先度クラス','priorityClass()','🎚️','task','branch-task','優先度（高・中・低）に応じた色バッジクラスを返す。','js/tasks.js','priorityClass(p)');
 
-        A('sub-cal-grid','月グリッド生成','renderCalendar()','🔲','calendar','branch-calendar','月の日数と曜日オフセットから7列グリッドを動的生成[cite: 1]。','js/calendar.js','new Date(y, m + 1, 0).getDate()');
-        A('sub-cal-map','日付別マッピング','getSchedulesOnDate()','📍','calendar','branch-calendar','日付キーで予定・課題締切・誕生日を引き当てる[cite: 1]。','js/calendar.js','getSchedulesOnDate(key)');
-        A('leaf-cal-dot','ドット重畳','予定＋課題＋誕生日','🔵','calendar','sub-cal-map','同一日の複数種別のデータを色違いドットで重ねて表示[cite: 1]。','js/calendar.js','renderCalendar();');
-        A('leaf-leap','うるう年補正','2/29 生まれ対応','📆','calendar','sub-bday','2月29日生まれの誕生日を平年（365日）でも正確に判定処理[cite: 1]。','js/birthdays.js','getDaysInMonth(y, m)');
+        A('sub-cal-grid','月グリッド生成','renderCalendar()','🔲','calendar','branch-calendar','月の日数と曜日オフセットから7列グリッドを動的生成。','js/calendar.js','new Date(y, m + 1, 0).getDate()');
+        A('sub-cal-map','日付別マッピング','getSchedulesOnDate()','📍','calendar','branch-calendar','日付キーで予定・課題締切・誕生日を引き当てる。','js/calendar.js','getSchedulesOnDate(key)');
+        A('leaf-cal-dot','ドット重畳','予定＋課題＋誕生日','🔵','calendar','sub-cal-map','同一日の複数種別のデータを色違いドットで重ねて表示。','js/calendar.js','renderCalendar();');
+        A('leaf-leap','うるう年補正','2/29 生まれ対応','📆','calendar','sub-bday','2月29日生まれの誕生日を平年（365日）でも正確に判定処理。','js/birthdays.js','getDaysInMonth(y, m)');
 
-        A('sub-report-src','データ抽出','予定・課題・タスク','📥','report','branch-report','予定・課題・タスクから指定期間（1/3ヶ月）の実績を抽出[cite: 1]。','js/report.js','getKadaiTasks(); getTodoTasks();');
-        A('leaf-inject','CSS動的注入','injectThemeStyles()','💉','report','sub-report-theme','選択されたテーマの CSS をプレビューへ即時適用[cite: 1]。','js/report.js','injectThemeStyles(theme)');
-        A('leaf-count','文字数カウント','countCharacters()','🔢','report','sub-report-doc','改行を除いた純粋な本文の文字数をリアルタイム算出[cite: 1]。','js/report.js','text.replace(/\\r?\\n/g, "").length');
+        A('sub-report-src','データ抽出','予定・課題・タスク','📥','report','branch-report','予定・課題・タスクから指定期間（1/3ヶ月）の実績を抽出。','js/report.js','getKadaiTasks(); getTodoTasks();');
+        A('leaf-inject','CSS動的注入','injectThemeStyles()','💉','report','sub-report-theme','選択されたテーマの CSS をプレビューへ即時適用。','js/report.js','injectThemeStyles(theme)');
+        A('leaf-count','文字数カウント','countCharacters()','🔢','report','sub-report-doc','改行を除いた純粋な本文の文字数をリアルタイム算出。','js/report.js','text.replace(/\\r?\\n/g, "").length');
 
-        A('sub-notify-calc','期日スキャン','calculateNotifications()','🔍','notify','branch-notify','全データを走査し、今日・直近に迫っている項目をリスト抽出[cite: 1]。','js/notification.js','calculateNotifications();');
-        A('leaf-3days','3日以内フィルタ','getFutureDateKey(3)','📆','notify','sub-notify-calc','今日から3日後までの未完了項目を優先して抽出[cite: 1]。','js/notification.js','getFutureDateKey(3)');
-        A('sub-notify-read','既読ID管理','readNotificationIds','👁️','notify','branch-notify','確認済みの既読通知 ID を保存し、未読分のみ判定[cite: 1]。','js/notification.js','saveReadNotificationIds(ids);');
-        A('sub-notify-badge','未読バッジ','updateNotificationBadge()','🔴','notify','branch-notify','未読件数を計算し、ベルアイコンの赤バッジに反映[cite: 1]。','js/notification.js','updateNotificationBadge();');
+        A('sub-notify-calc','期日スキャン','calculateNotifications()','🔍','notify','branch-notify','全データを走査し、今日・直近に迫っている項目をリスト抽出。','js/notification.js','calculateNotifications();');
+        A('leaf-3days','3日以内フィルタ','getFutureDateKey(3)','📆','notify','sub-notify-calc','今日から3日後までの未完了項目を優先して抽出。','js/notification.js','getFutureDateKey(3)');
+        A('sub-notify-read','既読ID管理','readNotificationIds','👁️','notify','branch-notify','確認済みの既読通知 ID を保存し、未読分のみ判定。','js/notification.js','saveReadNotificationIds(ids);');
+        A('sub-notify-badge','未読バッジ','updateNotificationBadge()','🔴','notify','branch-notify','未読件数を計算し、ベルアイコンの赤バッジに反映。','js/notification.js','updateNotificationBadge();');
 
-        A('sub-ns','ユーザー名前空間','namespacedKey()','🏷️','storage','branch-storage','ユーザー ID（UUID）を接頭辞に付け、複数アカウントのデータを完全分離[cite: 1]。','js/auth.js','namespacedKey(key)');
-        A('sub-keys','データキー群','tasks / schedules / ...','🗝️','storage','branch-storage','機能ごとに独立した 22+ のストレージキー構造[cite: 1]。','browser localStorage','localStorage.getItem("tasks")');
+        A('sub-ns','ユーザー名前空間','namespacedKey()','🏷️','storage','branch-storage','ユーザー ID（UUID）を接頭辞に付け、複数アカウントのデータを完全分離。','js/auth.js','namespacedKey(key)');
+        A('sub-keys','データキー群','tasks / schedules / ...','🗝️','storage','branch-storage','機能ごとに独立した 22+ のストレージキー構造。','browser localStorage','localStorage.getItem("tasks")');
 
-        A('sub-pull','pullCloudData','クラウド→ローカル','⬇️','sync','branch-sync','ログイン時や変更検知時に Supabase から最新データを取得[cite: 1]。','js/db-sync.js','pullCloudData(userId);');
-        A('sub-push','pushCloudData','ローカル→クラウド','⬆️','sync','branch-sync','変更があったキーのデータをまとめて Supabase へ Upsert[cite: 1]。','js/db-sync.js','pushCloudData(userId, keys);');
-        A('sub-queue','queueSync / flushSync','500msデバウンス','⏱️','sync','branch-sync','変更キーをキューに溜め、500ms 後に一括送信[cite: 1]。','js/db-sync.js','pendingKeys.add(key);');
-        A('sub-auto','autoSync','起動時の自動同期','🔁','sync','branch-sync','起動時に認証セッションを確認し、自動同期を開始[cite: 1]。','js/db-sync.js','autoSync();');
+        A('sub-pull','pullCloudData','クラウド→ローカル','⬇️','sync','branch-sync','ログイン時や変更検知時に Supabase から最新データを取得。','js/db-sync.js','pullCloudData(userId);');
+        A('sub-push','pushCloudData','ローカル→クラウド','⬆️','sync','branch-sync','変更があったキーのデータをまとめて Supabase へ Upsert。','js/db-sync.js','pushCloudData(userId, keys);');
+        A('sub-queue','queueSync / flushSync','500msデバウンス','⏱️','sync','branch-sync','変更キーをキューに溜め、500ms 後に一括送信。','js/db-sync.js','pendingKeys.add(key);');
+        A('sub-auto','autoSync','起動時の自動同期','🔁','sync','branch-sync','起動時に認証セッションを確認し、自動同期を開始。','js/db-sync.js','autoSync();');
 
-        A('leaf-diff-detect','差分検知','文字列比較で上書き','≠','sync','sub-pull','ローカルとクラウドの JSON 文字列比較で不一致時のみ更新[cite: 1]。','js/db-sync.js','if (local !== cloud) set(key)');
-        A('leaf-migrate','初回移行','migrateLocalDataToCloud','🚚','sync','sub-auto','ゲスト利用時のローカルデータを初回ログイン時にクラウドへ移行[cite: 1]。','js/db-sync.js','migrateLocalDataToCloud();');
-        A('leaf-rls','RLS ポリシー','本人のみ読み書き','🛡️','sync','sub-supabase','データベース側で他人のデータへの読み書きを遮断[cite: 1]。','supabase_setup.sql','auth.uid() = user_id');
-        A('leaf-uuid','UUID検証','isValidUUID()','🆔','sync','sub-auth','ユーザー ID の形式（8-4-4-4-12）を検証[cite: 1]。','js/db-sync.js','isValidUUID(id)');
+        A('leaf-diff-detect','差分検知','文字列比較で上書き','≠','sync','sub-pull','ローカルとクラウドの JSON 文字列比較で不一致時のみ更新。','js/db-sync.js','if (local !== cloud) set(key)');
+        A('leaf-migrate','初回移行','migrateLocalDataToCloud','🚚','sync','sub-auto','ゲスト利用時のローカルデータを初回ログイン時にクラウドへ移行。','js/db-sync.js','migrateLocalDataToCloud();');
+        A('leaf-rls','RLS ポリシー','本人のみ読み書き','🛡️','sync','sub-supabase','データベース側で他人のデータへの読み書きを遮断。','supabase_setup.sql','auth.uid() = user_id');
+        A('leaf-uuid','UUID検証','isValidUUID()','🆔','sync','sub-auth','ユーザー ID の形式（8-4-4-4-12）を検証。','js/db-sync.js','isValidUUID(id)');
 
-        A('sub-wish-filter','パートナー絞込','filterByPartner()','👫','wish','branch-wish','自分のみ / パートナーと一緒 の条件でリストを絞り込む[cite: 1]。','js/wishlist.js','filterByPartner(list)');
-        A('sub-wish-done','達成トグル','setAchieved()','🎯','wish','branch-wish','達成状態を切り替え、達成日時のタイムスタンプを記録[cite: 1]。','js/wishlist.js','setAchieved(id);');
-        A('sub-wish-trash','削除・復元','restoreWish()','♻️','wish','branch-wish','項目をゴミ箱へ移動し、必要時に復元処理を行う[cite: 1]。','js/wishlist.js','restoreWish(id);');
-        A('leaf-wish-purge','30日パージ','purgeOldDeletedWishes','🧹','wish','sub-wish-trash','30日以上経過した削除済み項目を自動で完全削除[cite: 1]。','js/wishlist.js','purgeOldDeletedWishes();');
+        A('sub-wish-filter','パートナー絞込','filterByPartner()','👫','wish','branch-wish','自分のみ / パートナーと一緒 の条件でリストを絞り込む。','js/wishlist.js','filterByPartner(list)');
+        A('sub-wish-done','達成トグル','setAchieved()','🎯','wish','branch-wish','達成状態を切り替え、達成日時のタイムスタンプを記録。','js/wishlist.js','setAchieved(id);');
+        A('sub-wish-trash','削除・復元','restoreWish()','♻️','wish','branch-wish','項目をゴミ箱へ移動し、必要時に復元処理を行う。','js/wishlist.js','restoreWish(id);');
+        A('leaf-wish-purge','30日パージ','purgeOldDeletedWishes','🧹','wish','sub-wish-trash','30日以上経過した削除済み項目を自動で完全削除。','js/wishlist.js','purgeOldDeletedWishes();');
 
-        A('sub-idea','アイデア保存','ideas.js','💡','wish','branch-wish','思いついたメモを即時にローカルストレージへ永続化[cite: 1]。','js/ideas.js','saveIdeas(list);');
-        A('leaf-idea-done','達成化','setIdeaAchieved()','🏁','wish','sub-idea','実現できたアイデアを達成済みステートへ移行[cite: 1]。','js/ideas.js','setIdeaAchieved(id);');
-        A('leaf-idea-restore','アーカイブ復元','restoreIdea()','📤','wish','sub-idea','削除済みまたはアーカイブされたアイデアを復元[cite: 1]。','js/ideas.js','restoreIdea(id);');
+        A('sub-idea','アイデア保存','ideas.js','💡','wish','branch-wish','思いついたメモを即時にローカルストレージへ永続化。','js/ideas.js','saveIdeas(list);');
+        A('leaf-idea-done','達成化','setIdeaAchieved()','🏁','wish','sub-idea','実現できたアイデアを達成済みステートへ移行。','js/ideas.js','setIdeaAchieved(id);');
+        A('leaf-idea-restore','アーカイブ復元','restoreIdea()','📤','wish','sub-idea','削除済みまたはアーカイブされたアイデアを復元。','js/ideas.js','restoreIdea(id);');
 
-        A('sub-ui-drawer','ドロワー','openDrawer / closeDrawer','☰','ui','branch-ui','共通のスライド式ドロワーナビゲーションを開閉制御[cite: 1]。','js/common.js','openDrawer();');
-        A('sub-ui-grid','カードグリッド','auto-fit minmax','🧱','ui','branch-ui','CSS Grid により画面幅に応じた動的レイアウト配置[cite: 1]。','css/common.css','repeat(auto-fit, minmax(280px, 1fr))');
-        A('sub-ui-egg','隠しコマンド','Konami / algo','🥚','ui','branch-ui','特定の隠しキー入力で隠しページ（algorithm.html）へ遷移[cite: 1]。','index.html','if (e.key === SECRET[idx]) idx++;');
-        A('sub-ui-custom','カスタマイズ','customize.js','🎛️','ui','branch-ui','ダッシュボードカードの表示/非表示切り替え設定を適用[cite: 1]。','js/customize.js','applyCustomize();');
-        A('leaf-algo','algorithm.html','隠しページ','🌌','ui','sub-ui-egg','演出のあとアルゴリズム詳細解説ページへ遷移[cite: 1]。','algorithm.html','location.href = "algorithm.html";');
+        A('sub-ui-drawer','ドロワー','openDrawer / closeDrawer','☰','ui','branch-ui','共通のスライド式ドロワーナビゲーションを開閉制御。','js/common.js','openDrawer();');
+        A('sub-ui-grid','カードグリッド','auto-fit minmax','🧱','ui','branch-ui','CSS Grid により画面幅に応じた動的レイアウト配置。','css/common.css','repeat(auto-fit, minmax(280px, 1fr))');
+        A('sub-ui-egg','隠しコマンド','Konami / algo','🥚','ui','branch-ui','特定の隠しキー入力で隠しページ（algorithm.html）へ遷移。','index.html','if (e.key === SECRET[idx]) idx++;');
+        A('sub-ui-custom','カスタマイズ','customize.js','🎛️','ui','branch-ui','ダッシュボードカードの表示/非表示切り替え設定を適用。','js/customize.js','applyCustomize();');
+        A('leaf-algo','algorithm.html','隠しページ','🌌','ui','sub-ui-egg','演出のあとアルゴリズム詳細解説ページへ遷移。','algorithm.html','location.href = "algorithm.html";');
 
-        A('m-completed','habitCompleted','達成済み配列','☑️','habit','leaf-streak-inc','本日達成した習慣タスクの ID 一覧を保持[cite: 1]。','js/everydayTask.js','getHabitCompleted()');
-        A('m-lastdate','habitLastDate','前回アクセス日','🕘','habit','leaf-diff','日次リセット判定で使用する前回アクセス日付キー[cite: 1]。','js/everydayTask.js','localStorage.habitLastDate');
-        A('m-weekkey','getWeekKey','月曜起点キー','🗓️','kadai','leaf-kadai-sort','指定日付が属する週の月曜日 YYYY-MM-DD キーを返す[cite: 1]。','js/kadai.js','getWeekKey(date)');
-        A('m-dkey','toDateKey','日付キー化','🔑','calendar','leaf-cal-dot','Date オブジェクトを YYYY-MM-DD 文字列キーに変換[cite: 1]。','js/calendar.js','toDateKey(d)');
-        A('m-days','getDaysInMonth','月の日数','🔢','calendar','leaf-leap','指定された年月の日数（月末日）を計算して返す[cite: 1]。','js/birthdays.js','getDaysInMonth(y, m)');
-        A('m-themes','REPORT_THEMES','6テーマ定義','🎨','report','leaf-inject','6種類のテーマ定義（配色やスタイル）を保持[cite: 1]。','js/report.js','REPORT_THEMES[key]');
-        A('m-escape','escapeHtml','XSS対策','🧼','report','leaf-count','出力前に HTML 特殊文字をエスケープ処理[cite: 1]。','js/report.js','escapeHtml(str)');
-        A('m-today','todayKey','今日の日付','📌','notify','leaf-3days','通知判定範囲の下限となる今日の日付キー[cite: 1]。','js/notification.js','getTodayKey()');
-        A('m-in3','in3DaysKey','3日後の日付','📌','notify','leaf-3days','通知判定範囲の上限となる3日後の日付キー[cite: 1]。','js/notification.js','getFutureDateKey(3)');
-        A('m-cmp','!== 比較','文字列比較','🔣','sync','leaf-diff-detect','JSON 文字列比較で差分を検出[cite: 1]。','js/db-sync.js','local !== cloud');
-        A('m-guest','ゲストUUID','端末固有ID','👤','sync','leaf-migrate','未ログイン時に端末固有で一時生成されるユーザー ID[cite: 1]。','js/auth.js','getCurrentUserId()');
-        A('m-uid','auth.uid()','JWTのuser_id','🔑','sync','leaf-rls','認証済みユーザーの UUID を返す Supabase 関数[cite: 1]。','supabase_setup.sql','auth.uid()');
-        A('m-regex','UUID正規表現','形式検証','🧩','sync','leaf-uuid','UUID 形式（8-4-4-4-12）かをチェックする正規表現[cite: 1]。','js/db-sync.js','/^[0-9a-f-]{36}$/i');
-        A('m-ideadel','ideaDeleted','削除済みキー','🗃️','wish','leaf-idea-restore','ゴミ箱に入っている削除済みアイデアの保管キー[cite: 1]。','js/ideas.js','getIdeaDeleted()');
-        A('m-30d','30日閾値','経過日数判定','⏳','wish','leaf-wish-purge','削除日時から 30 日を超えているか計算判定[cite: 1]。','js/wishlist.js','now - deletedAt > 30d');
-        A('m-konami','コナミコマンド','↑↑↓↓←→←→BA','🎮','ui','leaf-algo','キー入力順序の一致で発動する隠しコマンド判定[cite: 1]。','index.html','idx === SECRET.length');
+        A('m-completed','habitCompleted','達成済み配列','☑️','habit','leaf-streak-inc','本日達成した習慣タスクの ID 一覧を保持。','js/everydayTask.js','getHabitCompleted()');
+        A('m-lastdate','habitLastDate','前回アクセス日','🕘','habit','leaf-diff','日次リセット判定で使用する前回アクセス日付キー。','js/everydayTask.js','localStorage.habitLastDate');
+        A('m-weekkey','getWeekKey','月曜起点キー','🗓️','kadai','leaf-kadai-sort','指定日付が属する週の月曜日 YYYY-MM-DD キーを返す。','js/kadai.js','getWeekKey(date)');
+        A('m-dkey','toDateKey','日付キー化','🔑','calendar','leaf-cal-dot','Date オブジェクトを YYYY-MM-DD 文字列キーに変換。','js/calendar.js','toDateKey(d)');
+        A('m-days','getDaysInMonth','月の日数','🔢','calendar','leaf-leap','指定された年月の日数（月末日）を計算して返す。','js/birthdays.js','getDaysInMonth(y, m)');
+        A('m-themes','REPORT_THEMES','6テーマ定義','🎨','report','leaf-inject','6種類のテーマ定義（配色やスタイル）を保持。','js/report.js','REPORT_THEMES[key]');
+        A('m-escape','escapeHtml','XSS対策','🧼','report','leaf-count','出力前に HTML 特殊文字をエスケープ処理。','js/report.js','escapeHtml(str)');
+        A('m-today','todayKey','今日の日付','📌','notify','leaf-3days','通知判定範囲の下限となる今日の日付キー。','js/notification.js','getTodayKey()');
+        A('m-in3','in3DaysKey','3日後の日付','📌','notify','leaf-3days','通知判定範囲の上限となる3日後の日付キー。','js/notification.js','getFutureDateKey(3)');
+        A('m-cmp','!== 比較','文字列比較','🔣','sync','leaf-diff-detect','JSON 文字列比較で差分を検出。','js/db-sync.js','local !== cloud');
+        A('m-guest','ゲストUUID','端末固有ID','👤','sync','leaf-migrate','未ログイン時に端末固有で一時生成されるユーザー ID。','js/auth.js','getCurrentUserId()');
+        A('m-uid','auth.uid()','JWTのuser_id','🔑','sync','leaf-rls','認証済みユーザーの UUID を返す Supabase 関数。','supabase_setup.sql','auth.uid()');
+        A('m-regex','UUID正規表現','形式検証','🧩','sync','leaf-uuid','UUID 形式（8-4-4-4-12）かをチェックする正規表現。','js/db-sync.js','/^[0-9a-f-]{36}$/i');
+        A('m-ideadel','ideaDeleted','削除済みキー','🗃️','wish','leaf-idea-restore','ゴミ箱に入っている削除済みアイデアの保管キー。','js/ideas.js','getIdeaDeleted()');
+        A('m-30d','30日閾値','経過日数判定','⏳','wish','leaf-wish-purge','削除日時から 30 日を超えているか計算判定。','js/wishlist.js','now - deletedAt > 30d');
+        A('m-konami','コナミコマンド','↑↑↓↓←→←→BA','🎮','ui','leaf-algo','キー入力順序の一致で発動する隠しコマンド判定。','index.html','idx === SECRET.length');
 
         const LINKS = [['branch-notify','branch-kadai'],['branch-notify','branch-habit'],['branch-notify','sub-bday'],['branch-report','branch-kadai'],['branch-report','branch-task'],['branch-report','branch-calendar'],['branch-calendar','branch-kadai'],['sub-bus','sub-pull'],['sub-keys','sub-push'],['branch-ui','branch-notify']];
 
-        // JS Files Descriptions
         const FULL_DESCS = {
-            "everydayTask.js": "習慣タスクの全管理ロジック。取得・保存・リセット・ストリーク計算などを定義[cite: 1]。",
-            "edTaskResult.js": "習慣タスクの今日の実績サマリー描画と円グラフ・履歴表示処理[cite: 1]。",
-            "kadai.js": "課題のCRUD・週別グループ表示・進捗計算・期限切れ自動移動[cite: 1]。",
-            "result.js": "課題の週別予定・達成実績・過去履歴一覧のレンダリング[cite: 1]。",
-            "tasks.js": "優先度タスク（Todo）のCRUD・完了・ゴミ箱管理[cite: 1]。",
-            "tasks-add.js": "タスク追加フォームの初期化と入力イベントハンドリング[cite: 1]。",
-            "calendar.js": "月度カレンダー・予定カード・履歴一覧の動的描画[cite: 1]。",
-            "schedule-add.js": "予定登録時の「終日」フラグ切替イベント設定[cite: 1]。",
-            "birthdays.js": "誕生日登録・月日オプション構築・年齢計算・一覧表示[cite: 1]。",
-            "report.js": "報告書データ集計・テーマ適用・Word出力・自動保存タイマー[cite: 1]。",
-            "notification.js": "期日スキャン・デスクトップ通知発火・未読バッジ更新[cite: 1]。",
-            "auth.js": "ユーザー認証・ログイン/登録・アカウント管理・名前空間付与[cite: 1]。",
-            "db-sync.js": "Supabase とのデータ同期・バッチ Upsert・初回データ移行[cite: 1]。",
-            "supabase-client.js": "Supabase クライアント SDK の初期化設定[cite: 1]。",
-            "account-page.js": "アカウント画面での各種申請チェック処理[cite: 1]。",
-            "auth-page.js": "ログイン/登録フォームの表示タブ切り替え[cite: 1]。",
-            "master-account.js": "管理者用アカウント一覧表示・統計・削除申請ハンドリング[cite: 1]。",
-            "wishlist.js": "やりたいことのCRUD・達成・パートナー絞り込み[cite: 1]。",
-            "ideas.js": "アイデアメモのCRUD・達成化・復元処理[cite: 1]。",
-            "common.js": "ヘッダーの今日の日付表示・共通ドロワー開閉制御[cite: 1]。",
-            "customize.js": "ダッシュボードカードの表示設定とカウントバッジ更新[cite: 1]。",
-            "features.js": "有効化機能 ID に基づくナビゲーションメニューの動的構築[cite: 1]。"
+            "everydayTask.js": "習慣タスクの全管理ロジック。取得・保存・リセット・ストリーク計算などを定義。",
+            "edTaskResult.js": "習慣タスクの今日の実績サマリー描画と円グラフ・履歴表示処理。",
+            "kadai.js": "課題のCRUD・週別グループ表示・進捗計算・期限切れ自動移動。",
+            "result.js": "課題の週別予定・達成実績・過去履歴一覧のレンダリング。",
+            "tasks.js": "優先度タスク（Todo）のCRUD・完了・ゴミ箱管理。",
+            "tasks-add.js": "タスク追加フォームの初期化と入力イベントハンドリング。",
+            "calendar.js": "月度カレンダー・予定カード・履歴一覧の動的描画。",
+            "schedule-add.js": "予定登録時の「終日」フラグ切替イベント設定。",
+            "birthdays.js": "誕生日登録・月日オプション構築・年齢計算・一覧表示。",
+            "report.js": "報告書データ集計・テーマ適用・Word出力・自動保存タイマー。",
+            "notification.js": "期日スキャン・デスクトップ通知発火・未読バッジ更新。",
+            "auth.js": "ユーザー認証・ログイン/登録・アカウント管理・名前空間付与。",
+            "db-sync.js": "Supabase とのデータ同期・バッチ Upsert・初回データ移行。",
+            "supabase-client.js": "Supabase クライアント SDK の初期化設定。",
+            "account-page.js": "アカウント画面での各種申請チェック処理。",
+            "auth-page.js": "ログイン/登録フォームの表示タブ切り替え。",
+            "master-account.js": "管理者用アカウント一覧表示・統計・削除申請ハンドリング。",
+            "wishlist.js": "やりたいことのCRUD・達成・パートナー絞り込み。",
+            "ideas.js": "アイデアメモのCRUD・達成化・復元処理。",
+            "common.js": "ヘッダーの今日の日付表示・共通ドロワー開閉制御。",
+            "customize.js": "ダッシュボードカードの表示設定とカウントバッジ更新。",
+            "features.js": "有効化機能 ID に基づくナビゲーションメニューの動的構築。"
         };
 
         const FULL = [
@@ -1230,29 +1227,30 @@
 
         const KEYS = "todoTasks todoCompleted todoDeleted schedules deletedSchedules secret_base_schedules ideaItems ideaDeleted habitTasks habitCompleted habitDeleted habitDailyHistory habitLastDate wishItems wishDeleted wishPartnerFilter birthdays deletedBirthdays tasks completedTasks deletedTasks weeklyHistory";
 
-       FULL.forEach(([f, par, fs]) => {
+        // エラー（\/g）修正済みの関数登録処理
+        FULL.forEach(([f, par, fs]) => {
             const parentObj = byId(par);
             const type = parentObj ? parentObj.type : 'x';
             const arr = fs.split(' ');
-             NODES_DATA.push({
-               id: 'f:' + f,
-               name: f,
-               role: arr.length + ' 個の関数を定義',
-               avatar: '📄',
-              type, parent: par,
-              desc: FULL_DESCS[f] || (f + ' に定義されている関数群です。'),
-               file: 'js/' + f,
-               code: arr.slice(0, 8).map(n => n + '()').join('\n') + '\n...',
-              full: true
+            NODES_DATA.push({
+                id: 'f:' + f,
+                name: f,
+                role: arr.length + ' 個の関数を定義',
+                avatar: '📄',
+                type, parent: par,
+                desc: FULL_DESCS[f] || (f + ' に定義されている関数群です。'),
+                file: 'js/' + f,
+                code: arr.slice(0, 8).map(n => n + '()').join('\n') + '\n...',
+                full: true
             });
             arr.forEach(n => NODES_DATA.push({
-           id: 'fn:' + f + ':' + n,
-           name: n + '()',
-           type, parent: 'f:' + f,
-           desc: FN_DESCS[n] || `${f} 内で呼び出される関数 ${n}() です。`,
-           file: 'js/' + f,
-           code: 'function ' + n + '() {\n  // ' + (FN_DESCS[n] ? FN_DESCS[n].replace(/\\/g, '') : '実装ロジック') + '\n}',
-           fn: true, full: true
+                id: 'fn:' + f + ':' + n,
+                name: n + '()',
+                type, parent: 'f:' + f,
+                desc: FN_DESCS[n] || `${f} 内で呼び出される関数 ${n}() です。`,
+                file: 'js/' + f,
+                code: 'function ' + n + '() {\n  // ' + (FN_DESCS[n] ? FN_DESCS[n].replace(/\\/g, '') : '実装ロジック') + '\n}',
+                fn: true, full: true
             }));
         });
 
@@ -1262,7 +1260,7 @@
             role: KEYS.split(' ').length + ' キー',
             avatar: '🗝️',
             type: 'storage', parent: 'branch-storage',
-            desc: 'クラウド同期およびローカルストレージ管理の対象となる全 localStorage キーの定義リスト[cite: 1]。',
+            desc: 'クラウド同期およびローカルストレージ管理の対象となる全 localStorage キーの定義リスト。',
             file: 'js/db-sync.js',
             code: 'const DATA_KEYS = [\n  "' + KEYS.split(' ').join('",\n  "') + '"\n];',
             full: true
@@ -1272,15 +1270,14 @@
             id: 'k:' + k,
             name: k,
             type: 'storage', parent: 'f:KEYS',
-            desc: 'localStorage キー "' + k + '" のデータ管理ノード[cite: 1]。',
+            desc: 'localStorage キー "' + k + '" のデータ管理ノード。',
             file: 'js/db-sync.js',
             code: 'localStorage.getItem("' + k + '");\nlocalStorage.setItem("' + k + '", JSON.stringify(data));',
             fn: true, full: true
         }));
-
-        // ═════════ Engine Logic ═════════
+        
         let mode = 'detail';
-        const R = [0, 215, 430, 620, 800], SX = 1.85, RF = [0, 330, 850, 1700, 2050, 2400], SZ = [[230,66],[190,56],[150,46],[140,40],[130,36]], PAD = 160;
+        const R = [0, 215, 430, 620, 800], SX = 1.85, RF = [0, 330, 850, 1700, 2050, 2400], SZ = [[230,66],[215,58],[160,46],[140,40],[130,36]], PAD = 160;
         const TYPE_COLORS = { core:'var(--color-core)', habit:'var(--color-habit)', kadai:'var(--color-kadai)', task:'var(--color-task)', sync:'var(--color-sync)', calendar:'var(--color-calendar)', report:'var(--color-report)', notify:'var(--color-notify)', storage:'var(--color-storage)', wish:'var(--color-wish)', ui:'var(--color-ui)', x:'var(--text-sub)' };
         let scale = 1, panX = 0, panY = 0, W = 0, H = 0, edges = [], animT = null, playing = false;
         const ptrs = new Map(); let drag = null, pan = null, pinch = null;
@@ -1293,7 +1290,7 @@
         const dep = n => n.parent ? 1 + dep(byId(n.parent)) : 0;
         const VIS = () => NODES_DATA.filter(n => (mode === 'full' && (!sel.size || !n.parent || sel.has(modOf(n)))) || (mode !== 'full' && !n.full && (mode === 'detail' || dep(n) <= 1)));
 
-        const RT = () => mode === 'full' ? RF.map(r => r * Math.max(.3, VIS().length / 393)) : mode === 'detail' ? R :[0, 330];
+        const RT = () => mode === 'full' ? RF.map(r => r * Math.max(.3, VIS().length / 393)) : mode === 'detail' ? R : [0, 330];
         const SXm = () => mode === 'full' ? 1.15 : mode === 'detail' ? SX : Math.min(1.8, Math.max(1, workspace.clientWidth / workspace.clientHeight));
 
         function layout() {
@@ -1473,7 +1470,13 @@
         function openDetailModal(node) {
             const avatar = node.avatar || (node.fn ? '⚙️' : '📄');
             document.getElementById('detail-modal-title').textContent = `${avatar} ${node.name}`;
-            document.getElementById('detail-modal-desc').textContent = node.desc || 'モジュールの主要機能と処理ロジックです。';
+            
+            let descText = node.desc || 'モジュールの主要機能と処理ロジックです。';
+            if (node.role && node.role.includes('全')) {
+                descText = `【規模・構成】${node.role}\n\n` + descText;
+            }
+            
+            document.getElementById('detail-modal-desc').textContent = descText;
             document.getElementById('detail-modal-file').textContent = `📄 ${node.file || 'N/A'}`;
             document.getElementById('detail-modal-code').textContent = node.code || '// 実装コード';
             document.getElementById('detail-modal').classList.add('open');
