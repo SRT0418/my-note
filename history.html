@@ -417,6 +417,13 @@
             box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
         }
 
+        .tag-diagram {
+            background: rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+            border: 1px solid rgba(99, 102, 241, 0.35);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.2);
+        }
+
         /* ── Commit Hash ───────────────────────────── */
         .event-hash {
             font-family: 'SF Mono', 'Fira Code', monospace;
@@ -517,15 +524,15 @@
         </p>
         <div class="hero-stats">
             <div class="hero-stat">
-                <div class="hero-stat-value">75</div>
+                <div class="hero-stat-value">81</div>
                 <div class="hero-stat-label">Commits</div>
             </div>
             <div class="hero-stat">
-                <div class="hero-stat-value">99</div>
+                <div class="hero-stat-value">103</div>
                 <div class="hero-stat-label">Days</div>
             </div>
             <div class="hero-stat">
-                <div class="hero-stat-value">10</div>
+                <div class="hero-stat-value">11</div>
                 <div class="hero-stat-label">Features</div>
             </div>
         </div>
@@ -801,6 +808,28 @@
                     <p class="event-desc">サイト全体の4層アーキテクチャや、ローカルファースト同期パイプライン、習慣ストリーク判定、課題週クラスタリングをボックス相関図とシミュレーターで視覚化した隠しページ（algorithm.html）を公開。「algo」キーやタイトル3回クリックでワープ可能に。</p>
                     <span class="event-tag tag-algo">ALGORITHM MAP</span>
                     <div class="event-hash">4dbe683</div>
+                </div>
+            </div>
+
+            <div class="timeline-event milestone left">
+                <div class="timeline-node"></div>
+                <div class="event-card">
+                    <div class="event-date">2026.10.14</div>
+                    <h3 class="event-title">🕸️ 放射状システム相関図マップ (diagram.html) 誕生</h3>
+                    <p class="event-desc">サイト全体のモジュール、ストレージ、UIレイヤーの依存関係とデータフローを視覚的に俯瞰できる放射状相関図（diagram.html）を新設。algorithm.htmlとの相互リンクも整備。</p>
+                    <span class="event-tag tag-diagram">SYSTEM MAP</span>
+                    <div class="event-hash">949ab25 → b039959</div>
+                </div>
+            </div>
+
+            <div class="timeline-event milestone right">
+                <div class="timeline-node"></div>
+                <div class="event-card">
+                    <div class="event-date">2026.10.15</div>
+                    <h3 class="event-title">🚀 放射状相関図マップの大幅進化＆機能強化</h3>
+                    <p class="event-desc">ノードの詳細化、カテゴリ別リング配置、直感的なズーム＆パン操作、データフロー関係線、ダークテーマ対応、ノード詳細パネルなど、一気にプロフェッショナルなアーキテクチャビューアへと洗練（この日4コミット）。</p>
+                    <span class="event-tag tag-ui">UI/UX BOOST</span>
+                    <div class="event-hash">3ec8949 → dd2a964</div>
                 </div>
             </div>
 
