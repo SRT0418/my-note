@@ -1,0 +1,250 @@
+/* =========================================================
+   MyNote - データバックアップ＆復元モーダル (data-backup.css)
+   ========================================================= */
+
+.backup-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.backup-modal-overlay.open {
+    display: flex;
+    opacity: 1;
+}
+
+.backup-modal-card {
+    background: #ffffff;
+    width: 92%;
+    max-width: 540px;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    transform: translateY(20px) scale(0.98);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.backup-modal-overlay.open .backup-modal-card {
+    transform: translateY(0) scale(1);
+}
+
+.backup-modal-header {
+    padding: 18px 24px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.backup-modal-header h3 {
+    margin: 0;
+    padding: 0;
+    border: none;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.backup-modal-close-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    color: #64748b;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px;
+    border-radius: 6px;
+    transition: color 0.2s ease, background 0.2s ease;
+}
+
+.backup-modal-close-btn:hover {
+    color: #0f172a;
+    background: #e2e8f0;
+}
+
+.backup-modal-body {
+    padding: 22px 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* データ統計プレビュー */
+.backup-stats-box {
+    background: #f1f5f9;
+    border-radius: 10px;
+    padding: 14px 16px;
+}
+
+.backup-stats-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.backup-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.backup-stat-chip {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.backup-stat-chip span:first-child {
+    color: #64748b;
+}
+
+.backup-stat-chip span:last-child {
+    font-weight: 700;
+    color: #1e293b;
+}
+
+/* アクションセクション */
+.backup-section-action {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.backup-section-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.backup-section-desc {
+    font-size: 0.8rem;
+    color: #64748b;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.backup-btn-export {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    transition: all 0.2s ease;
+}
+
+.backup-btn-export:hover {
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+}
+
+/* ドロップゾーン */
+.backup-dropzone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    background: #fafafa;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.backup-dropzone:hover,
+.backup-dropzone.dragover {
+    border-color: #2563eb;
+    background: rgba(37, 99, 235, 0.04);
+}
+
+.backup-dropzone-icon {
+    font-size: 1.8rem;
+}
+
+.backup-dropzone-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+.backup-dropzone-sub {
+    font-size: 0.72rem;
+    color: #94a3b8;
+}
+
+.backup-file-input {
+    display: none;
+}
+
+.backup-status-msg {
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.backup-status-msg.success {
+    display: block;
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.backup-status-msg.error {
+    display: block;
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+    .backup-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

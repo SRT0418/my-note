@@ -307,6 +307,51 @@
         .fn-name { font: 600 9.5px 'JetBrains Mono', monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-main); }
         .tiny .fn-name { opacity: 0; }
 
+        /* ── Live Data Status Badge ── */
+        .node-live-badge {
+            position: absolute;
+            bottom: -9px;
+            right: 8px;
+            background: #10b981;
+            color: #ffffff;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 1.5px 7px;
+            border-radius: 999px;
+            box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 5;
+            letter-spacing: 0.02em;
+            transition: all 0.2s ease;
+        }
+        .node-live-badge.warning {
+            background: #ef4444;
+            box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+        }
+        .node-live-badge.info {
+            background: #0284c7;
+            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
+        }
+        .node-live-badge .badge-led {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 0 4px #ffffff;
+            animation: livePulse 1.6s infinite;
+        }
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.8); }
+        }
+        .no-live-badge .node-live-badge {
+            display: none !important;
+        }
+
         /* Animation Classes */
         .node.play { animation: popIn .5s cubic-bezier(.175, .885, .32, 1.275) var(--d, 0s) both; }
         .ring.play { animation: fadeRing .8s ease var(--d, 0s) both; }
@@ -519,6 +564,9 @@
             <button class="tool-btn" onclick="togglePulse()">
                 <span>⚡ データフロー演出</span>
             </button>
+            <button id="btn-live-toggle" class="tool-btn" onclick="toggleLiveData()">
+                <span id="live-toggle-icon">🟢</span> <span>実データ連動: ON</span>
+            </button>
             <button class="tool-btn" onclick="toggleTheme()">
                 <span id="theme-icon">🌙 ダーク切替</span>
             </button>
@@ -574,6 +622,14 @@
                 <div class="modal-section-title">役割 ＆ 処理内容</div>
                 <div id="detail-modal-desc"></div>
             </div>
+            <!-- 実データプレビュー枠 -->
+            <div id="detail-modal-live-box" style="display:none; background:rgba(16,185,129,0.06); border:1px solid rgba(16,185,129,0.25); border-radius:10px; padding:10px 14px;">
+                <div class="modal-section-title" style="color:#059669; display:flex; align-items:center; gap:6px;">
+                    <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#10b981;"></span>
+                    <span>リアルタイム登録データ (Live Data)</span>
+                </div>
+                <div id="detail-modal-live-content" style="font-size:12px; color:var(--text-main); margin-top:4px;"></div>
+            </div>
             <div>
                 <div class="modal-section-title">関連ファイル</div>
                 <div id="detail-modal-file" style="font-family:'JetBrains Mono'; font-size:12px; color:var(--color-core);"></div>
@@ -581,6 +637,12 @@
             <div>
                 <div class="modal-section-title">主要ロジック / 関数実装</div>
                 <pre id="detail-modal-code" class="code-snippet"></pre>
+            </div>
+            <!-- ページジャンプボタン -->
+            <div id="detail-modal-link-wrap" style="display:none; padding-top:4px; text-align:right;">
+                <a id="detail-modal-link-btn" href="#" class="tool-btn primary" style="display:inline-flex; text-decoration:none; gap:6px;">
+                    <span>👉 この機能ページを開く</span>
+                </a>
             </div>
         </div>
     </div>
@@ -1327,6 +1389,25 @@
                 const el = document.createElement('div');
                 el.className = n.fn ? `node node-${n.type} lvF` : `node node-${n.type} lv${n.lv}`; el.id = 'node-' + n.id; el.dataset.id = n.id;
                 el.innerHTML = n.fn ? `<span class="fn-name">${n.name}</span>` : `<div class="node-avatar">${n.avatar || '⚙️'}</div><div class="node-content"><span class="node-name">${n.name}</span><span class="node-role">${n.role || ''}</span></div>`;
+                
+                // 実データバッジの付与（関数ノード以外）
+                if (!n.fn && liveDataEnabled) {
+                    const live = getLiveStatusForNode(n.id);
+                    if (live && live.badge) {
+                        const badgeEl = document.createElement('div');
+                        badgeEl.className = `node-live-badge ${live.type || ''}`;
+                        badgeEl.innerHTML = `<span class="badge-led"></span><span>${live.badge}</span>`;
+                        el.appendChild(badgeEl);
+                    }
+                }
+
+                // クリック時ダイアログオープン
+                el.addEventListener('click', (e) => {
+                    if (drag && drag.moved) return;
+                    e.stopPropagation();
+                    openDetailModal(n);
+                });
+
                 nodesContainer.appendChild(el); setPos(n);
             });
             world.style.width = W + 'px'; world.style.height = H + 'px';
@@ -1467,6 +1548,161 @@
             document.getElementById('theme-icon').textContent = dark ? '🌙 ダーク切替' : '☀️ ライト切替';
         }
 
+        let liveDataEnabled = true;
+
+        function toggleLiveData() {
+            liveDataEnabled = !liveDataEnabled;
+            const btn = document.getElementById('btn-live-toggle');
+            const icon = document.getElementById('live-toggle-icon');
+            if (btn && icon) {
+                icon.textContent = liveDataEnabled ? '🟢' : '⚪';
+                btn.querySelector('span:last-child').textContent = liveDataEnabled ? '実データ連動: ON' : '実データ連動: OFF';
+            }
+            renderNodes();
+        }
+
+        function getLiveStatusForNode(nodeId) {
+            const safeParse = k => {
+                try { return JSON.parse(localStorage.getItem(k)) || []; } catch(e) { return []; }
+            };
+
+            switch (nodeId) {
+                case 'core': {
+                    const total = safeParse('tasks').length + safeParse('todoTasks').length + safeParse('habitTasks').length + safeParse('schedules').length;
+                    return {
+                        badge: `稼働中 (計${total}件)`,
+                        type: 'info',
+                        url: 'index.html',
+                        urlText: 'ホーム画面へ',
+                        items: [`総管理主要データ: ${total} 件`, 'LocalStorage & クラウド同期エンジン統括']
+                    };
+                }
+                case 'branch-habit':
+                case 'sub-habit-streak':
+                case 'sub-habit-reset':
+                case 'sub-habit-history': {
+                    const habits = safeParse('habitTasks');
+                    const comp = safeParse('habitCompleted');
+                    return {
+                        badge: `習慣 ${habits.length}件 (${comp.length}完了)`,
+                        type: comp.length === habits.length && habits.length > 0 ? '' : 'info',
+                        url: 'everydayTask.html',
+                        urlText: '毎日習慣タスクを開く',
+                        items: habits.length > 0 
+                            ? habits.slice(0, 4).map(h => `${comp.includes(h.id) ? '✅' : '⏳'} ${h.title} (連続: ${h.streak || 0}日)`)
+                            : ['習慣タスクはまだ登録されていません']
+                    };
+                }
+                case 'branch-kadai':
+                case 'sub-kadai-bucket':
+                case 'sub-kadai-archive': {
+                    const tasks = safeParse('tasks');
+                    const nowKey = new Date().toISOString().slice(0, 10);
+                    const expired = tasks.filter(t => t.deadline && t.deadline < nowKey).length;
+                    return {
+                        badge: `課題 ${tasks.length}件${expired > 0 ? ` (期限切${expired})` : ''}`,
+                        type: expired > 0 ? 'warning' : 'info',
+                        url: 'kadai.html',
+                        urlText: '課題締切管理を開く',
+                        items: tasks.length > 0
+                            ? tasks.slice(0, 4).map(t => `📚 ${t.title} (締切: ${t.deadline || '未定'})`)
+                            : ['未完了の課題はありません 🎉']
+                    };
+                }
+                case 'branch-task': {
+                    const todos = safeParse('todoTasks');
+                    const high = todos.filter(t => t.priority === '高' || t.priority === 3).length;
+                    return {
+                        badge: `Todo ${todos.length}件 (高${high})`,
+                        type: high > 0 ? 'warning' : 'info',
+                        url: 'tasks.html',
+                        urlText: 'タスク管理を開く',
+                        items: todos.length > 0
+                            ? todos.slice(0, 4).map(t => `✅ [優先:${t.priority || '通常'}] ${t.title}`)
+                            : ['未完了のタスクはありません 👍']
+                    };
+                }
+                case 'branch-calendar': {
+                    const scheds = safeParse('schedules');
+                    return {
+                        badge: `予定 ${scheds.length}件`,
+                        type: 'info',
+                        url: 'calendar.html',
+                        urlText: 'カレンダーを開く',
+                        items: scheds.length > 0
+                            ? scheds.slice(0, 4).map(s => `📅 ${s.startDate} ${s.title}`)
+                            : ['登録されている予定はありません']
+                    };
+                }
+                case 'branch-birthday': {
+                    const bdays = safeParse('birthdays');
+                    return {
+                        badge: `登録 ${bdays.length}名`,
+                        type: 'info',
+                        url: 'birthdays.html',
+                        urlText: '誕生日管理を開く',
+                        items: bdays.length > 0
+                            ? bdays.slice(0, 4).map(b => `🎂 ${b.month}月${b.day}日 ${b.name}`)
+                            : ['誕生日は登録されていません']
+                    };
+                }
+                case 'branch-ideas': {
+                    const ideas = safeParse('ideaItems');
+                    return {
+                        badge: `アイデア ${ideas.length}件`,
+                        type: 'info',
+                        url: 'ideas.html',
+                        urlText: 'アイデア保存を開く',
+                        items: ideas.length > 0
+                            ? ideas.slice(0, 4).map(i => `💡 ${i.title}`)
+                            : ['保存されたアイデアはありません']
+                    };
+                }
+                case 'branch-wish': {
+                    const wishes = safeParse('wishItems');
+                    return {
+                        badge: `やりたいこと ${wishes.length}件`,
+                        type: 'info',
+                        url: 'wishlist.html',
+                        urlText: 'やりたいことリストを開く',
+                        items: wishes.length > 0
+                            ? wishes.slice(0, 4).map(w => `${w.done ? '★' : '☆'} ${w.title}`)
+                            : ['やりたいことリストは空です']
+                    };
+                }
+                case 'branch-report': {
+                    let drafts = [];
+                    try { drafts = JSON.parse(localStorage.getItem('reportDraftList')) || []; } catch(e){}
+                    return {
+                        badge: `下書き ${drafts.length}件`,
+                        type: 'info',
+                        url: 'report.html',
+                        urlText: '報告書作成を開く',
+                        items: drafts.length > 0
+                            ? drafts.slice(0, 3).map(d => `📄 ${d.title || '無題の下書き'}`)
+                            : ['保存された下書きはありません']
+                    };
+                }
+                case 'branch-storage': {
+                    return {
+                        badge: 'LocalStorage / クラウド',
+                        type: 'info',
+                        items: ['LocalStorage 20+ キーで高速永続化', 'Supabase クラウド双方向同期エンジン対応']
+                    };
+                }
+                case 'branch-notify': {
+                    const notifyOn = localStorage.getItem('desktopNotifyEnabled') === 'true';
+                    return {
+                        badge: notifyOn ? '通知: 有効' : '通知: 稼働中',
+                        type: 'info',
+                        items: [notifyOn ? 'デスクトップ通知: 有効' : 'デスクトップ通知: 未許可', '今日・直近締切の自動抽出アラート']
+                    };
+                }
+                default:
+                    return null;
+            }
+        }
+
         function openDetailModal(node) {
             const avatar = node.avatar || (node.fn ? '⚙️' : '📄');
             document.getElementById('detail-modal-title').textContent = `${avatar} ${node.name}`;
@@ -1479,6 +1715,34 @@
             document.getElementById('detail-modal-desc').textContent = descText;
             document.getElementById('detail-modal-file').textContent = `📄 ${node.file || 'N/A'}`;
             document.getElementById('detail-modal-code').textContent = node.code || '// 実装コード';
+
+            // 実データ表示の反映
+            const liveBox = document.getElementById('detail-modal-live-box');
+            const liveContent = document.getElementById('detail-modal-live-content');
+            const linkWrap = document.getElementById('detail-modal-link-wrap');
+            const linkBtn = document.getElementById('detail-modal-link-btn');
+
+            const liveInfo = getLiveStatusForNode(node.id);
+            if (liveInfo && liveInfo.items && liveInfo.items.length > 0) {
+                liveBox.style.display = 'block';
+                liveContent.innerHTML = `
+                    <div style="font-weight:700; margin-bottom:4px; color:#059669;">${liveInfo.badge || ''}</div>
+                    <ul style="margin:0; padding-left:18px; line-height:1.6;">
+                        ${liveInfo.items.map(it => `<li>${it}</li>`).join('')}
+                    </ul>
+                `;
+            } else {
+                liveBox.style.display = 'none';
+            }
+
+            if (liveInfo && liveInfo.url) {
+                linkWrap.style.display = 'block';
+                linkBtn.href = liveInfo.url;
+                linkBtn.querySelector('span').textContent = `👉 ${liveInfo.urlText || 'この機能ページを開く'}`;
+            } else {
+                linkWrap.style.display = 'none';
+            }
+
             document.getElementById('detail-modal').classList.add('open');
             document.getElementById('modal-backdrop').classList.add('open');
         }

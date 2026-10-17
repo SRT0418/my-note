@@ -1,0 +1,390 @@
+/* =========================================================
+   MyNote - 今日のサマリー・ダッシュボード (dashboard-summary.css)
+   ========================================================= */
+
+.today-summary-container {
+    max-width: 1100px;
+    margin: 0 auto 28px auto;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    padding: 0 4px;
+}
+
+.dashboard-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.dashboard-title-wrap h2 {
+    margin: 0;
+    padding: 0;
+    border-left: none;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dashboard-badge-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(16, 185, 129, 0.12);
+    color: #059669;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.dashboard-badge-live::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 6px rgba(16, 185, 129, 0.8);
+    animation: pulseLed 2s infinite;
+}
+
+@keyframes pulseLed {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.dashboard-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dashboard-btn-icon {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-btn-icon:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #0f172a;
+    transform: translateY(-1px);
+}
+
+/* 4カードのグリッド */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+}
+
+.dash-card {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    padding: 18px 20px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.dash-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    border-color: #94a3b8;
+}
+
+.dash-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+}
+
+.dash-card.card-kadai::before {
+    background: linear-gradient(90deg, #ea580c, #f97316);
+}
+
+.dash-card.card-habit::before {
+    background: linear-gradient(90deg, #dc2626, #ef4444);
+}
+
+.dash-card.card-schedule::before {
+    background: linear-gradient(90deg, #0284c7, #38bdf8);
+}
+
+.dash-card.card-todo::before {
+    background: linear-gradient(90deg, #ca8a04, #eab308);
+}
+
+.dash-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.dash-card-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #334155;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dash-card-count {
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.dash-card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 72px;
+}
+
+/* 課題用アイテム */
+.kadai-urgent-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.kadai-urgent-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    gap: 8px;
+}
+
+.kadai-name {
+    font-weight: 600;
+    color: #1e293b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+.kadai-tag {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+.kadai-tag.expired {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.kadai-tag.today {
+    background: #ffedd5;
+    color: #ea580c;
+}
+
+.kadai-tag.soon {
+    background: #fef9c3;
+    color: #a16207;
+}
+
+/* 習慣タスク用プログレス */
+.habit-progress-wrap {
+    width: 100%;
+}
+
+.habit-progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+}
+
+.habit-progress-text {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+.habit-progress-percent {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #dc2626;
+}
+
+.habit-progress-bar {
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    background: #f1f5f9;
+    overflow: hidden;
+}
+
+.habit-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f87171, #dc2626);
+    border-radius: 4px;
+    transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.habit-remaining-names {
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 予定・誕生日 */
+.schedule-item-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.schedule-row {
+    font-size: 0.82rem;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.schedule-tag {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.birthday-tag {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: #fce7f3;
+    color: #be185d;
+}
+
+/* Todo用 */
+.todo-urgent-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.todo-row {
+    font-size: 0.82rem;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.todo-priority-high {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #fef08a;
+    color: #854d0e;
+}
+
+.dash-empty-state {
+    font-size: 0.82rem;
+    color: #94a3b8;
+    text-align: center;
+    padding: 10px 0;
+    font-style: italic;
+}
+
+/* カード下部リンク誘導 */
+.dash-card-footer {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed #f1f5f9;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    transition: color 0.2s ease;
+}
+
+.dash-card:hover .dash-card-footer {
+    color: #2563eb;
+}
+
+/* ダークモード連携 */
+@media (prefers-color-scheme: dark) {
+    body[data-theme="dark"] .dashboard-title-wrap h2 {
+        color: #f1f5f9;
+    }
+    body[data-theme="dark"] .dash-card {
+        background: #1e293b;
+        border-color: #334155;
+    }
+    body[data-theme="dark"] .dash-card-title {
+        color: #f1f5f9;
+    }
+    body[data-theme="dark"] .kadai-name,
+    body[data-theme="dark"] .schedule-row,
+    body[data-theme="dark"] .todo-row {
+        color: #e2e8f0;
+    }
+    body[data-theme="dark"] .dash-card-count {
+        background: #334155;
+        color: #94a3b8;
+    }
+    body[data-theme="dark"] .habit-progress-bar {
+        background: #334155;
+    }
+    body[data-theme="dark"] .dashboard-btn-icon {
+        background: #1e293b;
+        border-color: #334155;
+        color: #cbd5e1;
+    }
+}
