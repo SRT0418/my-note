@@ -388,3 +388,141 @@
         color: #cbd5e1;
     }
 }
+
+/* =========================================================
+   スマホ（幅600px以下）: 4カードを 2列 × 2行 で表示
+   ========================================================= */
+@media (max-width: 600px) {
+    .today-summary-container {
+        padding: 0 2px;
+        margin-bottom: 20px;
+    }
+
+    /* タイトルは1行のまま、ボタンは入りきらなければ次の行へ */
+    .dashboard-header {
+        flex-wrap: wrap;
+        padding: 0;
+        margin-bottom: 10px;
+        gap: 8px;
+    }
+
+    .dashboard-title-wrap h2 {
+        font-size: 1rem;
+        white-space: nowrap;
+        overflow-wrap: normal;
+    }
+
+    .dashboard-actions {
+        margin-left: auto;
+    }
+
+    .dashboard-btn-icon {
+        white-space: nowrap;
+        padding: 6px 10px;
+        font-size: 0.75rem;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .dash-card {
+        padding: 12px 10px 10px 10px;
+        border-radius: 12px;
+        min-width: 0;
+    }
+
+    /* タッチ端末では浮き上がりを無効化（タップ後に残って見えるため） */
+    .dash-card:hover {
+        transform: none;
+    }
+
+    /* タイトルと件数バッジは狭いので縦積み・折り返し可 */
+    .dash-card-header {
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-bottom: 8px;
+    }
+
+    .dash-card-title {
+        font-size: 0.82rem;
+        gap: 4px;
+        flex-wrap: wrap;
+        min-width: 0;
+    }
+
+    .dash-card-count {
+        font-size: 0.7rem;
+        padding: 1px 6px;
+    }
+
+    .dash-card-body {
+        min-height: 56px;
+        min-width: 0;
+    }
+
+    /* 行内の長い文字は省略表示（カード幅を押し広げない） */
+    .kadai-urgent-item,
+    .todo-row {
+        font-size: 0.75rem;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .kadai-name {
+        flex: 1 1 0;
+        min-width: 0;
+        max-width: none;
+    }
+
+    .todo-row > span:first-child {
+        flex: 1 1 0;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .kadai-tag,
+    .todo-priority-high {
+        font-size: 0.65rem;
+        padding: 1px 4px;
+        flex-shrink: 0;
+    }
+
+    .schedule-row {
+        font-size: 0.75rem;
+        min-width: 0;
+    }
+
+    .schedule-tag,
+    .birthday-tag {
+        font-size: 0.65rem;
+        padding: 1px 4px;
+        flex-shrink: 0;
+    }
+
+    .habit-progress-text {
+        font-size: 0.72rem;
+    }
+
+    .habit-progress-percent {
+        font-size: 1rem;
+    }
+
+    .habit-remaining-names {
+        font-size: 0.68rem;
+    }
+
+    .dash-empty-state {
+        font-size: 0.72rem;
+        padding: 6px 0;
+    }
+
+    .dash-card-footer {
+        font-size: 0.68rem;
+        margin-top: 8px;
+        padding-top: 6px;
+    }
+}

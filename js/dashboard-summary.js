@@ -190,7 +190,7 @@
                 <div class="todo-urgent-list">
                     ${highPriorityTodos.length > 0 ? highPriorityTodos.slice(0, 2).map(t => `
                         <div class="todo-row">
-                            <span style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px;" title="${escapeHtml(t.title)}">${escapeHtml(t.title)}</span>
+                            <span style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px;" title="${escapeHtml(t.title || t.content)}">${escapeHtml(t.title || t.content)}</span>
                             <span class="todo-priority-high">優先: 高</span>
                         </div>
                     `).join("") : `
