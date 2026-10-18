@@ -888,7 +888,14 @@
             "applyToNavMenu": "無効化された機能をナビゲーションメニューから非表示化します。",
             "applyToHomeMenu": "無効化された機能をホーム画面から除外します。",
             "applyCustomFeaturesToUI": "画面全体に機能オン/オフカスタム設定を反映します。",
-            "escapeHtml": "XSS 防御のため HTML 特殊文字をエスケープ処理します。"
+            "escapeHtml": "XSS 防御のため HTML 特殊文字をエスケープ処理します。",
+            "renderTodayDashboard": "本日のタスク・習慣・予定・誕生日・課題締切を集約したサマリーカードを描画します。",
+            "collectAllData": "全LocalStorageキーを収集し、メタデータ付きバックアップオブジェクトを構築します。",
+            "getDataSummary": "バックアップ対象データの各キー別アイテム件数を集計します。",
+            "exportJSON": "収集したバックアップデータをJSONファイルとしてブラウザダウンロードします。",
+            "importJSON": "選択されたJSONファイルを検証し、LocalStorageへマージまたは上書きリストアします。",
+            "updateStatsUI": "バックアップモーダル内のキー数・データ件数・容量統計UIを更新します。",
+            "handleFileImport": "ファイルピッカーで選択されたJSONファイルを非同期読み込み・解析します。"
         };
 
         // Core Nodes Registration（シンプルモード対応：関数数を明確化）
@@ -1162,6 +1169,8 @@
 
         A('branch-wish','やりたいこと＆アイデア','wishlist.js ｜ 全 27 関数','✨','wish','core','ウィッシュリストとアイデアメモの作成・達成ステート管理・ゴミ箱復元処理。','js/wishlist.js','renderWishes(); renderIdeas();');
         A('branch-ui','UI基盤＆設定','common.js ｜ 全 18 関数','🎨','ui','core','全ページ共通のドロワーメニュー、カードグリッド、テーマ切替、隠しコマンドを統括。','js/common.js','openDrawer(); closeDrawer();');
+        A('branch-dashboard','今日のサマリー','dashboard-summary.js ｜ 全 5 関数','📊','ui','core','課題・習慣・ToDo・予定・誕生日をホーム画面最上部に集約表示。','js/dashboard-summary.js','renderTodayDashboard();');
+        A('branch-backup','全データバックアップ','data-backup.js ｜ 全 10 関数','💾','storage','branch-storage','全LocalStorageキーをワンクリックでJSON Blobとして保存・復元。','js/data-backup.js','exportJSON(); importJSON();');
 
         A('leaf-streak-inc','+1 加算','diffDays === 1','➕','habit','sub-habit-streak','前日アクセスかつ達成済みのタスクのみ streak（連続達成数）を +1 加算する。','js/everydayTask.js','t.streak = (t.streak || 0) + 1;');
         A('leaf-streak-zero','0 リセット','diffDays >= 2','⛔','habit','sub-habit-streak','2日以上空いた（diffDays >= 2）場合に連続記録を 0 にリセットする。','js/everydayTask.js','allTasks.forEach(t => t.streak = 0);');
@@ -1235,7 +1244,13 @@
         A('m-30d','30日閾値','経過日数判定','⏳','wish','leaf-wish-purge','削除日時から 30 日を超えているか計算判定。','js/wishlist.js','now - deletedAt > 30d');
         A('m-konami','コナミコマンド','↑↑↓↓←→←→BA','🎮','ui','leaf-algo','キー入力順序の一致で発動する隠しコマンド判定。','index.html','idx === SECRET.length');
 
-        const LINKS = [['branch-notify','branch-kadai'],['branch-notify','branch-habit'],['branch-notify','sub-bday'],['branch-report','branch-kadai'],['branch-report','branch-task'],['branch-report','branch-calendar'],['branch-calendar','branch-kadai'],['sub-bus','sub-pull'],['sub-keys','sub-push'],['branch-ui','branch-notify']];
+        const LINKS = [
+            ['branch-notify','branch-kadai'],['branch-notify','branch-habit'],['branch-notify','sub-bday'],
+            ['branch-report','branch-kadai'],['branch-report','branch-task'],['branch-report','branch-calendar'],
+            ['branch-calendar','branch-kadai'],['sub-bus','sub-pull'],['sub-keys','sub-push'],['branch-ui','branch-notify'],
+            ['branch-dashboard','branch-kadai'],['branch-dashboard','branch-habit'],['branch-dashboard','branch-task'],
+            ['branch-backup','branch-storage']
+        ];
 
         const FULL_DESCS = {
             "everydayTask.js": "習慣タスクの全管理ロジック。取得・保存・リセット・ストリーク計算などを定義。",
@@ -1259,7 +1274,9 @@
             "ideas.js": "アイデアメモのCRUD・達成化・復元処理。",
             "common.js": "ヘッダーの今日の日付表示・共通ドロワー開閉制御。",
             "customize.js": "ダッシュボードカードの表示設定とカウントバッジ更新。",
-            "features.js": "有効化機能 ID に基づくナビゲーションメニューの動的構築。"
+            "features.js": "有効化機能 ID に基づくナビゲーションメニューの動的構築。",
+            "dashboard-summary.js": "ホーム画面の今日のサマリー集計ウィジェット。課題・習慣・ToDo・予定・誕生日の統合表示と進捗バー描画。",
+            "data-backup.js": "ワンクリック全データ・バックアップ＆復元エンジン。LocalStorage全キーのJSONエクスポート／インポートとスキーマ検証。"
         };
 
         const FULL = [
@@ -1284,7 +1301,9 @@
             ["ideas.js", "branch-wish", "getIdeas saveIdeas getIdeaDeleted saveIdeaDeleted renderIdeas renderAchievedIdeas setIdeaAchieved deleteIdea restoreIdea purgeOldDeletedIdeas deleteIdeaForever renderDeletedIdeas"],
             ["common.js", "branch-ui", "renderToday openDrawer closeDrawer scheduleClose cancelClose"],
             ["customize.js", "branch-ui", "renderCards updateCountBadge bindCardEvents handleSave showToast"],
-            ["features.js", "branch-ui", "getDefaultFeatureIds getEnabledFeatureIds saveEnabledFeatureIds applyToNavMenu applyToHomeMenu applyCustomFeaturesToUI"]
+            ["features.js", "branch-ui", "getDefaultFeatureIds getEnabledFeatureIds saveEnabledFeatureIds applyToNavMenu applyToHomeMenu applyCustomFeaturesToUI"],
+            ["dashboard-summary.js", "branch-dashboard", "getTodayKey getFutureDateKey safeParse escapeHtml renderTodayDashboard"],
+            ["data-backup.js", "branch-backup", "collectAllData getDataSummary exportJSON importJSON createModalDOM handleFileImport showStatus updateStatsUI openModal closeModal"]
         ];
 
         const KEYS = "todoTasks todoCompleted todoDeleted schedules deletedSchedules secret_base_schedules ideaItems ideaDeleted habitTasks habitCompleted habitDeleted habitDailyHistory habitLastDate wishItems wishDeleted wishPartnerFilter birthdays deletedBirthdays tasks completedTasks deletedTasks weeklyHistory";
@@ -1696,6 +1715,40 @@
                         badge: notifyOn ? '通知: 有効' : '通知: 稼働中',
                         type: 'info',
                         items: [notifyOn ? 'デスクトップ通知: 有効' : 'デスクトップ通知: 未許可', '今日・直近締切の自動抽出アラート']
+                    };
+                }
+                case 'branch-dashboard': {
+                    const tasks = safeParse('tasks');
+                    const habits = safeParse('everydayTasks');
+                    const todos = safeParse('todoTasks');
+                    const comp = safeParse('habitCompleted');
+                    const todayKey = new Date().toISOString().slice(0, 10);
+                    const urgentTasks = tasks.filter(t => t.deadline && t.deadline <= todayKey);
+                    return {
+                        badge: `今日: 課題${urgentTasks.length}件 / 習慣${comp.length}/${habits.length}`,
+                        type: urgentTasks.length > 0 ? 'warning' : 'info',
+                        url: 'index.html#today-summary-container',
+                        urlText: 'ホームのサマリーを見る',
+                        items: [
+                            `🎯 習慣タスク達成率: ${habits.length > 0 ? Math.round(comp.length / habits.length * 100) : 0}% (${comp.length}/${habits.length})`,
+                            `⚠️ 本日期限の課題: ${urgentTasks.length}件`,
+                            `📋 未完了Todoタスク: ${todos.length}件`
+                        ]
+                    };
+                }
+                case 'branch-backup': {
+                    const totalKeys = localStorage.length;
+                    const lastBackup = localStorage.getItem('lastBackupAt');
+                    return {
+                        badge: `全${totalKeys}キー対応`,
+                        type: 'info',
+                        url: 'index.html',
+                        urlText: 'ホームでバックアップを開く',
+                        items: [
+                            `💾 ブラウザ内保持キー数: ${totalKeys} 件`,
+                            `🕒 最終バックアップ: ${lastBackup ? new Date(lastBackup).toLocaleString() : '未取得'}`,
+                            '📦 JSONワンクリックエクスポート＆完全復元対応'
+                        ]
                     };
                 }
                 default:

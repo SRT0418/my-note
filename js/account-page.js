@@ -9,9 +9,36 @@ window.addEventListener("load", () => {
         return;
     }
 
+    function renderCurrentUserDisplay(info) {
+        const target = document.getElementById("account-current-user");
+        if (!target) return;
+        const uname = info.username || user;
+        const mail = info.email || "未設定";
+        target.innerHTML = `
+            <div style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">
+                👤 アカウント名: <span style="color: #2563eb;">${escapeHtml(uname)}</span>
+            </div>
+            <div style="font-size: 13.5px; color: #64748b;">
+                ✉️ メールアドレス: <span>${escapeHtml(mail)}</span>
+            </div>
+            <div style="font-size: 12px; color: #059669; margin-top: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                <span>🔒 各種データはアカウント名「${escapeHtml(uname)}」で個別に暗号化・完全分離管理されています</span>
+            </div>
+        `;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return "";
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
     const info = auth.getCurrentUserInfo() || { username: user, email: "" };
-    document.getElementById("account-current-user").textContent =
-        "👤 " + info.username + " さん" + (info.email ? "（" + info.email + "）" : "");
+    renderCurrentUserDisplay(info);
     document.getElementById("new-email").value = info.email || "";
 
     // 管理者の場合、マスターページへのボタンを表示
@@ -65,9 +92,8 @@ window.addEventListener("load", () => {
         if (result.ok) {
             changeEmailMessage.classList.add("success");
             changeEmailMessage.textContent = "メールアドレスを変更しました。";
-            const updated = auth.getCurrentUserInfo();
-            document.getElementById("account-current-user").textContent =
-                "👤 " + updated.username + " さん" + (updated.email ? "（" + updated.email + "）" : "");
+            const updated = auth.getCurrentUserInfo() || { username: user, email: newEmail };
+            renderCurrentUserDisplay(updated);
         } else {
             changeEmailMessage.textContent = result.message;
         }

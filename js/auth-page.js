@@ -104,18 +104,80 @@ window.addEventListener("load", () => {
 
     // ---------- 新規登録 ----------
     const registerMessage = document.getElementById("register-message");
+    const registerUsernameInput = document.getElementById("register-username");
+    const usernameCheckMsg = document.getElementById("username-check-msg");
+
+    // アカウント名のリアルタイム重複チェック（デバウンス）
+    let usernameCheckTimer = null;
+    if (registerUsernameInput && usernameCheckMsg) {
+        async function checkUsernameLive() {
+            const val = registerUsernameInput.value.trim();
+            if (!val) {
+                usernameCheckMsg.style.display = "none";
+                usernameCheckMsg.textContent = "";
+                return;
+            }
+            if (val.length > 20) {
+                usernameCheckMsg.style.display = "block";
+                usernameCheckMsg.style.color = "#ef4444";
+                usernameCheckMsg.textContent = "⚠️ アカウント名は20文字以内で入力してください。";
+                return;
+            }
+
+            try {
+                const isTaken = await window.MyNoteAuth.isUsernameTaken(val);
+                usernameCheckMsg.style.display = "block";
+                if (isTaken) {
+                    usernameCheckMsg.style.color = "#ef4444";
+                    usernameCheckMsg.textContent = "❌ このアカウント名は既に使われています。別の名前を入力してください。";
+                } else {
+                    usernameCheckMsg.style.color = "#10b981";
+                    usernameCheckMsg.textContent = "✅ このアカウント名は使用できます！";
+                }
+            } catch (e) {
+                usernameCheckMsg.style.display = "none";
+            }
+        }
+
+        registerUsernameInput.addEventListener("input", () => {
+            clearTimeout(usernameCheckTimer);
+            usernameCheckTimer = setTimeout(checkUsernameLive, 400);
+        });
+
+        registerUsernameInput.addEventListener("blur", () => {
+            clearTimeout(usernameCheckTimer);
+            checkUsernameLive();
+        });
+    }
 
     document.getElementById("register-submit").addEventListener("click", async () => {
-        const username = document.getElementById("register-username").value;
-        const email = document.getElementById("register-email").value;
+        const username = document.getElementById("register-username").value.trim();
+        const email = document.getElementById("register-email").value.trim();
         const password = document.getElementById("register-password").value;
         const password2 = document.getElementById("register-password2").value;
 
         registerMessage.textContent = "";
         registerMessage.classList.remove("success");
 
+        if (!username) {
+            registerMessage.textContent = "アカウント名（ユーザー名）を入力してください。";
+            return;
+        }
+
         if (password !== password2) {
             registerMessage.textContent = "パスワードが一致しません。";
+            return;
+        }
+
+        // 事前重複チェック
+        const isTaken = await window.MyNoteAuth.isUsernameTaken(username);
+        if (isTaken) {
+            registerMessage.textContent = `アカウント名「${username}」は既に使われています。別のアカウント名を入力してください。`;
+            if (usernameCheckMsg) {
+                usernameCheckMsg.style.display = "block";
+                usernameCheckMsg.style.color = "#ef4444";
+                usernameCheckMsg.textContent = "❌ このアカウント名は既に使われています。";
+            }
             return;
         }
 

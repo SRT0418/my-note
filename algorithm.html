@@ -1322,7 +1322,7 @@
             <div class="metric-card">
                 <span class="metric-icon">🧩</span>
                 <div class="metric-info">
-                    <div class="metric-val">8</div>
+                    <div class="metric-val">11</div>
                     <div class="metric-lbl">機能モジュール</div>
                 </div>
             </div>
@@ -1402,6 +1402,8 @@
                 </span>
                 <button class="tracer-btn" onclick="traceFlow('kadai-add')">➕ 課題追加フロー</button>
                 <button class="tracer-btn" onclick="traceFlow('daily-reset')">🔄 日付跨ぎ・習慣判定フロー</button>
+                <button class="tracer-btn" onclick="traceFlow('dashboard-flow')">📊 サマリー走査フロー</button>
+                <button class="tracer-btn" onclick="traceFlow('backup-flow')">💾 データバックアップフロー</button>
                 <button class="tracer-btn" onclick="traceFlow('cloud-sync')">☁️ クラウド同期反映フロー</button>
                 <button class="tracer-btn" onclick="traceFlow('notify-scan')">🔔 通知センター巡回フロー</button>
                 <button class="tracer-btn" onclick="clearTrace()" style="color: var(--text-muted);">リセット</button>
@@ -1420,6 +1422,33 @@
                         <span class="layer-badge">HTML5 / Responsive Grid / CSS3</span>
                     </div>
                     <div class="layer-boxes-grid">
+                        <div id="node-ui-dashboard" class="node-box" onclick="openNodeModal('ui-dashboard')">
+                            <div class="node-header">
+                                <span class="node-icon">📊</span>
+                                <span class="node-status-dot" style="background: var(--accent-emerald);"></span>
+                            </div>
+                            <h3 class="node-title">今日のサマリー</h3>
+                            <p class="node-desc">今日やるべきタスク・課題・習慣・誕生日を自動集計</p>
+                            <span class="node-tech">dashboard-summary.js</span>
+                        </div>
+                        <div id="node-ui-backup" class="node-box" onclick="openNodeModal('ui-backup')">
+                            <div class="node-header">
+                                <span class="node-icon">💾</span>
+                                <span class="node-status-dot" style="background: var(--accent-cyan);"></span>
+                            </div>
+                            <h3 class="node-title">全データバックアップ</h3>
+                            <p class="node-desc">22+の全LocalStorageキーをワンクリックJSON保存・復元</p>
+                            <span class="node-tech">data-backup.js</span>
+                        </div>
+                        <div id="node-ui-diagram" class="node-box" onclick="openNodeModal('ui-diagram')">
+                            <div class="node-header">
+                                <span class="node-icon">🕸️</span>
+                                <span class="node-status-dot" style="background: var(--accent-purple);"></span>
+                            </div>
+                            <h3 class="node-title">放射状相関図マップ</h3>
+                            <p class="node-desc">全機能ノードと実データ・ステータスを可視化する動的ビューア</p>
+                            <span class="node-tech">diagram.html</span>
+                        </div>
                         <div id="node-ui-portal" class="node-box" onclick="openNodeModal('ui-portal')">
                             <div class="node-header">
                                 <span class="node-icon">🌌</span>
@@ -2022,6 +2051,64 @@
 
         // ── Node Data Registry for Modals ──
         const NODE_DETAILS = {
+            'ui-dashboard': {
+                title: '今日のサマリー・ダッシュボード (Dashboard Summary Widget)',
+                badge: 'DASHBOARD-SUMMARY.JS // INTEGRATED UI',
+                desc: 'ホーム画面最上部に配置される動的サマリーカード。課題、毎日の習慣タスク、ToDo、カレンダー予定、誕生日などの各LocalStorageデータを統合走査し、本日やるべきタスクと進捗プログレス、期限アラートを一画面に集約。ワンクリックでの完了トグルや関連ページへのダイレクトジャンプを提供します。',
+                specs: [
+                    ['ファイル構成', 'js/dashboard-summary.js, css/dashboard-summary.css'],
+                    ['監視対象キー', 'tasks, everydayTasks, todoTasks, schedules, birthdays'],
+                    ['同期トリガー', 'DOMContentLoaded, myNoteDataSynced, visibilitychange'],
+                    ['アニメーション', 'プログレスバー伸張、完了チェック時マイクロフェード']
+                ],
+                code: `function renderDashboardSummary() {
+    const today = new Date().toISOString().slice(0, 10);
+    const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+    const habits = JSON.parse(localStorage.getItem('everydayTasks') || '[]');
+    const todos = JSON.parse(localStorage.getItem('todoTasks') || '[]');
+    // 今日の項目を抽出・集約してプログレスとカードを描画
+}`
+            },
+            'ui-backup': {
+                title: 'ワンクリック全データ・バックアップ＆復元 (Data Backup Engine)',
+                badge: 'DATA-BACKUP.JS // DATA PERSISTENCE',
+                desc: 'ブラウザのLocalStorageに保存されている全22+キーのデータを走査し、メタデータ・スキーマバージョン・エクスポート時刻を付与して安全にJSONファイルとして出力。インポート時にはJSON妥当性検証・キー確認・競合マージ機能により、機種変更やデータ保護を完全支援します。',
+                specs: [
+                    ['ファイル構成', 'js/data-backup.js, css/data-backup.css'],
+                    ['出力形式', 'MyNote_Backup_YYYY-MM-DD_HHmm.json (Blob)'],
+                    ['安全機能', '復元前のJSON構文チェック、上書き/マージ選択ダイアログ'],
+                    ['対象範囲', 'LocalStorage内の全MyNoteデータ・設定フラグ']
+                ],
+                code: `function exportAllData() {
+    const backup = {
+        meta: { app: 'MyNote', exportedAt: new Date().toISOString(), version: '2.0' },
+        data: {}
+    };
+    for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        backup.data[k] = localStorage.getItem(k);
+    }
+    downloadBlob(JSON.stringify(backup, null, 2));
+}`
+            },
+            'ui-diagram': {
+                title: '放射状相関図マップ (Radial Architecture Diagram)',
+                badge: 'DIAGRAM.HTML // INTERACTIVE SYSTEM MAP',
+                desc: 'MyNoteのモジュール・データストア・UIコンポーネントを同心円状のリング（コア層、エンジン層、UI層、ストレージ層）にレイアウトした放射状相関図。実際のLocalStorageデータや未読状態をリアルタイムにバッジ・プレビュー表示し、ズーム＆パン操作とコード詳細インスペクターを備えています。',
+                specs: [
+                    ['ファイル', 'diagram.html'],
+                    ['描画方式', 'SVGベクターグラフィックス ＆ CSS3アニメーション'],
+                    ['連動機能', 'getLiveStatusForNode() による実データ件数・締切ライブ抽出'],
+                    ['操作性', 'ホイールズーム、ドラッグパン、ESC戻り、フィルター検索']
+                ],
+                code: `function getLiveStatusForNode(nodeId) {
+    if (nodeId === 'branch-kadai') {
+        const tasks = safeParse('tasks');
+        return { badge: \`課題 \${tasks.length}件\`, items: tasks.slice(0, 4) };
+    }
+    // ノード別のリアルタイム実データを返す
+}`
+            },
             'ui-portal': {
                 title: 'Easter Egg Portal (隠しワープ機構)',
                 badge: 'INDEX.HTML // INTERACTION',
@@ -2528,6 +2615,22 @@ WITH CHECK (auth.uid() = user_id);`
                         { id: 'node-core-storage', label: '2. [Local] 課題・タスク・習慣・誕生日キーを一括読み出し' },
                         { id: 'node-eng-birthdays', label: '3. [Logic] 今日〜3日以内の期日判定 & 既読ID差分除外' },
                         { id: 'node-ui-notify-bell', label: '4. [UI] 未読数カウントをベルアイコンに反映' }
+                    ]
+                },
+                'dashboard-flow': {
+                    title: '📊 サマリー走査フロー',
+                    steps: [
+                        { id: 'node-core-storage', label: '1. [Local] tasks, everydayTasks, todoTasks, birthdays を一括ロード' },
+                        { id: 'node-eng-kadai', label: '2. [Logic] 本日の締切課題・ToDo優先度・未完了習慣を抽出' },
+                        { id: 'node-ui-dashboard', label: '3. [UI] サマリーカードを展開し、達成プログレスと直近タスクを描画' }
+                    ]
+                },
+                'backup-flow': {
+                    title: '💾 データバックアップフロー',
+                    steps: [
+                        { id: 'node-ui-backup', label: '1. [UI] 「全データバックアップ」ボタンをクリック' },
+                        { id: 'node-core-storage', label: '2. [Local] LocalStorageの全22+キーを反復走査しJSON Blobを生成' },
+                        { id: 'node-ui-backup', label: '3. [IO] タイムスタンプ付きJSONファイルとしてブラウザ自動ダウンロード' }
                     ]
                 }
             };

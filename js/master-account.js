@@ -37,6 +37,8 @@ window.addEventListener("load", async () => {
         `;
 
         allProfiles = await auth.getProfiles();
+        // 表示するアカウントデータをアカウント名（username）昇順で管理・整列
+        allProfiles.sort((a, b) => (a.username || "").localeCompare(b.username || "", "ja", { sensitivity: "base" }));
         updateStats(allProfiles);
         renderFilteredUsers();
     }
@@ -153,7 +155,15 @@ window.addEventListener("load", async () => {
 
             return `
                 <tr>
-                    <td class="col-username"><strong>${escapeHtml(p.username)}</strong></td>
+                    <td class="col-username">
+                        <div style="font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 6px;">
+                            <span style="font-size: 16px;">👤</span>
+                            <span>${escapeHtml(p.username)}</span>
+                        </div>
+                        <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
+                            一意識別キー: <code style="background: #f1f5f9; padding: 1px 4px; border-radius: 4px;">u:${escapeHtml(p.username)}</code>
+                        </div>
+                    </td>
                     <td class="col-email">${escapeHtml(p.email || "-")}</td>
                     <td class="col-role">${roleBadge}</td>
                     <td class="col-status">${statusBadge}</td>

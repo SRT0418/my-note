@@ -168,6 +168,39 @@
         return info && info.role === "admin";
     }
 
+    // ---------- アカウント名（ユーザー名）の重複チェック ----------
+    async function isUsernameTaken(username) {
+        if (!username) return false;
+        const target = (username || "").trim().toLowerCase();
+        if (!target) return false;
+
+        // 1. ローカル登録ユーザーのチェック（大文字小文字区別なし）
+        const localUsers = getUsers();
+        if (localUsers.some(u => (u.username || "").trim().toLowerCase() === target)) {
+            return true;
+        }
+
+        // 2. Supabase profiles のチェック
+        const client = window.MyNoteSupabase && window.MyNoteSupabase.isConfigured()
+            ? window.MyNoteSupabase.getClient()
+            : null;
+        if (client) {
+            try {
+                // ilike で大文字小文字を区別せず完全一致検索
+                const { data, error } = await client
+                    .from("profiles")
+                    .select("id, username")
+                    .ilike("username", target);
+                if (!error && data && data.length > 0) {
+                    return true;
+                }
+            } catch (e) {
+                console.warn("isUsernameTaken error:", e);
+            }
+        }
+        return false;
+    }
+
     // ---------- 新規ユーザー登録 ----------
     async function registerUser(username, email, password, customFeatures) {
         username = (username || "").trim();
@@ -179,10 +212,19 @@
                 : ["kadai", "tasks", "everydayTask", "wishlist", "ideas", "calendar", "report", "birthdays"];
         }
 
-        if (!username) return { ok: false, message: "ユーザー名を入力してください。" };
-        if (username.length > 20) return { ok: false, message: "ユーザー名は20文字以内で入力してください。" };
+        if (!username) return { ok: false, message: "アカウント名（ユーザー名）を入力してください。" };
+        if (username.length > 20) return { ok: false, message: "アカウント名は20文字以内で入力してください。" };
         if (!isValidEmail(email)) return { ok: false, message: "正しいメールアドレスを入力してください。" };
         if (!password || password.length < 4) return { ok: false, message: "パスワードは4文字以上で入力してください。" };
+
+        // ★ アカウント名の重複防止：同じ名前のアカウントは作成不可
+        const taken = await isUsernameTaken(username);
+        if (taken) {
+            return {
+                ok: false,
+                message: `アカウント名「${username}」は既に使われています。別のアカウント名を入力してください。`
+            };
+        }
 
         const client = window.MyNoteSupabase && window.MyNoteSupabase.isConfigured()
             ? window.MyNoteSupabase.getClient()
@@ -779,6 +821,7 @@
     // 公開API
     window.MyNoteAuth = {
         registerUser,
+        isUsernameTaken,
         loginUser,
         changePassword,
         updateEmail,
