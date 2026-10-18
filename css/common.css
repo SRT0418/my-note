@@ -4295,4 +4295,184 @@ select.form-control {
     font-weight: 600;
 }
 
-
+/* =========================================================
+   モバイル対応 最終調整（追記）
+   ---------------------------------------------------------
+   ※ 後半の通常ルールに上書きされないよう、必ずファイル末尾に置くこと。
+   ========================================================= */
+
+/* ---- 全幅共通 ---- */
+
+/* iOSで横向き時に文字が勝手に拡大されるのを防ぐ */
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+/* ダブルタップ拡大の遅延を無くす */
+a, button, input, select, label, summary {
+    touch-action: manipulation;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* 達成結果の円グラフ(canvas 300x300固定)が小型端末(幅320px)で突き出すため、縦横比を保って縮める */
+#pieChart {
+    max-width: 100%;
+    height: auto;
+}
+
+/* 長いURL・英数字の連続でカードから突き出して横スクロールになるのを防ぐ */
+p, li, h1, h2, h3, h4, dd, dt, blockquote,
+.card, .card div, .card span,
+.birthday-card-note {
+    overflow-wrap: anywhere;
+}
+
+/* 閉じているドロワーの影が画面端に滲んで見えるのを防ぐ */
+.nav-menu:not(.open) {
+    box-shadow: none;
+}
+
+/* 表は従来どおり（列が文字単位で潰れないように） */
+table, th, td {
+    overflow-wrap: normal;
+}
+
+/* 機能カスタマイズ: 360px固定の最小幅が狭い画面で横にはみ出していた */
+.features-custom-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(360px, 100%), 1fr));
+}
+
+/* ---- スマホ（幅600px以下）---- */
+@media (max-width: 600px) {
+
+    /* iOS Safariは16px未満の入力欄にフォーカスすると画面を勝手に拡大するため16px以上にする */
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+
+    select {
+        min-height: 40px;
+    }
+
+    /* customize: 本体側の通常ルール(60px)に負けていたスマホ用余白を有効化 */
+    .customize-page {
+        padding-left: 48px;
+        padding-right: 10px;
+    }
+
+    .customize-container {
+        padding: 0 4px 40px 4px;
+    }
+
+    .feature-preview-link {
+        display: inline-block;
+        padding: 10px 6px;
+    }
+
+    .footer-link {
+        display: inline-block;
+        padding: 10px 0;
+    }
+
+    /* ---- アカウント設定の入力欄 ---- */
+    .account-section label {
+        display: block;
+        margin: 14px 0 6px;
+    }
+
+    .account-section br {
+        display: none;
+    }
+
+    .account-section input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]) {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        min-height: 44px;
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #222222;
+        margin: 0 0 18px 0;
+    }
+
+    .account-section textarea {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* ---- 追加・編集フォーム（add-*.html）---- */
+    [id^="add-"][id$="-center"] {
+        width: 100%;
+        max-width: none;
+    }
+
+    [id^="add-"][id$="-center"] br {
+        display: none;
+    }
+
+    [id^="add-"][id$="-center"] label {
+        display: block;
+        margin: 16px 0 6px;
+        font-weight: 600;
+    }
+
+    [id^="add-"][id$="-center"] input:not([type="checkbox"]):not([type="radio"]),
+    [id^="add-"][id$="-center"] select {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        min-height: 44px;
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #222222;
+        margin: 0;
+    }
+
+    [id^="add-"][id$="-center"] textarea {
+        max-width: 100%;
+        margin: 0;
+        padding: 10px 12px;
+        border-radius: 8px;
+    }
+
+    /* 予定追加の「開始 ～ 終了」行は横並びのまま均等に */
+    [id^="add-"][id$="-center"] .schedule-datetime-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 10px 0;
+    }
+
+    [id^="add-"][id$="-center"] .schedule-datetime-row input {
+        flex: 1 1 0;
+        min-width: 0;
+        width: auto;
+    }
+
+    [id^="add-"][id$="-center"] .schedule-allday-row {
+        margin: 4px 0 10px 0;
+    }
+
+    .allday-toggle {
+        min-height: 40px;
+    }
+
+    [id^="add-"][id$="-center"] #save-button,
+    [id^="add-"][id$="-center"] #cancel-button {
+        margin-top: 24px;
+        min-height: 44px;
+        min-width: 96px;
+    }
+}

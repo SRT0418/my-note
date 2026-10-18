@@ -70,15 +70,20 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // ── ホバーで自動開閉 ──────────────────────────
+    // ── ホバーで自動開閉（マウス操作のときだけ） ──────────────────
+    // タッチ端末ではタップ時に mouseenter が合成発火し、
+    // 「開く（hover）→ すぐ閉じる（click のトグル）」となってメニューが開かないため、
+    // pointerType が "mouse" のときに限定する。タッチは click（オーバーレイ付き）のみで開閉する。
+    const isMouse = (e) => e.pointerType === "mouse";
+
     if (sideTrigger) {
-        sideTrigger.addEventListener("mouseenter", () => openDrawer(false));
-        sideTrigger.addEventListener("mouseleave", scheduleClose);
+        sideTrigger.addEventListener("pointerenter", (e) => { if (isMouse(e)) openDrawer(false); });
+        sideTrigger.addEventListener("pointerleave", (e) => { if (isMouse(e)) scheduleClose(); });
     }
 
     // ドロワー上にいる間は閉じない
-    menu.addEventListener("mouseenter", cancelClose);
-    menu.addEventListener("mouseleave", scheduleClose);
+    menu.addEventListener("pointerenter", (e) => { if (isMouse(e)) cancelClose(); });
+    menu.addEventListener("pointerleave", (e) => { if (isMouse(e)) scheduleClose(); });
 
     // ── 閉じるボタン ─────────────────────────────
     if (closeBtn) {
