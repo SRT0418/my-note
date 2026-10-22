@@ -3177,8 +3177,9 @@ select.form-control {
         grid-template-columns: 1fr;
     }
 
+    /* 通常プレビューペーパー */
     .report-paper {
-        padding: 28px 20px;
+        padding: 20px 14px;
         font-size: 13px;
     }
 
@@ -3187,22 +3188,102 @@ select.form-control {
         letter-spacing: 0.05em;
     }
 
+    /* ESテーマペーパー（padding: 56px 64px が過大） */
+    .report-paper.es-theme {
+        padding: 24px 14px;
+    }
+
+    /* プレビューコンテナが横にはみ出ないようにする */
+    .report-preview-container {
+        overflow-x: hidden;
+    }
+
+    /* es-meta テーブル：横スクロール許容＆フォント縮小 */
+    table.es-meta {
+        font-size: 11px;
+    }
+    .report-paper .es-meta-label {
+        font-size: 9.5px;
+        letter-spacing: 0.1em;
+    }
+    .report-paper .es-meta-value {
+        font-size: 11.5px;
+    }
+    .report-paper td.es-meta-cell {
+        padding: 8px 4px;
+    }
+
+    /* es-section-h2 の文字数バッジが折り返せるように */
+    .es-section-h2 {
+        flex-wrap: wrap;
+        gap: 4px;
+        font-size: 15px;
+    }
+    .es-section-h2 .es-word-count {
+        font-size: 12px;
+    }
+
+    /* ESタイトル・サブタイトル */
+    .es-paper-title {
+        font-size: 18px;
+        letter-spacing: 0.03em;
+    }
+    .es-paper-subtitle {
+        font-size: 12px;
+        letter-spacing: 0.05em;
+        margin: 0 0 20px 0;
+    }
+
+    /* セクション見出し・本文 */
+    .es-item-h3 {
+        font-size: 13px;
+    }
+    .es-item-p {
+        font-size: 13px;
+    }
+
+    /* ヘッダー部分（flex→column） */
     .section-header-flex {
         flex-direction: column;
     }
 
+    /* 出力ボタン群：均等幅で折り返し */
     .export-actions {
         width: 100%;
+        gap: 6px;
+    }
+    .export-actions button {
+        flex: 1 1 calc(50% - 6px);
+        min-width: 0;
+        font-size: 12px;
+        padding: 7px 6px;
+        text-align: center;
     }
 
-    .export-actions button {
-        flex: 1;
-        min-width: 0;
+    /* データソースタブ：均等幅 */
+    .source-tab-group {
+        gap: 6px;
+    }
+    .source-tab {
+        flex: 1 1 calc(50% - 6px);
+        font-size: 12px;
+        padding: 8px 6px;
+        text-align: center;
     }
 
     .period-selection-group {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    /* 選択済み期間バッジ */
+    .period-type-picker {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .radio-label {
+        font-size: 13px;
+        padding: 5px 10px;
     }
 }
 
