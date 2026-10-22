@@ -18,6 +18,7 @@ window.addEventListener("load", () => {
     renderToday();
     purgeOldDeletedTasks();
     archiveFinishedDeadlineWeeks();
+    renderOverdueTasks();
     renderTasks();
     renderCompletedTasks();
     renderDeletedTasks();
@@ -27,6 +28,7 @@ window.addEventListener("load", () => {
 // クラウド同期後に db-sync.js から呼び出されるグローバル再描画関数
 window.renderKadai = function () {
     renderToday();
+    renderOverdueTasks();
     renderTasks();
     renderCompletedTasks();
     renderDeletedTasks();
@@ -153,6 +155,53 @@ function renderTaskGroup(elementId, tasks, emptyText) {
             ${task.detail ? `<p>詳細：${escapeHtml(task.detail).replace(/\n/g, "<br>")}</p>` : ""}
 
             ${!isOverdue ? `<button class="complete-btn" data-id="${task.id}">達成</button>` : ""}
+            <button class="edit-btn" data-id="${task.id}">編集</button>
+            <button class="delete-btn" data-id="${task.id}">削除</button>
+        `;
+
+        list.appendChild(div);
+    });
+}
+
+// 期限切れ課題（未完了かつ締切が過去）を専用エリアに表示する
+function renderOverdueTasks() {
+
+    const tasks = getTasks();
+    const now = new Date();
+    const overdue = tasks
+        .filter(t => t && t.deadline && new Date(t.deadline) < now)
+        .sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+
+    const list = document.getElementById("overdue-list");
+    const heading = document.getElementById("overdue-section-heading");
+    if (!list) return;
+
+    list.innerHTML = "";
+
+    // 件数ゼロのときはセクション自体を非表示にする
+    if (overdue.length === 0) {
+        list.style.display = "none";
+        if (heading) heading.style.display = "none";
+        return;
+    }
+
+    list.style.display = "";
+    if (heading) heading.style.display = "";
+
+    overdue.forEach(task => {
+        const deadline = new Date(task.deadline);
+        const overdueDays = Math.floor((now - deadline) / (1000 * 60 * 60 * 24));
+
+        const div = document.createElement("div");
+        div.className = "card overdue-card";
+
+        div.innerHTML = `
+            <p>科目：${escapeHtml(task.subject)}</p>
+            <p>課題：${escapeHtml(task.title)}</p>
+            <p>締切：${deadline.toLocaleString("ja-JP")}</p>
+            <p><span style="color:var(--color-danger, #ef4444);font-weight:bold">⚠ 期限切れ：${overdueDays === 0 ? "今日期限" : `${overdueDays}日超過`}</span></p>
+            ${task.detail ? `<p>詳細：${escapeHtml(task.detail).replace(/\n/g, "<br>")}</p>` : ""}
+
             <button class="edit-btn" data-id="${task.id}">編集</button>
             <button class="delete-btn" data-id="${task.id}">削除</button>
         `;
@@ -322,6 +371,7 @@ function deleteTask(id) {
     saveDeleted(deleted);
 
     renderTasks();
+    renderOverdueTasks();
     renderDeletedTasks();
     updateCounts();
 }
@@ -345,6 +395,7 @@ function revertTask(id) {
     saveTasks(tasks);
 
     renderTasks();
+    renderOverdueTasks();
     renderCompletedTasks();
     updateCounts();
 }
@@ -368,6 +419,7 @@ function deleteCompletedTask(id) {
     saveDeleted(deleted);
 
     renderCompletedTasks();
+    renderOverdueTasks();
     renderDeletedTasks();
     updateCounts();
 }

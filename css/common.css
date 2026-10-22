@@ -66,6 +66,12 @@ body.add {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
+.overdue-card {
+    border: 2px solid #ef4444;
+    background-color: #fff5f5;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
+}
+
 #add-button {
     background-color: whitesmoke;
     color: #333333;
