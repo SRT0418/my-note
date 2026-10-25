@@ -11,6 +11,7 @@
     let selectedItemIds = new Set();
     let currentItems = [];
     let isDirectEditMode = true; // プレビュー直接編集モード（デフォルトON）
+    let currentPreviewMode = "fit"; // "fit" (全体フィット) | "scroll" (原寸スクロール) | "fluid" (スマホ幅)
 
     // 自由記述セクションリスト（ユーザーが自由に追加・編集可能）
     // 各要素: { id, title, content }
@@ -253,8 +254,8 @@
     .report-paper table.es-meta { width:100%; border-collapse:collapse; table-layout:fixed; margin:0 0 30px 0; }
     .report-paper td.es-meta-cell { text-align:center; vertical-align:top; padding:11px 8px; border-top:1px solid #cbd5e1; border-bottom:1px solid #cbd5e1; border-left:1px solid #e2e8f0; }
     .report-paper td.es-meta-cell:first-child { border-left:none; }
-    .report-paper .es-meta-label { display:inline-block; font-size:10.5px; letter-spacing:0.18em; color:#64748b; margin-bottom:4px; }
-    .report-paper .es-meta-value { font-size:13.5px; font-weight:600; color:#1e293b; word-break:break-all; }
+    .report-paper .es-meta-label { display:inline-block; font-size:10.5px; letter-spacing:0.18em; color:#64748b; margin-bottom:4px; white-space:nowrap; }
+    .report-paper .es-meta-value { font-size:13.5px; font-weight:600; color:#1e293b; white-space:nowrap; }
 
     .report-paper.rt-classic-blue td.es-meta-cell { border-top:2px solid #2980b9; border-bottom:1px solid #bcd4e6; border-left-color:#dbe7f1; }
     .report-paper.rt-classic-blue .es-meta-label { color:#2980b9; }
@@ -541,6 +542,21 @@
         document.getElementById("btn-download-txt").addEventListener("click", () => downloadReportFile("txt"));
         document.getElementById("btn-download-md").addEventListener("click", () => downloadReportFile("md"));
         document.getElementById("btn-print-report").addEventListener("click", () => window.print());
+
+        // プレビュー表示モード切替（全体フィット / 原寸スクロール / スマホ幅）
+        document.querySelectorAll(".btn-mode-tab").forEach(btn => {
+            btn.addEventListener("click", () => {
+                currentPreviewMode = btn.dataset.mode;
+                document.querySelectorAll(".btn-mode-tab").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                renderPreview();
+            });
+        });
+
+        // 画面幅変更時のプレビュー自動スケーリング調整
+        window.addEventListener("resize", () => {
+            updatePreviewScale();
+        });
     }
 
     // ==========================================
@@ -980,15 +996,57 @@
         if (!container) return;
 
         const html = buildReportHTML();
+        const themeClass = `rt-${getCurrentTheme()}`;
+        const modeClass = `mode-${currentPreviewMode}`;
+        const paperClass = currentPreviewMode === "fluid" ? "fluid-paper" : "fixed-paper";
 
         container.innerHTML = `
-            <div id="editable-report-paper" class="report-paper es-theme rt-${getCurrentTheme()}" contenteditable="${isDirectEditMode ? "true" : "false"}" spellcheck="false">
-                ${html}
+            <div id="report-preview-scaler-wrap" class="report-preview-scaler-wrap ${modeClass}">
+                <div id="editable-report-paper" class="report-paper es-theme ${themeClass} ${paperClass}" contenteditable="${isDirectEditMode ? "true" : "false"}" spellcheck="false">
+                    ${html}
+                </div>
             </div>
         `;
 
         applyDirectEditMode();
+        updatePreviewScale();
         if (autoSaveArmed) scheduleAutoSave();
+    }
+
+    function updatePreviewScale() {
+        const wrap = document.getElementById("report-preview-scaler-wrap");
+        const paper = document.getElementById("editable-report-paper");
+        const container = document.getElementById("report-preview-container");
+        if (!wrap || !paper || !container) return;
+
+        if (currentPreviewMode === "fluid") {
+            paper.style.transform = "";
+            paper.style.width = "100%";
+            wrap.style.height = "auto";
+            return;
+        }
+
+        if (currentPreviewMode === "scroll") {
+            paper.style.transform = "";
+            paper.style.width = "740px";
+            wrap.style.height = "auto";
+            return;
+        }
+
+        // fit モード（用紙全体表示：PCと同じレイアウトのまま画面にピッタリ縮小フィット）
+        paper.style.width = "740px";
+        const containerWidth = container.clientWidth;
+        if (containerWidth > 0 && containerWidth < 740) {
+            const scale = Math.max(0.2, (containerWidth - 6) / 740);
+            paper.style.transform = `scale(${scale})`;
+            paper.style.transformOrigin = "top center";
+            // 縮小後の視覚的な高さに合わせてラッパーの高さを指定（余分な空白を完全に防ぐ）
+            const paperHeight = paper.offsetHeight;
+            wrap.style.height = `${Math.ceil(paperHeight * scale) + 6}px`;
+        } else {
+            paper.style.transform = "";
+            wrap.style.height = "auto";
+        }
     }
 
     function applyDirectEditMode() {

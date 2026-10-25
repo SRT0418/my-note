@@ -126,7 +126,7 @@ let selectedDateKey = null; // nullの場合は「すべての予定」を表示
 
 window.addEventListener("load", () => {
     purgeOldDeletedSchedules(); // 3ヶ月経過した削除済み予定の全削除処理
-    renderCalendar();
+    renderCalendarGrid();
     renderEventList();
     renderHistoryList();
     renderDeletedList();
@@ -145,7 +145,7 @@ window.addEventListener("load", () => {
             calendarMonth = 11;
             calendarYear--;
         }
-        renderCalendar();
+        renderCalendarGrid();
     });
 
     document.getElementById("next-month-btn").addEventListener("click", () => {
@@ -154,19 +154,19 @@ window.addEventListener("load", () => {
             calendarMonth = 0;
             calendarYear++;
         }
-        renderCalendar();
+        renderCalendarGrid();
     });
 
     document.getElementById("show-all-btn").addEventListener("click", () => {
         selectedDateKey = null;
-        renderCalendar();
+        renderCalendarGrid();
         renderEventList();
     });
 });
 
 // ===== カレンダー描画 =====
 
-function renderCalendar() {
+function renderCalendarGrid() {
     const schedules = getSchedules();
     const grid = document.getElementById("calendar-grid");
     const label = document.getElementById("calendar-month-label");
@@ -258,7 +258,7 @@ function renderCalendar() {
 
         cell.addEventListener("click", () => {
             selectedDateKey = dateKey;
-            renderCalendar();
+            renderCalendarGrid();
             renderEventList();
         });
 
@@ -512,7 +512,7 @@ document.addEventListener("click", e => {
 
 // 画面全体の一括再描画（カレンダー・今後の予定・履歴・削除済み）
 function refreshAllViews() {
-    renderCalendar();
+    renderCalendarGrid();
     renderEventList();
     renderHistoryList();
     renderDeletedList();
