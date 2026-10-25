@@ -138,6 +138,7 @@ window.addEventListener("load", () => {
 
         if (window.MyNoteDBSync && typeof window.MyNoteDBSync.flushSync === "function") {
             await window.MyNoteDBSync.flushSync("schedules");
+            await window.MyNoteDBSync.flushSync("secret_base_schedules");
         }
 
         location.href = "calendar.html";

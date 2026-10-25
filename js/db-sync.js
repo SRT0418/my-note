@@ -60,9 +60,41 @@
                 let updatedAny = false;
                 data.forEach(item => {
                     if (item.data_key && item.content !== undefined) {
-                        const valStr = typeof item.content === "string" ? item.content : JSON.stringify(item.content);
-                        if (localStorage.getItem(item.data_key) !== valStr) {
-                            localStorage.setItem(item.data_key, valStr);
+                        let cloudVal = item.content;
+                        if (typeof cloudVal === "string") {
+                            try { cloudVal = JSON.parse(cloudVal); } catch (e) {}
+                        }
+
+                        let localVal = null;
+                        try {
+                            const raw = localStorage.getItem(item.data_key);
+                            if (raw !== null) localVal = JSON.parse(raw);
+                        } catch (e) {}
+
+                        let finalVal = cloudVal;
+
+                        // 配列データ（予定、タスク、課題等）の場合の安全マージ処理
+                        if (Array.isArray(cloudVal) && Array.isArray(localVal)) {
+                            // クラウド側が空配列で、ローカルに既存データが存在する場合はローカルデータを守る
+                            if (cloudVal.length === 0 && localVal.length > 0) {
+                                finalVal = localVal;
+                            } else if (cloudVal.length > 0 && localVal.length > 0) {
+                                // IDを持つアイテム配列同士の場合、IDで結合マージ（ローカル新規分も消失させない）
+                                const cloudIds = new Set(cloudVal.filter(x => x && x.id != null).map(x => String(x.id)));
+                                const localOnly = localVal.filter(x => x && x.id != null && !cloudIds.has(String(x.id)));
+                                if (localOnly.length > 0) {
+                                    finalVal = [...cloudVal, ...localOnly];
+                                }
+                            }
+                        } else if (cloudVal === null || cloudVal === undefined) {
+                            if (localVal !== null && localVal !== undefined) {
+                                finalVal = localVal;
+                            }
+                        }
+
+                        const finalStr = JSON.stringify(finalVal);
+                        if (localStorage.getItem(item.data_key) !== finalStr) {
+                            localStorage.setItem(item.data_key, finalStr);
                             updatedAny = true;
                         }
                     }
@@ -166,7 +198,12 @@
             clearTimeout(syncTimer);
             syncTimer = null;
         }
-        const userId = window.MyNoteAuth ? window.MyNoteAuth.getCurrentUserId() : null;
+        let userId = window.MyNoteAuth ? window.MyNoteAuth.getCurrentUserId() : null;
+        if ((!userId || !isValidUUID(userId)) && window.MyNoteAuth && typeof window.MyNoteAuth.getCurrentUserIdAsync === "function") {
+            try {
+                userId = await window.MyNoteAuth.getCurrentUserIdAsync();
+            } catch (e) {}
+        }
         if (userId && pendingKeys.size > 0) {
             const keys = Array.from(pendingKeys);
             pendingKeys.clear();

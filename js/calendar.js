@@ -21,14 +21,37 @@ function escapeHtml(str) {
         .replace(/'/g, "&#039;");
 }
 
-// localStorageから予定一覧を取得する
+// localStorageから予定一覧を取得する（フォールバックキー secret_base_schedules 対応）
 function getSchedules() {
-    return JSON.parse(localStorage.getItem("schedules")) || [];
+    const primary = localStorage.getItem("schedules");
+    if (primary) {
+        try {
+            const parsed = JSON.parse(primary);
+            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        } catch (e) {}
+    }
+    const fallback = localStorage.getItem("secret_base_schedules");
+    if (fallback) {
+        try {
+            const parsed = JSON.parse(fallback);
+            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        } catch (e) {}
+    }
+    try {
+        return JSON.parse(primary) || [];
+    } catch (e) {
+        return [];
+    }
 }
 
-// 予定一覧をlocalStorageに保存する
+// 予定一覧をlocalStorageに保存する（両キーとクラウドへ確実に同期）
 function saveSchedules(schedules) {
     localStorage.setItem("schedules", JSON.stringify(schedules));
+    localStorage.setItem("secret_base_schedules", JSON.stringify(schedules));
+    if (window.MyNoteDBSync && typeof window.MyNoteDBSync.flushSync === "function") {
+        window.MyNoteDBSync.flushSync("schedules");
+        window.MyNoteDBSync.flushSync("secret_base_schedules");
+    }
 }
 
 // localStorageから削除済み予定を取得する
@@ -39,6 +62,9 @@ function getDeletedSchedules() {
 // 削除済み予定をlocalStorageに保存する
 function saveDeletedSchedules(schedules) {
     localStorage.setItem("deletedSchedules", JSON.stringify(schedules));
+    if (window.MyNoteDBSync && typeof window.MyNoteDBSync.flushSync === "function") {
+        window.MyNoteDBSync.flushSync("deletedSchedules");
+    }
 }
 
 // Dateオブジェクトを "YYYY-MM-DD" 形式の文字列に変換する
@@ -51,7 +77,7 @@ function toDateKey(date) {
 
 // 指定した日付(YYYY-MM-DD)にかかっている予定の一覧を返す
 function getSchedulesOnDate(schedules, dateKey) {
-    return schedules.filter(s => s.startDate <= dateKey && s.endDate >= dateKey);
+    return schedules.filter(s => s && s.startDate && s.endDate && s.startDate <= dateKey && s.endDate >= dateKey);
 }
 
 // 予定の日時を表示用の文字列に整形する
@@ -251,7 +277,7 @@ function renderEventList() {
     const todayKey = toDateKey(today);
 
     // 今日以降の予定（期限が過ぎていないもの）を抽出
-    let upcomingSchedules = schedules.filter(s => s.endDate >= todayKey);
+    let upcomingSchedules = schedules.filter(s => s && s.endDate && s.endDate >= todayKey);
 
     let targetSchedules;
 
@@ -322,7 +348,7 @@ function renderHistoryList() {
     const todayKey = toDateKey(today);
 
     // 終了日が今日より前の予定（期限切れ）を取得
-    const pastSchedules = schedules.filter(s => s.endDate < todayKey);
+    const pastSchedules = schedules.filter(s => s && s.endDate && s.endDate < todayKey);
 
     // 新しい予定順（終了日が新しい順）にソート
     pastSchedules.sort((a, b) => b.endDate.localeCompare(a.endDate));
@@ -484,13 +510,23 @@ document.addEventListener("click", e => {
     }
 });
 
-// 画面全体の一括再描画
+// 画面全体の一括再描画（カレンダー・今後の予定・履歴・削除済み）
 function refreshAllViews() {
     renderCalendar();
     renderEventList();
     renderHistoryList();
     renderDeletedList();
 }
+
+// クラウド同期後に db-sync.js から呼び出されるグローバル再描画関数
+window.renderCalendar = function () {
+    refreshAllViews();
+};
+
+// クラウド同期完了イベントを受信した際にも全画面を最新化
+window.addEventListener("myNoteDataSynced", () => {
+    refreshAllViews();
+});
 
 // 削除から3ヶ月経過した予定を自動的に完全削除する
 function purgeOldDeletedSchedules() {

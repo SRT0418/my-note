@@ -78,10 +78,11 @@
         // 2. 毎日習慣タスク（habitTasks, habitCompleted）
         const habitTasks = safeParse("habitTasks");
         const habitCompleted = safeParse("habitCompleted");
-        const totalHabits = habitTasks.length;
         const completedHabitsCount = habitCompleted.length;
+        const totalHabits = habitTasks.length + completedHabitsCount;
         const habitPercent = totalHabits > 0 ? Math.round((completedHabitsCount / totalHabits) * 100) : 0;
-        const remainingHabits = habitTasks.filter(t => !habitCompleted.includes(t.id));
+        const completedIds = new Set(habitCompleted.map(t => t && t.id));
+        const remainingHabits = habitTasks.filter(t => t && !completedIds.has(t.id));
 
         // 3. 今日の予定 ＆ 近日誕生日
         const schedules = safeParse("schedules");
