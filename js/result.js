@@ -230,14 +230,14 @@ function renderWeeklyHistory() {
         return `
         <details class="history-card" id="history-${index}">
             <summary class="history-summary">
-                <span class="history-week-label">📅 ${h.weekLabel}</span>
+                <span class="history-week-label">${h.weekLabel}</span>
                 <span class="history-rate-badge" style="background:${rateColor}">${h.rate}%</span>
             </summary>
             <div class="history-detail">
                 <div class="history-counts">
-                    <span>🟡 未達成：${h.unfinishedCount || 0}件</span>
-                    <span>🟢 達成：${h.completedCount || 0}件</span>
-                    <span>📊 合計：${total}件</span>
+                    <span>未達成：${h.unfinishedCount || 0}件</span>
+                    <span>達成：${h.completedCount || 0}件</span>
+                    <span>合計：${total}件</span>
                 </div>
                 <div class="bar-container" style="margin-top:8px">
                     <div class="bar unfinished" style="width:${unfinishedWidth}%"></div>
@@ -246,11 +246,11 @@ function renderWeeklyHistory() {
 
                 <div class="history-task-lists">
                     <div>
-                        <p class="history-list-heading">🟢 達成済み</p>
+                        <p class="history-list-heading">達成済み</p>
                         <ul class="history-task-list">${completedItems || "<li>なし</li>"}</ul>
                     </div>
                     <div>
-                        <p class="history-list-heading">🟡 未達成</p>
+                        <p class="history-list-heading">未達成</p>
                         <ul class="history-task-list">${unfinishedItems || "<li>なし</li>"}</ul>
                     </div>
                 </div>

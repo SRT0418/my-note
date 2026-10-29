@@ -132,7 +132,7 @@
                 </div>
             `;
         } else {
-            kadaiBodyHTML = `<div class="dash-empty-state">直近の締切課題はありません ✨</div>`;
+            kadaiBodyHTML = `<div class="dash-empty-state">直近の締切課題はありません</div>`;
         }
 
         let habitBodyHTML = "";
@@ -147,7 +147,7 @@
                         <div class="habit-progress-fill" style="width: ${habitPercent}%;"></div>
                     </div>
                     <div class="habit-remaining-names" title="${remainingHabits.map(t => escapeHtml(t.title)).join(', ')}">
-                        ${remainingHabits.length > 0 ? `残り: ${remainingHabits.slice(0, 2).map(t => escapeHtml(t.title)).join(", ")}${remainingHabits.length > 2 ? ' 他' : ''}` : '🎉 すべて達成しました！'}
+                        ${remainingHabits.length > 0 ? `残り: ${remainingHabits.slice(0, 2).map(t => escapeHtml(t.title)).join(", ")}${remainingHabits.length > 2 ? ' 他' : ''}` : 'すべて達成しました'}
                     </div>
                 </div>
             `;
@@ -169,7 +169,7 @@
         upcomingBirthdays.slice(0, 2).forEach(b => {
             scheduleOrBirthdayItems.push(`
                 <div class="schedule-row">
-                    <span class="birthday-tag">🎂 ${b.isToday ? "本日" : `あと${b.diffDays}日`}</span>
+                    <span class="birthday-tag">${b.isToday ? "本日" : `あと${b.diffDays}日`}</span>
                     <span>${escapeHtml(b.name)}</span>
                 </div>
             `);
@@ -204,22 +204,22 @@
                 </div>
             `;
         } else {
-            todoBodyHTML = `<div class="dash-empty-state">未完了のタスクはありません 👍</div>`;
+            todoBodyHTML = `<div class="dash-empty-state">未完了のタスクはありません</div>`;
         }
 
         // 全体コンテナを描画
         container.innerHTML = `
             <div class="dashboard-header">
                 <div class="dashboard-title-wrap">
-                    <h2>📊 今日のサマリー</h2>
+                    <h2>今日のサマリー</h2>
                     <span class="dashboard-badge-live">LIVE</span>
                 </div>
                 <div class="dashboard-actions">
                     <button class="dashboard-btn-icon" id="dash-backup-btn" title="データのエクスポート・復元">
-                        📦 データバックアップ
+                        データバックアップ
                     </button>
                     <button class="dashboard-btn-icon" id="dash-refresh-btn" title="サマリーを再計算">
-                        🔄 更新
+                        更新
                     </button>
                 </div>
             </div>
@@ -228,7 +228,7 @@
                 <!-- 1. 課題締切 -->
                 <div class="dash-card card-kadai" onclick="location.href='kadai.html'">
                     <div class="dash-card-header">
-                        <span class="dash-card-title">📚 課題締切</span>
+                        <span class="dash-card-title">課題締切</span>
                         <span class="dash-card-count" style="${expiredCount > 0 ? 'background:#fee2e2; color:#dc2626; font-weight:800;' : ''}">
                             ${expiredCount > 0 ? `警告 ${expiredCount}` : `${urgentKadais.length}件`}
                         </span>
@@ -244,7 +244,7 @@
                 <!-- 2. 毎日習慣 -->
                 <div class="dash-card card-habit" onclick="location.href='everydayTask.html'">
                     <div class="dash-card-header">
-                        <span class="dash-card-title">🔥 毎日習慣</span>
+                        <span class="dash-card-title">毎日習慣</span>
                         <span class="dash-card-count">${completedHabitsCount}/${totalHabits}</span>
                     </div>
                     <div class="dash-card-body">
@@ -258,7 +258,7 @@
                 <!-- 3. 今日の予定 ＆ 近日誕生日 -->
                 <div class="dash-card card-schedule" onclick="location.href='calendar.html'">
                     <div class="dash-card-header">
-                        <span class="dash-card-title">📅 予定 & 🎂 記念日</span>
+                        <span class="dash-card-title">予定 & 記念日</span>
                         <span class="dash-card-count">${todaySchedules.length}件</span>
                     </div>
                     <div class="dash-card-body">
@@ -272,7 +272,7 @@
                 <!-- 4. タスク管理 -->
                 <div class="dash-card card-todo" onclick="location.href='tasks.html'">
                     <div class="dash-card-header">
-                        <span class="dash-card-title">✅ タスク (ToDo)</span>
+                        <span class="dash-card-title">タスク (ToDo)</span>
                         <span class="dash-card-count">${todoTasks.length}件</span>
                     </div>
                     <div class="dash-card-body">

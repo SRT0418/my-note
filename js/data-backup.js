@@ -161,13 +161,13 @@
         overlay.innerHTML = `
             <div class="backup-modal-card">
                 <div class="backup-modal-header">
-                    <h3>📦 データバックアップ & 復元</h3>
+                    <h3>データバックアップ & 復元</h3>
                     <button class="backup-modal-close-btn" id="backup-modal-close" aria-label="閉じる">&times;</button>
                 </div>
                 <div class="backup-modal-body">
                     <!-- データ件数統計 -->
                     <div class="backup-stats-box">
-                        <div class="backup-stats-title">📊 現在の保存データ状況</div>
+                        <div class="backup-stats-title">現在の保存データ状況</div>
                         <div class="backup-stats-grid" id="backup-stats-grid">
                             <!-- 動的挿入 -->
                         </div>
@@ -175,12 +175,12 @@
 
                     <!-- エクスポート -->
                     <div class="backup-section-action">
-                        <div class="backup-section-title">⬇️ データを保存（エクスポート）</div>
+                        <div class="backup-section-title">データを保存（エクスポート）</div>
                         <p class="backup-section-desc">
                             課題・タスク・習慣・予定・誕生日・メモなど、すべてのデータをJSONファイルとしてダウンロードします。端末の引っ越しや定期保存にご利用ください。
                         </p>
                         <button class="backup-btn-export" id="btn-do-export">
-                            📥 今すぐバックアップを保存 (JSON)
+                            今すぐバックアップを保存 (JSON)
                         </button>
                     </div>
 
@@ -188,12 +188,12 @@
 
                     <!-- インポート -->
                     <div class="backup-section-action">
-                        <div class="backup-section-title">⬆️ データを復元（インポート）</div>
+                        <div class="backup-section-title">データを復元（インポート）</div>
                         <p class="backup-section-desc">
                             過去に保存したバックアップJSONファイルを選択して、データを復元します。
                         </p>
                         <div class="backup-dropzone" id="backup-dropzone">
-                            <span class="backup-dropzone-icon">📂</span>
+                            <span class="backup-dropzone-icon"></span>
                             <span class="backup-dropzone-text">クリックまたはファイルをドラッグ＆ドロップ</span>
                             <span class="backup-dropzone-sub">.json ファイルのみ</span>
                             <input type="file" id="backup-file-input" class="backup-file-input" accept=".json">
@@ -280,13 +280,13 @@
         if (!grid) return;
         const s = getDataSummary();
         grid.innerHTML = `
-            <div class="backup-stat-chip"><span>📚 課題</span><span>${s.tasks}件</span></div>
-            <div class="backup-stat-chip"><span>✅ タスク</span><span>${s.todo}件</span></div>
-            <div class="backup-stat-chip"><span>🔥 習慣</span><span>${s.habits}件</span></div>
-            <div class="backup-stat-chip"><span>📅 予定</span><span>${s.schedules}件</span></div>
-            <div class="backup-stat-chip"><span>🎂 誕生日</span><span>${s.birthdays}件</span></div>
-            <div class="backup-stat-chip"><span>💡 アイデア</span><span>${s.ideas}件</span></div>
-            <div class="backup-stat-chip"><span>✨ やりたいこと</span><span>${s.wishes}件</span></div>
+            <div class="backup-stat-chip"><span>課題</span><span>${s.tasks}件</span></div>
+            <div class="backup-stat-chip"><span>タスク</span><span>${s.todo}件</span></div>
+            <div class="backup-stat-chip"><span>習慣</span><span>${s.habits}件</span></div>
+            <div class="backup-stat-chip"><span>予定</span><span>${s.schedules}件</span></div>
+            <div class="backup-stat-chip"><span>誕生日</span><span>${s.birthdays}件</span></div>
+            <div class="backup-stat-chip"><span>アイデア</span><span>${s.ideas}件</span></div>
+            <div class="backup-stat-chip"><span>やりたいこと</span><span>${s.wishes}件</span></div>
         `;
     }
 

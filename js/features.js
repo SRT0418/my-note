@@ -15,7 +15,7 @@
         {
             id: "kadai",
             name: "課題締切管理",
-            icon: "📚",
+            icon: "",
             url: "kadai.html",
             desc: "課題の締切を管理し、達成率を確認できます",
             category: "学習・締切"
@@ -23,7 +23,7 @@
         {
             id: "tasks",
             name: "タスク管理",
-            icon: "✅",
+            icon: "",
             url: "tasks.html",
             desc: "締切のない用事を、優先度をつけて管理します",
             category: "ToDo"
@@ -31,7 +31,7 @@
         {
             id: "everydayTask",
             name: "毎日習慣タスク",
-            icon: "🔄",
+            icon: "",
             url: "everydayTask.html",
             desc: "毎日続けたい習慣を登録し、達成状況を記録します",
             category: "習慣・ルーティン"
@@ -39,7 +39,7 @@
         {
             id: "wishlist",
             name: "やりたいことリスト",
-            icon: "✨",
+            icon: "",
             url: "wishlist.html",
             desc: "やりたいことをリストにして、達成チェックできます",
             category: "ライフ"
@@ -47,7 +47,7 @@
         {
             id: "ideas",
             name: "アイデア保存",
-            icon: "💡",
+            icon: "",
             url: "ideas.html",
             desc: "思いついたアイデアを保存しておけます",
             category: "メモ・発想"
@@ -55,7 +55,7 @@
         {
             id: "calendar",
             name: "カレンダー",
-            icon: "📅",
+            icon: "",
             url: "calendar.html",
             desc: "予定をカレンダーとカードで管理できます",
             category: "スケジュール"
@@ -63,7 +63,7 @@
         {
             id: "report",
             name: "報告書作成",
-            icon: "📄",
+            icon: "",
             url: "report.html",
             desc: "予定・課題・タスクから報告書を作成・出力できます",
             category: "業務・学業"
@@ -71,7 +71,7 @@
         {
             id: "birthdays",
             name: "誕生日管理",
-            icon: "🎂",
+            icon: "",
             url: "birthdays.html",
             desc: "大切な人の誕生日や年齢・日数をカウント管理できます",
             category: "記念日"
@@ -189,7 +189,7 @@
             custLink.href = "customize.html";
             custLink.className = "nav-customize-link";
             custLink.style.cssText = "border-top: 1px solid rgba(255,255,255,0.15); margin-top: 8px; color: #67e8f9; font-weight: bold;";
-            custLink.innerHTML = "⚙️ 機能カスタマイズ";
+            custLink.innerHTML = "機能カスタマイズ";
             navMenu.appendChild(custLink);
         }
     }
@@ -224,7 +224,7 @@
             const bCard = document.createElement("div");
             bCard.className = "card menu-item dynamic-feature-card";
             bCard.onclick = () => location.href = "birthdays.html";
-            bCard.innerHTML = `<h2>🎂 誕生日管理</h2><p>大切な人の誕生日や年齢・日数をカウント管理できます</p>`;
+            bCard.innerHTML = `<h2>誕生日管理</h2><p>大切な人の誕生日や年齢・日数をカウント管理できます</p>`;
             menuGrid.appendChild(bCard);
             visibleCount++;
         }
@@ -237,7 +237,7 @@
             addCard.className = "card menu-item home-customize-card";
             addCard.onclick = () => location.href = "customize.html";
             addCard.innerHTML = `
-                <div style="font-size: 26px; margin-bottom: 6px;">⚙️ ＋</div>
+                <div style="font-size: 26px; margin-bottom: 6px;">＋</div>
                 <h2 style="color: #3b82f6;">機能のカスタマイズ</h2>
                 <p>使いたい機能の追加・非表示をいつでも変更できます</p>
             `;
@@ -257,7 +257,7 @@
                         表示中の機能がありません。「機能のカスタマイズ」から使いたい機能を選択してください。
                     </p>
                     <button onclick="location.href='customize.html'" class="btn-primary" style="padding: 10px 20px;">
-                        ⚙️ 機能を選択する
+                        機能を選択する
                     </button>
                 `;
                 menuGrid.insertBefore(emptyNotice, addCard);

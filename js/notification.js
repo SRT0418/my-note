@@ -184,7 +184,7 @@
                         id: id,
                         category: "birthday",
                         title: "本日の誕生日",
-                        message: `🎂 ${b.isMine ? "自分" : b.name}の誕生日です！`,
+                        message: `${b.isMine ? "自分" : b.name}の誕生日です`,
                         link: "birthdays.html",
                         date: todayKey,
                         badge: "誕生日",
@@ -202,7 +202,7 @@
                                 id: id,
                                 category: "birthday",
                                 title: "もうすぐ誕生日",
-                                message: `🎁 ${b.name}の誕生日まであと${days}日 (${b.month}/${b.day})`,
+                                message: `${b.name}の誕生日まであと${days}日 (${b.month}/${b.day})`,
                                 link: "birthdays.html",
                                 date: `${b.month}/${b.day}`,
                                 badge: "誕生日",
@@ -230,7 +230,7 @@
                         id: id,
                         category: "todo",
                         title: "高優先タスク未完了",
-                        message: `⚡ ${t.content}`,
+                        message: `${t.content}`,
                         link: "tasks.html",
                         date: todayKey,
                         badge: "タスク",
@@ -270,7 +270,7 @@
             bellBtn.className = "nav-notification-btn";
             bellBtn.setAttribute("aria-label", "通知センター");
             bellBtn.title = "通知センター";
-            bellBtn.innerHTML = `<span>🔔 通知センター</span><span id="notification-badge" class="notification-badge" style="display:none;">0</span>`;
+            bellBtn.innerHTML = `<span>通知センター</span><span id="notification-badge" class="notification-badge" style="display:none;">0</span>`;
         }
 
         if (navMenu) {
@@ -302,7 +302,7 @@
             modal.innerHTML = `
                 <div class="notification-modal-content">
                     <div class="notification-modal-header">
-                        <h2>🔔 通知センター</h2>
+                        <h2>通知センター</h2>
                         <button id="notification-modal-close" class="notification-close-btn">&times;</button>
                     </div>
                     <div class="notification-modal-toolbar">

@@ -105,12 +105,12 @@ window.addEventListener("load", async () => {
                 (p.username.toLowerCase() === (auth.getCurrentUser() || "").toLowerCase());
 
             const roleBadge = p.role === "admin"
-                ? '<span class="badge-admin">👑 管理者</span>'
-                : '<span class="badge-user">👤 一般</span>';
+                ? '<span class="badge-admin">管理者</span>'
+                : '<span class="badge-user">一般</span>';
 
             const statusBadge = p.status === "suspended"
-                ? '<span class="badge-suspended">❄️ 一時凍結</span>'
-                : '<span class="badge-active">✨ アクティブ</span>';
+                ? '<span class="badge-suspended">一時凍結</span>'
+                : '<span class="badge-active">アクティブ</span>';
 
             const nextRole = p.role === "admin" ? "user" : "admin";
             const roleBtnText = p.role === "admin" ? "一般にする" : "管理者にする";
@@ -136,7 +136,7 @@ window.addEventListener("load", async () => {
 
             let actionHtml = "";
             if (isSelf) {
-                actionHtml = '<span class="self-user-label">👤 ログイン中</span>';
+                actionHtml = '<span class="self-user-label">ログイン中</span>';
             } else {
                 actionHtml = `
                     <div class="action-btns">
@@ -157,7 +157,7 @@ window.addEventListener("load", async () => {
                 <tr>
                     <td class="col-username">
                         <div style="font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 6px;">
-                            <span style="font-size: 16px;">👤</span>
+                            <span style="font-size: 16px;"></span>
                             <span>${escapeHtml(p.username)}</span>
                         </div>
                         <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
@@ -286,21 +286,21 @@ window.addEventListener("load", async () => {
         deleteRequestsList.innerHTML = requests.map(r => {
             const isPending = r.status === "pending";
             const statusClass = isPending ? "req-status-pending" : "req-status-done";
-            const statusText = isPending ? "⏳ 未対応" : "✅ 対応済み";
+            const statusText = isPending ? "未対応" : "対応済み";
 
             return `
             <div class="delete-req-card ${isPending ? "delete-req-card--pending" : "delete-req-card--done"}">
                 <div class="delete-req-card-header">
                     <div class="delete-req-user-info">
-                        <span class="delete-req-username">👤 ${escapeHtml(r.username)}</span>
+                        <span class="delete-req-username">${escapeHtml(r.username)}</span>
                         <span class="delete-req-email">${escapeHtml(r.email)}</span>
                     </div>
                     <span class="delete-req-status ${statusClass}">${statusText}</span>
                 </div>
                 <div class="delete-req-card-body">
-                    <div class="delete-req-date">📅 受付日時：${formatDate(r.requested_at)}</div>
+                    <div class="delete-req-date">受付日時：${formatDate(r.requested_at)}</div>
                     <div class="delete-req-reason">
-                        💬 理由：${r.reason ? escapeHtml(r.reason) : '<span class="delete-req-no-reason">（理由なし）</span>'}
+                        理由：${r.reason ? escapeHtml(r.reason) : '<span class="delete-req-no-reason">（理由なし）</span>'}
                     </div>
                 </div>
                 <div class="delete-req-card-actions">
@@ -308,12 +308,12 @@ window.addEventListener("load", async () => {
                     <a href="https://supabase.com/dashboard/project/oalbriraykbaftxcznjx/auth/users"
                        target="_blank" rel="noopener"
                        class="btn-supabase-link btn-supabase-link--small">
-                        🔗 Supabase でアカウント削除
+                        Supabase でアカウント削除
                     </a>
                     <button class="btn-action btn-req-done"
                             data-req-id="${r.id}"
                             data-req-username="${escapeHtml(r.username)}">
-                        ✅ 対応済みにする
+                        対応済みにする
                     </button>
                     ` : `
                     <button class="btn-action btn-req-undo"
@@ -324,7 +324,7 @@ window.addEventListener("load", async () => {
                     <button class="btn-action btn-req-delete"
                             data-req-id="${r.id}"
                             data-req-username="${escapeHtml(r.username)}">
-                        🗑️ 依頼を削除
+                        依頼を削除
                     </button>
                     `}
                 </div>

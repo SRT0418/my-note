@@ -825,21 +825,21 @@
                 titleStr = item.title || "無題の予定";
                 const timeStr = item.allDay ? " (終日)" : (item.startTime ? ` (${item.startTime}～${item.endTime || ""})` : "");
                 const dateDisplay = item.startDate === item.endDate ? item.startDate : `${item.startDate} ～ ${item.endDate}`;
-                metaStr = `📅 ${dateDisplay}${timeStr} ${item.partner ? `| 👤 ${escapeHtml(item.partner)}` : ""} ${item.location ? `| 📍 ${escapeHtml(item.location)}` : ""}`;
+                metaStr = `${dateDisplay}${timeStr} ${item.partner ? `| ${escapeHtml(item.partner)}` : ""} ${item.location ? `| ${escapeHtml(item.location)}` : ""}`;
                 descStr = item.description || "";
             } else if (currentSource === "kadai") {
                 titleStr = item.title || item.name || "無題の課題";
                 const subject = item.subject ? `[${item.subject}] ` : "";
-                const isDone = item.completedAt ? "🟢 完了済み" : "🟡 未完了";
+                const isDone = item.completedAt ? "完了済み" : "未完了";
                 const dl = item.deadline ? `締切: ${item.deadline}` : "締切なし";
-                metaStr = `📚 ${subject}${isDone} | 📅 ${dl}`;
+                metaStr = `${subject}${isDone} | ${dl}`;
                 descStr = item.detail || "";
             } else if (currentSource === "tasks") {
                 titleStr = item.content || item.title || "無題のタスク";
-                const isDone = item.completedAt ? "🟢 完了" : "🟡 未完了";
+                const isDone = item.completedAt ? "完了" : "未完了";
                 const prio = item.priority ? `優先度: ${item.priority}` : "";
                 const compDate = item.completedAt ? `完了日: ${item.completedAt.split("T")[0]}` : "";
-                metaStr = `✅ ${isDone} ${prio ? `| ${prio}` : ""} ${compDate ? `| ${compDate}` : ""}`;
+                metaStr = `${isDone} ${prio ? `| ${prio}` : ""} ${compDate ? `| ${compDate}` : ""}`;
                 descStr = item.detail || "";
             }
 
@@ -928,26 +928,26 @@
                         const meta = [item.partner ? `相手: ${item.partner}` : "", item.location ? `場所: ${item.location}` : ""].filter(Boolean).join(" | ");
                         return `
                             <h3 class="es-item-h3">${idx + 1}. ${escapeHtml(item.title || "予定")}</h3>
-                            <p class="es-item-p" style="margin:2px 0 4px 0; color:#64748b; font-size:12.5px;">📅 ${dateDisplay}${timeStr} ${meta ? `| ${escapeHtml(meta)}` : ""}</p>
+                            <p class="es-item-p" style="margin:2px 0 4px 0; color:#64748b; font-size:12.5px;">${dateDisplay}${timeStr} ${meta ? `| ${escapeHtml(meta)}` : ""}</p>
                             ${item.description ? `<p class="es-item-p">${escapeHtml(item.description)}</p>` : ""}
                         `;
                     } else if (currentSource === "kadai") {
-                        const status = item.completedAt ? "🟢 完了済み" : "🟡 未完了";
+                        const status = item.completedAt ? "完了済み" : "未完了";
                         const dl = item.deadline ? `締切: ${item.deadline}` : "締切なし";
                         const comp = item.completedAt ? `完了日: ${item.completedAt.split("T")[0]}` : "";
                         return `
                             <h3 class="es-item-h3">${idx + 1}. ${escapeHtml(item.subject ? `[${item.subject}] ` : "")}${escapeHtml(item.title || item.name || "課題")} (${status})</h3>
-                            <p class="es-item-p" style="margin:2px 0 4px 0; color:#64748b; font-size:12.5px;">📅 ${dl} ${comp ? `| ${comp}` : ""}</p>
+                            <p class="es-item-p" style="margin:2px 0 4px 0; color:#64748b; font-size:12.5px;">${dl} ${comp ? `| ${comp}` : ""}</p>
                             ${item.detail ? `<p class="es-item-p">${escapeHtml(item.detail)}</p>` : ""}
                         `;
                     } else {
                         // tasks
-                        const status = item.completedAt ? "🟢 完了" : "🟡 未完了";
+                        const status = item.completedAt ? "完了" : "未完了";
                         const prio = item.priority ? `優先度: ${item.priority}` : "";
                         const comp = item.completedAt ? `完了日: ${item.completedAt.split("T")[0]}` : "";
                         return `
                             <h3 class="es-item-h3">${idx + 1}. ${escapeHtml(item.content || item.title || "タスク")} (${status} ${prio})</h3>
-                            ${comp ? `<p class="es-item-p" style="margin:2px 0 4px 0; color:#64748b; font-size:12.5px;">📅 ${comp}</p>` : ""}
+                            ${comp ? `<p class="es-item-p" style="margin:2px 0 4px 0; color:#64748b; font-size:12.5px;">${comp}</p>` : ""}
                             ${item.detail ? `<p class="es-item-p">${escapeHtml(item.detail)}</p>` : ""}
                         `;
                     }
@@ -1058,11 +1058,11 @@
         if (btn) {
             if (isDirectEditMode) {
                 btn.classList.add("active");
-                btn.textContent = "✏️ 直接編集: ON";
+                btn.textContent = "直接編集: ON";
                 btn.title = "プレビュー内の文字を直接クリックして書き込み・修正できます";
             } else {
                 btn.classList.remove("active");
-                btn.textContent = "🔒 直接編集: OFF";
+                btn.textContent = "直接編集: OFF";
                 btn.title = "プレビューを読み取り専用に固定します";
             }
         }
@@ -1396,7 +1396,7 @@
         loadDrafts().forEach(d => items.push(d));
 
         if (items.length === 0) {
-            box.innerHTML = `<p class="draft-empty">一時保存はまだありません。「🗂️ 一時保存」で今の内容を保存できます。</p>`;
+            box.innerHTML = `<p class="draft-empty">一時保存はまだありません。「一時保存」で今の内容を保存できます。</p>`;
             return;
         }
 

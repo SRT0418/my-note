@@ -151,7 +151,7 @@ function renderTaskGroup(elementId, tasks, emptyText) {
             <p>科目：${escapeHtml(task.subject)}</p>
             <p>課題：${escapeHtml(task.title)}</p>
             <p>締切：${deadline.toLocaleString("ja-JP")}</p>
-            <p>${isOverdue ? '<span style="color:red;font-weight:bold">⚠ 期限切れ</span>' : `残り${remainingDays}日`}</p>
+            <p>${isOverdue ? '<span style="color:red;font-weight:bold">期限切れ</span>' : `残り${remainingDays}日`}</p>
             ${task.detail ? `<p>詳細：${escapeHtml(task.detail).replace(/\n/g, "<br>")}</p>` : ""}
 
             ${!isOverdue ? `<button class="complete-btn" data-id="${task.id}">達成</button>` : ""}
@@ -199,7 +199,7 @@ function renderOverdueTasks() {
             <p>科目：${escapeHtml(task.subject)}</p>
             <p>課題：${escapeHtml(task.title)}</p>
             <p>締切：${deadline.toLocaleString("ja-JP")}</p>
-            <p><span style="color:var(--color-danger, #ef4444);font-weight:bold">⚠ 期限切れ：${overdueDays === 0 ? "今日期限" : `${overdueDays}日超過`}</span></p>
+            <p><span style="color:var(--color-danger, #ef4444);font-weight:bold">期限切れ：${overdueDays === 0 ? "今日期限" : `${overdueDays}日超過`}</span></p>
             ${task.detail ? `<p>詳細：${escapeHtml(task.detail).replace(/\n/g, "<br>")}</p>` : ""}
 
             <button class="edit-btn" data-id="${task.id}">編集</button>
