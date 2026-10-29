@@ -40,6 +40,36 @@
         return typeof uuid === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uuid);
     }
 
+    // アクティブリストのキーに対応する削除済みリストのキーのマッピング
+    // 削除済みリストに存在するIDはアクティブリストへのマージから除外する
+    const DELETED_LIST_MAP = {
+        "tasks":          "deletedTasks",
+        "completedTasks": "deletedTasks",
+        "todoTasks":      "todoDeleted",
+        "todoCompleted":  "todoDeleted",
+        "schedules":      "deletedSchedules",
+        "ideaItems":      "ideaDeleted",
+        "habitTasks":     "habitDeleted",
+        "habitCompleted": "habitDeleted",
+        "wishItems":      "wishDeleted",
+        "birthdays":      "deletedBirthdays"
+    };
+
+    // ローカルの削除済みリストからIDのSetを取得する
+    function getLocalDeletedIds(activeKey) {
+        const deletedKey = DELETED_LIST_MAP[activeKey];
+        if (!deletedKey) return null;
+        try {
+            const raw = localStorage.getItem(deletedKey);
+            if (!raw) return null;
+            const arr = JSON.parse(raw);
+            if (!Array.isArray(arr)) return null;
+            return new Set(arr.filter(x => x && x.id != null).map(x => String(x.id)));
+        } catch (e) {
+            return null;
+        }
+    }
+
     // Supabaseからユーザーデータを取得してlocalStorageに反映
     async function pullCloudData(userId) {
         const client = window.MyNoteSupabase ? window.MyNoteSupabase.getClient() : null;
@@ -75,15 +105,37 @@
 
                         // 配列データ（予定、タスク、課題等）の場合の安全マージ処理
                         if (Array.isArray(cloudVal) && Array.isArray(localVal)) {
+                            // ローカルの削除済みリストに存在するIDを取得
+                            const deletedIds = getLocalDeletedIds(item.data_key);
+
                             // クラウド側が空配列で、ローカルに既存データが存在する場合はローカルデータを守る
                             if (cloudVal.length === 0 && localVal.length > 0) {
                                 finalVal = localVal;
                             } else if (cloudVal.length > 0 && localVal.length > 0) {
+                                // クラウドデータからローカルで削除済みのアイテムを除外
+                                let filteredCloud = cloudVal;
+                                if (deletedIds && deletedIds.size > 0) {
+                                    filteredCloud = cloudVal.filter(x => !(x && x.id != null && deletedIds.has(String(x.id))));
+                                }
+
                                 // IDを持つアイテム配列同士の場合、IDで結合マージ（ローカル新規分も消失させない）
-                                const cloudIds = new Set(cloudVal.filter(x => x && x.id != null).map(x => String(x.id)));
-                                const localOnly = localVal.filter(x => x && x.id != null && !cloudIds.has(String(x.id)));
-                                if (localOnly.length > 0) {
-                                    finalVal = [...cloudVal, ...localOnly];
+                                const mergedIds = new Set(filteredCloud.filter(x => x && x.id != null).map(x => String(x.id)));
+                                const localOnly = localVal.filter(x => x && x.id != null && !mergedIds.has(String(x.id)));
+
+                                // ローカルのみのアイテムも削除済みなら除外
+                                const localOnlyFiltered = deletedIds && deletedIds.size > 0
+                                    ? localOnly.filter(x => !deletedIds.has(String(x.id)))
+                                    : localOnly;
+
+                                if (localOnlyFiltered.length > 0) {
+                                    finalVal = [...filteredCloud, ...localOnlyFiltered];
+                                } else {
+                                    finalVal = filteredCloud;
+                                }
+                            } else if (cloudVal.length > 0) {
+                                // ローカルが空配列の場合もクラウドから削除済みアイテムを除外
+                                if (deletedIds && deletedIds.size > 0) {
+                                    finalVal = cloudVal.filter(x => !(x && x.id != null && deletedIds.has(String(x.id))));
                                 }
                             }
                         } else if (cloudVal === null || cloudVal === undefined) {
