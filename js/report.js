@@ -1010,6 +1010,10 @@
 
         applyDirectEditMode();
         updatePreviewScale();
+        // DOM描画・レイアウト確定後に確実にもう一度スケールを計算（フォントや画像、長文の改行確定後）
+        requestAnimationFrame(() => {
+            updatePreviewScale();
+        });
         if (autoSaveArmed) scheduleAutoSave();
     }
 
@@ -1021,6 +1025,7 @@
 
         if (currentPreviewMode === "fluid") {
             paper.style.transform = "";
+            paper.style.transformOrigin = "";
             paper.style.width = "100%";
             wrap.style.height = "auto";
             return;
@@ -1028,23 +1033,39 @@
 
         if (currentPreviewMode === "scroll") {
             paper.style.transform = "";
+            paper.style.transformOrigin = "";
             paper.style.width = "740px";
             wrap.style.height = "auto";
             return;
         }
 
         // fit モード（用紙全体表示：PCと同じレイアウトのまま画面にピッタリ縮小フィット）
+        // 1. 正確な高さを計測するため、一旦 transform を解除
+        paper.style.transform = "none";
+        paper.style.transformOrigin = "top center";
         paper.style.width = "740px";
-        const containerWidth = container.clientWidth;
-        if (containerWidth > 0 && containerWidth < 740) {
-            const scale = Math.max(0.2, (containerWidth - 6) / 740);
+        wrap.style.height = "auto";
+
+        // 2. コンテナ内部の描画領域と余白（左右マージン）を計算
+        const cs = window.getComputedStyle(container);
+        const padLeft = parseFloat(cs.paddingLeft) || 0;
+        const padRight = parseFloat(cs.paddingRight) || 0;
+        // コンテナの有効幅から、用紙左右に適度な余白（合計24px）を確保
+        const innerWidth = container.clientWidth - padLeft - padRight;
+        const targetWidth = Math.max(100, innerWidth - 24);
+
+        if (targetWidth < 740) {
+            const scale = Math.max(0.2, targetWidth / 740);
             paper.style.transform = `scale(${scale})`;
             paper.style.transformOrigin = "top center";
-            // 縮小後の視覚的な高さに合わせてラッパーの高さを指定（余分な空白を完全に防ぐ）
-            const paperHeight = paper.offsetHeight;
-            wrap.style.height = `${Math.ceil(paperHeight * scale) + 6}px`;
+            // 縮小後の視覚的な高さ（scrollHeightとoffsetHeightの大きい方を採用）
+            const fullHeight = Math.max(paper.scrollHeight, paper.offsetHeight);
+            const scaledHeight = Math.ceil(fullHeight * scale);
+            // 上下の余白（16px）を加えてラッパー高さを指定し、はみ出しや余分な空白を完全防止
+            wrap.style.height = `${scaledHeight + 16}px`;
         } else {
             paper.style.transform = "";
+            paper.style.transformOrigin = "";
             wrap.style.height = "auto";
         }
     }

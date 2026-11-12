@@ -1,4 +1,4 @@
-﻿/* ===================================================
+/* ===================================================
    報告書作成 (report.html) スタイリング
    =================================================== */
 .report-container {
@@ -858,7 +858,6 @@ select.form-control {
     justify-content: center;
     position: relative;
     box-sizing: border-box;
-    overflow: hidden;
 }
 
 .report-preview-scaler-wrap.mode-scroll {
@@ -875,7 +874,13 @@ select.form-control {
     box-sizing: border-box;
     margin: 0 auto;
     flex-shrink: 0;
-    overflow: hidden;
+    height: auto;
+    min-height: 500px;
+}
+
+/* 全体フィットモード時は縮小表示するため、元の用紙パディング（余白）を厳格に保持 */
+.report-paper.es-theme.fixed-paper {
+    padding: 56px 64px !important;
 }
 
 .report-paper.fluid-paper {
@@ -910,8 +915,8 @@ select.form-control {
 
     /* プレビューコンテナの余白をスリム化 */
     .report-preview-container {
-        padding: 8px 4px;
-        border-radius: 6px;
+        padding: 14px 10px;
+        border-radius: 8px;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
