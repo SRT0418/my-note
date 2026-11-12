@@ -9,7 +9,19 @@ function escapeHtml(str) {
 }
 
 function getTodayKey() {
+    if (typeof window.getHabitTodayKey === "function") return window.getHabitTodayKey();
     const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+}
+
+function getDateKey(dateInput) {
+    if (typeof window.getHabitDateKey === "function") return window.getHabitDateKey(dateInput);
+    if (!dateInput) return "";
+    const d = new Date(dateInput);
+    if (isNaN(d.getTime())) return "";
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, "0");
     const day = String(d.getDate()).padStart(2, "0");
@@ -18,75 +30,98 @@ function getTodayKey() {
 
 function getDaysDiff(dateKey1, dateKey2) {
     if (!dateKey1 || !dateKey2) return 0;
-    const d1 = new Date(dateKey1 + "T00:00:00");
-    const d2 = new Date(dateKey2 + "T00:00:00");
+    const k1 = String(dateKey1).replace(/^"|"$/g, "").trim();
+    const k2 = String(dateKey2).replace(/^"|"$/g, "").trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(k1) || !/^\d{4}-\d{2}-\d{2}$/.test(k2)) return 0;
+    const d1 = new Date(k1 + "T00:00:00");
+    const d2 = new Date(k2 + "T00:00:00");
     if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return 0;
     return Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
 }
 
 function formatDateLabel(dateKey) {
-    const d = new Date(dateKey + "T00:00:00");
-    if (isNaN(d.getTime())) return dateKey;
+    const k = String(dateKey).replace(/^"|"$/g, "").trim();
+    const d = new Date(k + "T00:00:00");
+    if (isNaN(d.getTime())) return k;
     return d.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric", weekday: "short" });
 }
 
 function checkDailyReset() {
-    const lastDate = localStorage.getItem("habitLastDate");
+    if (typeof window.checkHabitDailyReset === "function") {
+        return window.checkHabitDailyReset();
+    }
     const today = getTodayKey();
-    if (!lastDate) {
+    let lastDateRaw = localStorage.getItem("habitLastDate");
+    let lastDate = lastDateRaw ? String(lastDateRaw).replace(/^"|"$/g, "").trim() : "";
+
+    let tasks = [];
+    let completed = [];
+    let history = [];
+    try { tasks = JSON.parse(localStorage.getItem("habitTasks")) || []; } catch (e) { tasks = []; }
+    try { completed = JSON.parse(localStorage.getItem("habitCompleted")) || []; } catch (e) { completed = []; }
+    try { history = JSON.parse(localStorage.getItem("habitDailyHistory")) || []; } catch (e) { history = []; }
+
+    const hasStaleCompleted = completed.some(t => !t || getDateKey(t.completedAt) !== today);
+
+    if (!lastDate && !hasStaleCompleted) {
         localStorage.setItem("habitLastDate", today);
         return;
     }
-    if (lastDate === today) return;
+    if (lastDate === today && !hasStaleCompleted) return;
 
-    const diffDays = getDaysDiff(lastDate, today);
-    if (diffDays <= 0) {
-        localStorage.setItem("habitLastDate", today);
-        return;
+    let diffDays = 1;
+    if (lastDate) {
+        diffDays = getDaysDiff(lastDate, today);
     }
 
-    const tasks = JSON.parse(localStorage.getItem("habitTasks")) || [];
-    const completed = JSON.parse(localStorage.getItem("habitCompleted")) || [];
-    const history = JSON.parse(localStorage.getItem("habitDailyHistory")) || [];
-
-    if (!history.some(h => h.dateKey === lastDate)) {
-        const total = tasks.length + completed.length;
-        const rate = total === 0 ? 0 : Math.round((completed.length / total) * 100);
+    const archiveDate = (lastDate && lastDate !== today && diffDays > 0) ? lastDate : null;
+    if (archiveDate && !history.some(h => h.dateKey === archiveDate)) {
+        const prevCompleted = completed.filter(t => t && (getDateKey(t.completedAt) === archiveDate || getDateKey(t.completedAt) < today));
+        const total = tasks.length + prevCompleted.length;
+        const rate = total === 0 ? 0 : Math.round((prevCompleted.length / total) * 100);
         history.unshift({
-            dateKey: lastDate,
-            dateLabel: formatDateLabel(lastDate),
-            completedCount: completed.length,
+            dateKey: archiveDate,
+            dateLabel: formatDateLabel(archiveDate),
+            completedCount: prevCompleted.length,
             unfinishedCount: tasks.length,
             rate,
-            completedList: completed.map(t => ({ title: t.title })),
+            completedList: prevCompleted.map(t => ({ title: t.title })),
             unfinishedList: tasks.map(t => ({ title: t.title })),
             savedAt: new Date().toISOString()
         });
         localStorage.setItem("habitDailyHistory", JSON.stringify(history));
     }
 
+    const todayCompleted = [];
+    const pastCompleted = [];
+    completed.forEach(t => {
+        if (!t) return;
+        if (getDateKey(t.completedAt) === today) {
+            todayCompleted.push(t);
+        } else {
+            pastCompleted.push(t);
+        }
+    });
+
     if (diffDays === 1) {
-        completed.forEach(t => { t.streak = (t.streak || 0) + 1; });
+        pastCompleted.forEach(t => { t.streak = (t.streak || 0) + 1; });
         tasks.forEach(t => { t.streak = 0; });
-    } else {
-        completed.forEach(t => { t.streak = 0; });
+    } else if (diffDays > 1) {
+        pastCompleted.forEach(t => { t.streak = 0; });
         tasks.forEach(t => { t.streak = 0; });
     }
 
-    completed.forEach(t => { delete t.completedAt; });
+    pastCompleted.forEach(t => { delete t.completedAt; });
     const taskMap = new Map();
-    tasks.forEach(t => { if (t && t.id) taskMap.set(t.id, t); });
-    completed.forEach(t => { if (t && t.id) taskMap.set(t.id, t); });
+    tasks.forEach(t => { if (t && t.id != null) taskMap.set(String(t.id), t); });
+    pastCompleted.forEach(t => { if (t && t.id != null) taskMap.set(String(t.id), t); });
 
     localStorage.setItem("habitTasks", JSON.stringify(Array.from(taskMap.values())));
-    localStorage.setItem("habitCompleted", JSON.stringify([]));
+    localStorage.setItem("habitCompleted", JSON.stringify(todayCompleted));
     localStorage.setItem("habitLastDate", today);
 
     if (window.MyNoteDBSync && typeof window.MyNoteDBSync.flushSync === "function") {
-        window.MyNoteDBSync.flushSync("habitTasks");
-        window.MyNoteDBSync.flushSync("habitCompleted");
-        window.MyNoteDBSync.flushSync("habitDailyHistory");
-        window.MyNoteDBSync.flushSync("habitLastDate");
+        window.MyNoteDBSync.flushSync(["habitTasks", "habitCompleted", "habitDailyHistory", "habitLastDate"]);
     }
 }
 
@@ -118,9 +153,10 @@ window.renderAll = function () {
 // 今日の状況を集計・表示する
 // ===================================================
 function renderTodaySummary() {
-
+    const today = getTodayKey();
     const tasks = JSON.parse(localStorage.getItem("habitTasks")) || [];
-    const completed = JSON.parse(localStorage.getItem("habitCompleted")) || [];
+    const rawCompleted = JSON.parse(localStorage.getItem("habitCompleted")) || [];
+    const completed = rawCompleted.filter(t => t && (!t.completedAt || getDateKey(t.completedAt) === today));
 
     const unfinishedCount = tasks.length;
     const completedCount = completed.length;

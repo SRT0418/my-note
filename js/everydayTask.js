@@ -33,7 +33,9 @@ function getHabitTasks() {
 
 // 今日達成済みの習慣タスクを取得する
 function getHabitCompleted() {
-    return JSON.parse(localStorage.getItem("habitCompleted")) || [];
+    const list = JSON.parse(localStorage.getItem("habitCompleted")) || [];
+    const today = getTodayKey();
+    return list.filter(t => t && (!t.completedAt || getDateKey(t.completedAt) === today));
 }
 
 // 削除済み習慣タスクを取得する
@@ -72,7 +74,20 @@ function saveDailyHistory(history) {
 
 // 今日の日付キー（YYYY-MM-DD）を返す
 function getTodayKey() {
+    if (typeof window.getHabitTodayKey === "function") return window.getHabitTodayKey();
     const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+}
+
+// 任意日時の日付キー（YYYY-MM-DD）を返す
+function getDateKey(dateInput) {
+    if (typeof window.getHabitDateKey === "function") return window.getHabitDateKey(dateInput);
+    if (!dateInput) return "";
+    const d = new Date(dateInput);
+    if (isNaN(d.getTime())) return "";
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, "0");
     const day = String(d.getDate()).padStart(2, "0");
@@ -82,8 +97,11 @@ function getTodayKey() {
 // 日付差（日数）を計算する (date2 - date1)
 function getDaysDiff(dateKey1, dateKey2) {
     if (!dateKey1 || !dateKey2) return 0;
-    const d1 = new Date(dateKey1 + "T00:00:00");
-    const d2 = new Date(dateKey2 + "T00:00:00");
+    const k1 = String(dateKey1).replace(/^"|"$/g, "").trim();
+    const k2 = String(dateKey2).replace(/^"|"$/g, "").trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(k1) || !/^\d{4}-\d{2}-\d{2}$/.test(k2)) return 0;
+    const d1 = new Date(k1 + "T00:00:00");
+    const d2 = new Date(k2 + "T00:00:00");
     if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return 0;
     const diffTime = d2.getTime() - d1.getTime();
     return Math.round(diffTime / (1000 * 60 * 60 * 24));
@@ -91,54 +109,97 @@ function getDaysDiff(dateKey1, dateKey2) {
 
 // 日付キー（YYYY-MM-DD）を日本語ラベルに変換する
 function formatDateLabel(dateKey) {
-    const d = new Date(dateKey + "T00:00:00");
-    if (isNaN(d.getTime())) return dateKey;
+    const k = String(dateKey).replace(/^"|"$/g, "").trim();
+    const d = new Date(k + "T00:00:00");
+    if (isNaN(d.getTime())) return k;
     return d.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric", weekday: "short" });
 }
 
 // ページを開いたとき、前回保存した日付と今日が異なれば日次リセットを実行する
 function checkDailyReset() {
-    const lastDate = localStorage.getItem("habitLastDate");
+    if (typeof window.checkHabitDailyReset === "function") {
+        return window.checkHabitDailyReset();
+    }
+
     const today = getTodayKey();
+    let lastDateRaw = localStorage.getItem("habitLastDate");
+    let lastDate = lastDateRaw ? String(lastDateRaw).replace(/^"|"$/g, "").trim() : "";
+
+    let tasks = [];
+    let completed = [];
+    let history = [];
+    try { tasks = JSON.parse(localStorage.getItem("habitTasks")) || []; } catch (e) { tasks = []; }
+    try { completed = JSON.parse(localStorage.getItem("habitCompleted")) || []; } catch (e) { completed = []; }
+    try { history = JSON.parse(localStorage.getItem("habitDailyHistory")) || []; } catch (e) { history = []; }
+
+    const hasStaleCompleted = completed.some(t => !t || getDateKey(t.completedAt) !== today);
 
     // 初回アクセス時
-    if (!lastDate) {
+    if (!lastDate && !hasStaleCompleted) {
         localStorage.setItem("habitLastDate", today);
         return false;
     }
 
     // すでに今日リセット済み
-    if (lastDate === today) {
+    if (lastDate === today && !hasStaleCompleted) {
         return false;
     }
 
-    const diffDays = getDaysDiff(lastDate, today);
-    if (diffDays <= 0) {
-        localStorage.setItem("habitLastDate", today);
-        return false;
+    let diffDays = 1;
+    if (lastDate) {
+        diffDays = getDaysDiff(lastDate, today);
     }
 
     // 1. 最後にアクセスした日の実績を履歴に保存
-    archivePreviousDay(lastDate);
+    const archiveDate = (lastDate && lastDate !== today && diffDays > 0) ? lastDate : null;
+    if (archiveDate) {
+        const exists = history.some(h => h.dateKey === archiveDate);
+        if (!exists) {
+            const prevCompleted = completed.filter(t => t && (getDateKey(t.completedAt) === archiveDate || getDateKey(t.completedAt) < today));
+            const total = tasks.length + prevCompleted.length;
+            const completedCount = prevCompleted.length;
+            const unfinishedCount = tasks.length;
+            const rate = total === 0 ? 0 : Math.round((completedCount / total) * 100);
 
-    // 2. タスクデータの取得
-    let tasks = getHabitTasks();
-    let completed = getHabitCompleted();
+            const entry = {
+                dateKey: archiveDate,
+                dateLabel: formatDateLabel(archiveDate),
+                completedCount,
+                unfinishedCount,
+                rate,
+                completedList: prevCompleted.map(t => ({ title: t.title })),
+                unfinishedList: tasks.map(t => ({ title: t.title })),
+                savedAt: new Date().toISOString()
+            };
+
+            history.unshift(entry);
+            saveDailyHistory(history);
+        }
+    }
+
+    // 2. 今日完了したものと過去完了したものを分離
+    const todayCompleted = [];
+    const pastCompleted = [];
+
+    completed.forEach(t => {
+        if (!t) return;
+        if (getDateKey(t.completedAt) === today) {
+            todayCompleted.push(t);
+        } else {
+            pastCompleted.push(t);
+        }
+    });
 
     // 3. ストリーク（継続日数）の更新
     if (diffDays === 1) {
-        // 昨日利用していた場合：
-        // 達成済みタスクはストリーク +1
-        completed.forEach(t => {
+        pastCompleted.forEach(t => {
             t.streak = (t.streak || 0) + 1;
         });
-        // 未達成タスクはストリーク 0（途切れ）
         tasks.forEach(t => {
             t.streak = 0;
         });
-    } else {
-        // 2日以上空いた場合：昨日達成していないため、すべてのタスクのストリークは途切れ(0にリセット)
-        completed.forEach(t => {
+    } else if (diffDays > 1) {
+        pastCompleted.forEach(t => {
             t.streak = 0;
         });
         tasks.forEach(t => {
@@ -146,31 +207,28 @@ function checkDailyReset() {
         });
     }
 
-    // 4. 達成済みタスクを「未達成」へリセット（completedAtを削除）
-    completed.forEach(t => {
+    // 4. 過去達成タスクを「未達成」へリセット（completedAtを削除）
+    pastCompleted.forEach(t => {
         delete t.completedAt;
     });
 
     // ID重複を排除してマージ
     const taskMap = new Map();
     tasks.forEach(t => {
-        if (t && t.id) taskMap.set(t.id, t);
+        if (t && t.id != null) taskMap.set(String(t.id), t);
     });
-    completed.forEach(t => {
-        if (t && t.id) taskMap.set(t.id, t);
+    pastCompleted.forEach(t => {
+        if (t && t.id != null) taskMap.set(String(t.id), t);
     });
     const merged = Array.from(taskMap.values());
 
     saveHabitTasks(merged);
-    saveHabitCompleted([]);
+    saveHabitCompleted(todayCompleted);
     localStorage.setItem("habitLastDate", today);
 
-    // 5. クラウド（Supabase）へ即時プッシュ（古いクラウドデータによる巻き戻りを防止）
+    // 5. クラウド（Supabase）へ一括プッシュ
     if (window.MyNoteDBSync && typeof window.MyNoteDBSync.flushSync === "function") {
-        window.MyNoteDBSync.flushSync("habitTasks");
-        window.MyNoteDBSync.flushSync("habitCompleted");
-        window.MyNoteDBSync.flushSync("habitDailyHistory");
-        window.MyNoteDBSync.flushSync("habitLastDate");
+        window.MyNoteDBSync.flushSync(["habitTasks", "habitCompleted", "habitDailyHistory", "habitLastDate"]);
     }
 
     return true;
@@ -507,7 +565,7 @@ function restoreHabitTask(id) {
     const today = getTodayKey();
     let isTodayCompleted = false;
     if (task.completedAt) {
-        const completedDateKey = task.completedAt.split("T")[0];
+        const completedDateKey = getDateKey(task.completedAt);
         if (completedDateKey === today) {
             isTodayCompleted = true;
         }

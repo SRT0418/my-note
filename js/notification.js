@@ -29,7 +29,19 @@
 
     // 今日の日付文字列 (YYYY-MM-DD)
     function getTodayKey() {
+        if (typeof window.getHabitTodayKey === "function") return window.getHabitTodayKey();
         const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${y}-${m}-${day}`;
+    }
+
+    function getDateKey(dateInput) {
+        if (typeof window.getHabitDateKey === "function") return window.getHabitDateKey(dateInput);
+        if (!dateInput) return "";
+        const d = new Date(dateInput);
+        if (isNaN(d.getTime())) return "";
         const y = d.getFullYear();
         const m = String(d.getMonth() + 1).padStart(2, "0");
         const day = String(d.getDate()).padStart(2, "0");
@@ -147,8 +159,12 @@
 
         // 3. 毎日習慣タスク（habitTasks）
         try {
+            if (typeof window.checkHabitDailyReset === "function") {
+                window.checkHabitDailyReset();
+            }
             const habits = JSON.parse(localStorage.getItem("habitTasks")) || [];
-            const completedHabits = JSON.parse(localStorage.getItem("habitCompleted")) || [];
+            const rawCompleted = JSON.parse(localStorage.getItem("habitCompleted")) || [];
+            const completedHabits = rawCompleted.filter(h => h && (!h.completedAt || getDateKey(h.completedAt) === todayKey));
             const completedIds = completedHabits.map(h => h.id);
 
             habits.forEach(h => {

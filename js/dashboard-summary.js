@@ -9,11 +9,23 @@
     "use strict";
 
     function getTodayKey() {
+        if (typeof window.getHabitTodayKey === "function") return window.getHabitTodayKey();
         const now = new Date();
         const y = now.getFullYear();
         const m = String(now.getMonth() + 1).padStart(2, "0");
         const d = String(now.getDate()).padStart(2, "0");
         return `${y}-${m}-${d}`;
+    }
+
+    function getDateKey(dateInput) {
+        if (typeof window.getHabitDateKey === "function") return window.getHabitDateKey(dateInput);
+        if (!dateInput) return "";
+        const d = new Date(dateInput);
+        if (isNaN(d.getTime())) return "";
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${y}-${m}-${day}`;
     }
 
     function getFutureDateKey(daysAhead) {
@@ -76,8 +88,12 @@
         urgentKadais.sort((a, b) => (a.deadline > b.deadline ? 1 : -1));
 
         // 2. 毎日習慣タスク（habitTasks, habitCompleted）
+        if (typeof window.checkHabitDailyReset === "function") {
+            window.checkHabitDailyReset();
+        }
         const habitTasks = safeParse("habitTasks");
-        const habitCompleted = safeParse("habitCompleted");
+        const rawHabitCompleted = safeParse("habitCompleted");
+        const habitCompleted = rawHabitCompleted.filter(t => t && (!t.completedAt || getDateKey(t.completedAt) === todayKey));
         const completedHabitsCount = habitCompleted.length;
         const totalHabits = habitTasks.length + completedHabitsCount;
         const habitPercent = totalHabits > 0 ? Math.round((completedHabitsCount / totalHabits) * 100) : 0;

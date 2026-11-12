@@ -109,8 +109,13 @@
                             const deletedIds = getLocalDeletedIds(item.data_key);
 
                             // クラウド側が空配列で、ローカルに既存データが存在する場合はローカルデータを守る
+                            // ※ただし習慣タスク達成（habitCompleted）は日次リセットで空配列になるのが正常なため除外
                             if (cloudVal.length === 0 && localVal.length > 0) {
-                                finalVal = localVal;
+                                if (item.data_key === "habitCompleted") {
+                                    finalVal = [];
+                                } else {
+                                    finalVal = localVal;
+                                }
                             } else if (cloudVal.length > 0 && localVal.length > 0) {
                                 // クラウドデータからローカルで削除済みのアイテムを除外
                                 let filteredCloud = cloudVal;
@@ -144,7 +149,26 @@
                             }
                         }
 
-                        const finalStr = JSON.stringify(finalVal);
+                        // habitCompleted の場合は今日達成されたもののみを残す
+                        if (item.data_key === "habitCompleted" && Array.isArray(finalVal)) {
+                            const nowD = new Date();
+                            const todayKey = `${nowD.getFullYear()}-${String(nowD.getMonth() + 1).padStart(2, "0")}-${String(nowD.getDate()).padStart(2, "0")}`;
+                            finalVal = finalVal.filter(t => {
+                                if (!t || !t.completedAt) return false;
+                                const cd = new Date(t.completedAt);
+                                if (isNaN(cd.getTime())) return false;
+                                const ck = `${cd.getFullYear()}-${String(cd.getMonth() + 1).padStart(2, "0")}-${String(cd.getDate()).padStart(2, "0")}`;
+                                return ck === todayKey;
+                            });
+                        }
+
+                        // スカラー文字列キー（habitLastDate, wishPartnerFilter 等）はクォート二重付与を防ぐ
+                        let finalStr;
+                        if (typeof finalVal === "string") {
+                            finalStr = finalVal;
+                        } else {
+                            finalStr = JSON.stringify(finalVal);
+                        }
                         if (localStorage.getItem(item.data_key) !== finalStr) {
                             localStorage.setItem(item.data_key, finalStr);
                             updatedAny = true;
@@ -152,6 +176,11 @@
                     }
                 });
                 console.log("クラウドデータの同期が完了しました。");
+
+                // 習慣タスク日次リセットを同期後にも実行して整合性を保つ
+                if (typeof window.checkHabitDailyReset === "function") {
+                    window.checkHabitDailyReset();
+                }
 
                 // クラウドデータの引き込みによってデータが更新された場合、画面を自動再描画
                 if (updatedAny) {
@@ -242,9 +271,13 @@
     }
 
     // キューを待たずに指定したキー（または蓄積中のキー）を即時Supabaseへ送信する
-    async function flushSync(key) {
-        if (key && DATA_KEYS.indexOf(key) !== -1) {
-            pendingKeys.add(key);
+    async function flushSync(keyOrKeys) {
+        if (Array.isArray(keyOrKeys)) {
+            keyOrKeys.forEach(k => {
+                if (DATA_KEYS.indexOf(k) !== -1) pendingKeys.add(k);
+            });
+        } else if (keyOrKeys && DATA_KEYS.indexOf(keyOrKeys) !== -1) {
+            pendingKeys.add(keyOrKeys);
         }
         if (syncTimer) {
             clearTimeout(syncTimer);
