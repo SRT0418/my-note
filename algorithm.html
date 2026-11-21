@@ -2264,14 +2264,16 @@ if (nextBday < today) nextBday.setFullYear(today.getFullYear() + 1);`
             'eng-strategygame': {
                 title: '五部隊戦略ゲーム エンジン',
                 badge: 'STRATEGY-GAME.HTML // GAME',
-                desc: '自軍・敵軍それぞれ5部隊×5人を編成してヘックス風盤面で戦うターン制ストラテジー。先攻後攻はランダム判定（Math.random）でモーダル表示→OK確認後に開始。CPU は攻撃・移動・防御の行動選択をスコアリングで自動判断。',
+                desc: '自軍・敵軍それぞれ5部隊×5人を編成してヘックス風盤面で戦うターン制ストラテジー。ダメージを与えることで部隊のNPが蓄積され、100%消費して宝具を放つシステム（キャスター同伴でNP蓄積率UP）。先攻後攻モーダル確認、CPUスコアリングAI、勝利判定まで完全実装。',
                 specs: [
                     ['先攻後攻', 'Math.random() < 0.5 で自軍/敵軍を決定、モーダル確認後に開始'],
-                    ['CPUロジック', '各ターンで攻撃可否・移動先・防御をスコア評価して最適行動を選択'],
+                    ['宝具・NPシステム', '与ダメに応じてNP蓄積(通常+4%/キャスター+6%)、100%消費で単体/全体宝具発動'],
+                    ['CPUロジック', '各ターンで攻撃可否・移動先・宝具使用・防御をスコア評価して最適行動を選択'],
                     ['勝利判定', '敵全滅 or 自軍全滅で勝敗決定、結果モーダルを表示']
                 ],
-                code: `const first = Math.random() < 0.5 ? 'player' : 'cpu';
-showOrderModal(first === 'player');`
+                code: `// NP蓄積と宝具発動判定
+if (dm > 0) att.npVal = Math.min(100, (att.npVal || 0) + dm * (has(att, 'caster') ? 6 : 4));
+const npReady = (q, ds) => q.m[0].hp > 0 && (q.npVal || 0) >= 100 && rgOf(q, q.m[0]) >= ds;`
             },
             'eng-wish': {
                 title: 'やりたいことリストエンジン',

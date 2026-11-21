@@ -61,7 +61,10 @@ button{font-family:inherit;color:var(--fg)}
 @keyframes bob{50%{transform:translateY(-3px)}}
 .npt{background:var(--card);border:2px solid #d9a21b;border-radius:8px;padding:2px 6px;font-size:10px;color:var(--fg);margin-right:4px}
 .mc.np{border-color:#d9a21b;box-shadow:0 0 6px #d9a21b}
+.bar.np-bar{height:4px;background:rgba(217,162,27,.2);margin:2px 0 3px}
+.bar.np-bar i{background:linear-gradient(90deg,#e5a919,#ffd700);box-shadow:0 0 4px #ffd700}
 .c em{position:absolute;left:1px;top:0;font-size:9px;font-style:normal;font-weight:700;background:#d9a21b;color:#000;border-radius:4px;padding:0 2px;line-height:1.2}
+.c em.np-off{background:#555;color:#bbb}
 .c .u{padding:2px;overflow:hidden}
 .u svg{width:100%;height:100%;display:block}
 @property --tilt{syntax:'<angle>';inherits:true;initial-value:48deg}
@@ -116,7 +119,7 @@ body.pc .msg{font-size:14px}
 
 <div id="setup">
  <div id="dv" class="row" style="margin-bottom:8px"><button class="btn g" id="dvs">📱 スマホ版</button><button class="btn g" id="dvp">🖥 パソコン版</button></div>
- <div class="rule" id="sr" style="margin:0">本隊・副隊・先行隊・遊撃隊・後衛隊の<b>5部隊×5人</b>を編成しよう。部隊に<b>そのクラスが1人でも生存</b>していれば、その部隊の全員に緑の能力が付きます。敵軍も5部隊×5人（部隊ごとランダム編成）。<br><b>各部隊の左端の枠👑がリーダー</b>：HP1.5倍・攻撃+2。さらにリーダーは<b>1戦につき1回だけ宝具</b>を撃てます。部隊ごとに<b>単体（威力大）／全体（全員に中威力）</b>を選び、効果はリーダーのクラスで決まります。</div>
+ <div class="rule" id="sr" style="margin:0">本隊・副隊・先行隊・遊撃隊・後衛隊の<b>5部隊×5人</b>を編成しよう。部隊に<b>そのクラスが1人でも生存</b>していれば、その部隊の全員に緑の能力が付きます。敵軍も5部隊×5人（部隊ごとランダム編成）。<br><b>各部隊の左端の枠👑がリーダー</b>：HP1.5倍・攻撃+2。さらに相手にダメージを与えると部隊の<b>NP（宝具ゲージ）</b>が蓄積し、<b>100%消費して強力な宝具</b>を放てます（キャスターがいるとNP上昇率UP！）。部隊ごとに<b>単体（威力特大）／全体（全員にダメージ）</b>を選べます。</div>
  <div id="sl" style="margin-top:10px"></div>
  <div class="rule" id="sh" style="margin:8px 0 0"></div>
  <div class="hand" id="hd"></div>
@@ -195,7 +198,7 @@ const FR=`<rect x='1.5' y='1.5' width='97' height='167' rx='3' fill='none' strok
 const av=(k,sz)=>`<svg viewBox='16 2 68 68' width='${sz}' height='${sz}' role='img' aria-label='${KM[k].n}' style='border-radius:50%;flex:none;display:block'><rect width='100' height='170' fill='url(#gbg)'/>${AV[k]}</svg>`;
 const card=(k,w)=>`<svg viewBox='0 0 100 170' width='${w}' height='${Math.round(w*1.7)}' role='img' aria-label='${KM[k].n}' style='flex:none;display:block'><rect x='1.5' y='1.5' width='97' height='167' rx='3' fill='url(#gbg)'/>${GR}${AV[k]}${FR}</svg>`;
 const lead=q=>(q.m.find(m=>m.hp>0&&m.L)||q.m.find(m=>m.hp>0)||q.m[0]).k;
-const PD={saber:'部隊の被ダメ-1',lancer:'部隊の攻撃+1',archer:'距離2以上の攻撃+2',rider:'部隊の移動+1',caster:'遠距離を35%回避',assassin:'満HPの敵に+2',berserker:'HP半分以下で攻撃+2'};
+const PD={saber:'部隊の被ダメ-1',lancer:'部隊の攻撃+1',archer:'距離2以上の攻撃+2',rider:'部隊の移動+1',caster:'遠距離を35%回避・NP上昇率+50%',assassin:'満HPの敵に+2',berserker:'HP半分以下で攻撃+2'};
 const NPD={saber:'聖剣の鼓舞。味方全部隊の攻撃力+2（3ターン）',lancer:'必殺の一突き。防御効果を無視',archer:'必中の矢。距離が遠いほど追加ダメージ',rider:'疾走の一撃。反撃を受けない',caster:'大魔術。相性を必ず有利以上にする',assassin:'急所を突く。敵の残りHPの割合ダメージ(単体40%/全体15%)',berserker:'狂乱の一撃。威力×1.4、自分も最大HPの25%の反動'};
 const B={saber:'lancer',lancer:'archer',archer:'saber',rider:'caster',caster:'assassin',assassin:'rider'};
 const ROLES=['本隊','副隊','先行隊','遊撃隊','後衛隊'];
@@ -287,7 +290,7 @@ function start(){
  [0,1].forEach(s=>ROLES.forEach((r,i)=>{
   const ks=s===0?picks.slice(i*5,i*5+5):shuf();
   const [y,x]=s===0?P0[i]:[7-P0[i][0],7-P0[i][1]];
-  sq.push({s,role:r,m:ks.map((k,j)=>{const L=j===0,h=L?Math.round(KM[k].hp*1.5):KM[k].hp;return{k,L,hp:h,mx:h}}),np:s===0?npModes[i]:(Math.random()<.5?'single':'all'),npUsed:false,y,x,done:false});own[y][x]=s;
+  sq.push({s,role:r,m:ks.map((k,j)=>{const L=j===0,h=L?Math.round(KM[k].hp*1.5):KM[k].hp;return{k,L,hp:h,mx:h}}),np:s===0?npModes[i]:(Math.random()<.5?'single':'all'),npVal:0,npUsed:false,y,x,done:false});own[y][x]=s;
  }));
  $('setup').classList.add('hide');$('game').classList.remove('hide');render();
  showOrderModal(first);
@@ -347,9 +350,9 @@ function predict(b){
  }
  return pr;
 }
-const npReady=(q,ds)=>{const l=q.m[0];return l.hp>0&&!q.npUsed&&rgOf(q,l)>=ds};
+const npReady=(q,ds)=>{const l=q.m[0];return l.hp>0&&((q.npVal||0)>=100)&&rgOf(q,l)>=ds};
 function fireNP(att,def,ds,tIdx,hits){
- const cls=att.m[0].k,mode=att.np;att.npUsed=true;let sum=0;
+ const cls=att.m[0].k,mode=att.np;att.npVal=Math.max(0,(att.npVal||0)-100);att.npUsed=true;let sum=0;
  if(mode==='single'){const a2=[];a2[0]=tIdx;sum+=volley(att,def,ds,true,3,a2,hits,{only:0,np:cls,mode})}
  else def.m.forEach((x,j)=>{if(x.hp>0){const a2=[];a2[0]=j;sum+=volley(att,def,ds,true,1.3,a2,hits,{only:0,np:cls,mode})}});
  if(cls==='saber')sq.forEach(q=>{if(q.s===att.s&&alive(q)){q.bf=2;q.bt=3}});
@@ -374,7 +377,7 @@ function drawBt(){
  const pr=b.pick?predict(b):[],dA={},dD={};
  pr.forEach(h=>{dA[h.i]=(dA[h.i]||0)+h.v;dD[h.j]=(dD[h.j]||0)+h.v});
  if(b.pick)$('bmsg').innerHTML='予想ダメージ合計 <b style="color:var(--red)">'+pr.reduce((s,h)=>s+h.v,0)+'</b>（相性・能力込み／回避は除く）';
- const mk=(q,s)=>'<div style="font-weight:700;margin-bottom:4px;color:'+SC[s]+'">'+SN[s]+' '+q.role+'</div>'+q.m.map((m,i)=>{
+ const mk=(q,s)=>'<div style="font-weight:700;margin-bottom:4px;color:'+SC[s]+'">'+SN[s]+' '+q.role+' <small style="color:#d9a21b;font-weight:700">NP '+(q.npVal||0)+'%</small></div>'+q.m.map((m,i)=>{
   const k=KM[m.k];let cls='mc',tag='';
   if(m.hp<=0)cls+=' x';
   if(b.pick&&s===0&&m.hp>0){
@@ -382,7 +385,7 @@ function drawBt(){
    else{const j=b.asg[i];if(i===0&&b.np)cls+=' np';tag=i===0&&b.np?'🌟宝具'+(O.np==='all'?'(全体)':j==null?'':'→'+KM[E.m[j].k].e):j==null?'未選択':'→'+KM[E.m[j].k].e+(mult(m.k,E.m[j].k)>1?' 有利':mult(m.k,E.m[j].k)<1?' 不利':'');if(dA[i]!=null)tag+=' ·与ダメ約'+dA[i];if(b.act===i)cls+=' me'}
   }
   if(b.pick&&s===1){const n=b.asg.filter(j=>j===i).length,dm=dD[i]||0;if(n||dm){cls+=' t';tag=(n?'狙われ×'+n+'<br>':'')+'予想 -'+dm+' → '+(m.hp-dm<=0?'撃破見込み':'残'+(m.hp-dm))}}
-  return '<button class="'+cls+'" data-s="'+s+'" data-i="'+i+'"><span style="display:flex;gap:5px;align-items:center">'+av(m.k,34)+'<span>'+k.n+(m.L?' 👑<small>🌟'+(q.np==='all'?'全体':'単体')+(q.npUsed?'済':'')+'</small>':'')+'</span></span><div class="bar"><i style="width:'+Math.max(0,m.hp/m.mx*100)+'%"></i></div>HP '+m.hp+'/'+m.mx+'　<b style="color:var(--red)">⚔攻撃'+atkOf(q,m)+'</b>'+(tag?'<br><span>'+tag+'</span>':'')+'</button>';
+  return '<button class="'+cls+'" data-s="'+s+'" data-i="'+i+'"><span style="display:flex;gap:5px;align-items:center">'+av(m.k,34)+'<span>'+k.n+(m.L?' 👑<small>🌟'+(q.np==='all'?'全体':'単体')+'</small>':'')+'</span></span><div class="bar"><i style="width:'+Math.max(0,m.hp/m.mx*100)+'%"></i></div>'+(m.L?'<div class="bar np-bar"><i style="width:'+(q.npVal||0)+'%"></i></div>':'')+'HP '+m.hp+'/'+m.mx+'　<b style="color:var(--red)">⚔攻撃'+atkOf(q,m)+'</b>'+(tag?'<br><span>'+tag+'</span>':'')+'</button>';
  }).join('');
  $('bl').innerHTML=mk(O,0);$('br').innerHTML=mk(E,1);
 }
@@ -402,7 +405,7 @@ $('bti').onclick=e=>{
 $('ba').onclick=()=>{if(bt&&bt.pick){bt.asg=autoAsg(bt.O,bt.E,bt.ds);drawBt()}};
 $('bok').onclick=()=>{const f=btRes;btRes=null;if(f)f()};
 $('hint').onclick=()=>$('hp').classList.toggle('hide');
-$('npb').onclick=()=>{if(bt&&bt.pick){bt.np=!bt.np;const md='（'+(bt.O.np==='all'?'全体':'単体')+'）';$('npb').textContent=bt.np?'🌟宝具 ON'+md:'🌟宝具'+md;drawBt()}};
+$('npb').onclick=()=>{if(bt&&bt.pick){bt.np=!bt.np;const md='（'+(bt.O.np==='all'?'全体':'単体')+'）';$('npb').textContent=bt.np?'🌟宝具(100%) ON'+md:'🌟宝具(100%消費)'+md;drawBt()}};
 const sleep2=ms=>bt&&bt.skip?Promise.resolve():sleep(ms);
 const cardOf=(s,i)=>[...document.querySelectorAll('#bti .mc')].find(e=>+e.dataset.s===s&&+e.dataset.i===i);
 function pop(txt,x,y,color,size,dy){
@@ -445,11 +448,12 @@ async function battle(a,d){
   bt.title='<b>'+(fx<1?'反撃':'攻撃')+'</b>：'+SN[att.s]+att.role+' → '+SN[def.s]+def.role+(fx<1?'（威力6割）':'');
   if(mine){
    bt.pick=true;bt.fx=fx;bt.asg=autoAsg(att,def,ds);bt.act=att.m.findIndex(m=>m.hp>0&&rgOf(att,m)>=ds);
-   bt.np=false;$('npb').style.display=fx===1&&npReady(att,ds)?'':'none';$('npb').textContent='🌟宝具（'+(att.np==='all'?'全体':'単体')+'）';
+   bt.np=false;$('npb').style.display=fx===1&&npReady(att,ds)?'':'none';$('npb').textContent='🌟宝具(100%消費)：'+(att.np==='all'?'全体':'単体');
    $('bmsg').textContent='自軍の兵をタップ→狙う敵をタップ。決まったら「決定」。';
    drawBt();await waitBt('決定',true);asg=bt.asg;bt.pick=false;$('npb').style.display='none';
   }else{
-   if(fx===1&&npReady(att,ds)&&Math.random()<.5){bt.cpuNp=true;asg=autoAsg(att,def,ds)}
+   bt.cpuNp=false;
+   if(fx===1&&npReady(att,ds)&&Math.random()<.6){bt.cpuNp=true;asg=autoAsg(att,def,ds)}
    $('bmsg').textContent=bt.cpuNp?'🌟敵軍リーダーの宝具！':'敵軍の攻撃！';drawBt();
    if(fx===1)await waitBt('攻撃を受ける',false);
   }
@@ -463,6 +467,10 @@ async function battle(a,d){
    dm=volley(att,def,ds,true,fx,asg,hits,{skip:0});dm+=fireNP(att,def,ds,asg?asg[0]:null,hits);
   }else dm=volley(att,def,ds,true,fx,asg,hits);
   const fin=def.m.map(x=>x.hp),finA=att.m.map(x=>x.hp);rec.dmg[att.s]+=dm;
+  if(dm>0){
+   const rate=has(att,'caster')?6:4;
+   att.npVal=Math.min(100,(att.npVal||0)+dm*rate);
+  }
   def.m.forEach((x,j)=>{x.hp=snap[j]});att.m.forEach((x,j)=>{x.hp=snapA[j]});
   $('bmsg').textContent='';drawBt();
   bt.anim=true;bt.skip=false;
@@ -527,8 +535,9 @@ function chk(){
 
 /* ---- 描画 ---- */
 function detail(q){
+ const np=(q.npVal||0);
  return '<div style="display:flex;gap:10px;align-items:flex-start">'+card(lead(q),62)+'<div style="min-width:0"><b style="color:'+SC[q.s]+'">'+SN[q.s]+' '+q.role+'</b>（'+RD[q.role]+'）<br>'+
-  q.m.map(m=>m.hp>0?(m.L?'👑':'')+KM[m.k].e+m.hp+'/'+m.mx:'✖').join(' ')+'<br>能力：'+(pass(q.m.filter(m=>m.hp>0).map(m=>m.k))||'なし')+(q.bf?'<br>🔺攻撃力アップ+'+q.bf+'（残'+q.bt+'ターン）':'')+'<br>🌟宝具['+(q.np==='single'?'単体':'全体')+']'+(q.npUsed?'使用済':'未使用')+'：'+NPD[q.m[0].k]+'</div></div>';
+  q.m.map(m=>m.hp>0?(m.L?'👑':'')+KM[m.k].e+m.hp+'/'+m.mx:'✖').join(' ')+'<br>能力：'+(pass(q.m.filter(m=>m.hp>0).map(m=>m.k))||'なし')+(q.bf?'<br>🔺攻撃力アップ+'+q.bf+'（残'+q.bt+'ターン）':'')+'<br>🌟宝具['+(q.np==='single'?'単体':'全体')+'] <b>NP '+np+'%</b>'+(np>=100?' (READY!)':'')+'：'+NPD[q.m[0].k]+'</div></div>';
 }
 function render(){
  const bd=$('bd');bd.innerHTML='';bd.className='board'+(d3?' d3':'');$('v3').textContent=d3?'2D表示':'3D表示';
@@ -544,7 +553,7 @@ function render(){
   const b=document.createElement('button'),o=own[y][x],q=at(y,x);
   b.className='c'+(mv.some(p=>p[0]===y&&p[1]===x)?' m':'')+(q&&tg.includes(q)?' a':'')+(q&&q===selU?' s':'')+(pend&&pend[0]===y&&pend[1]===x?' s':'')+(rz[y][x]===2?' r':rz[y][x]===1?' z':'');
   if(o>=0)b.style.background='color-mix(in srgb,'+SC[o]+' 36%,var(--cell))';
-  if(q)b.innerHTML='<span class="u'+(q.s===0&&q.done?' d':'')+'" style="background:'+SC[q.s]+'">'+(d3?card(lead(q),40):av(lead(q),60))+'</span><b class="rl">'+q.role[0]+'</b><i>'+cnt(q)+'</i>'+(q.npUsed?'':'<em>'+(q.np==='all'?'全':'単')+'</em>')+(d3&&q.s===1&&q.role==='本隊'?'<span class="crown">👑</span>':'');
+  if(q)b.innerHTML='<span class="u'+(q.s===0&&q.done?' d':'')+'" style="background:'+SC[q.s]+'">'+(d3?card(lead(q),40):av(lead(q),60))+'</span><b class="rl">'+q.role[0]+'</b><i>'+cnt(q)+'</i>'+'<em class="'+((q.npVal||0)>=100?'':'np-off')+'">'+(q.np==='all'?'全':'単')+((q.npVal||0)>=100?'!':'')+'</em>'+(d3&&q.s===1&&q.role==='本隊'?'<span class="crown">👑</span>':'');
   if(pend&&pend[0]===y&&pend[1]===x)b.innerHTML='<span class="u gh" style="color:'+SC[0]+';border-color:'+SC[0]+'">'+selU.role[0]+'</span>';
   const tt=TR[y][x];
   if(tt){if(tt==='rock')b.classList.add('rock');if(tt==='hill')b.classList.add('hl');if(!q&&!(pend&&pend[0]===y&&pend[1]===x))b.classList.add('te');b.insertAdjacentHTML('beforeend','<s>'+TE[tt]+'</s>')}
@@ -704,7 +713,7 @@ async function review(noAI){
  try{
   const sample=(!noAI&&window.claude)?await claude.use('sample'):null;
   if(sample){
-   const rule='ルール：5部隊(本隊/副隊/先行隊/遊撃隊/後衛隊)×5人、8x8盤面で陣取りと戦闘。12ターン、本隊全滅で敗北。リーダー(左端)はHP1.5倍・攻撃+2、1回だけ宝具(単体/全体)。クラス相性：セイバー>ランサー>アーチャー>セイバー、ライダー>キャスター>アサシン>ライダー、バーサーカーは全クラスに2倍だが被1.5倍。部隊内にクラスがいると部隊能力が付く。';
+   const rule='ルール：5部隊(本隊/副隊/先行隊/遊撃隊/後衛隊)×5人、8x8盤面で陣取りと戦闘。12ターン、本隊全滅で敗北。リーダー(左端)はHP1.5倍・攻撃+2、ダメージを与えてNPを100%溜めると宝具(単体/全体)を発動可能（キャスターがいるとNP上昇率UP）。クラス相性：セイバー>ランサー>アーチャー>セイバー、ライダー>キャスター>アサシン>ライダー、バーサーカーは全クラスに2倍だが被1.5倍。部隊内にクラスがいると部隊能力が付く。';
    const data='【結果】'+logs.join(' / ')+'\n【先攻】'+(first===0?'自軍':'敵軍')+'\n【自軍の最終状態】\n'+squadTxt(0)+'\n【敵軍の最終状態】\n'+squadTxt(1)+'\n【ターン別推移】\n'+rec.snap.join('\n')+'\n【戦闘ログ】\n'+rec.log.slice(-40).join('\n');
    const p='あなたは戦略ゲームのコーチです。以下は1戦の記録です（プレイヤー＝自軍）。記録を根拠に、日本語で具体的に講評してください。\n'+rule+'\n\n'+data+'\n\n出力はJSONのみ：{"grade":"S|A|B|C|D","summary":"総評(60字以内)","good":["良かった点"x3],"regrets":["反省点"x3],"improve":["改善点"x3],"counter":["次の対策(具体的な編成・動き・宝具の使い時)"x3],"nextComp":"次に試す編成案(80字以内)"} 各項目50字以内。';
    res=await sample.json(p,{modelTier:'default'});
