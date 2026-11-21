@@ -477,11 +477,11 @@ function spawnRing(x,y,color,sz=60){
  ],{duration:380,easing:'ease-out'}).finished.then(()=>rg.remove());
 }
 async function playHit(att,def,h){
- const apply=()=>{def.m[h.j].hp=h.hp;drawBt()};
+ const apply=()=>{def.m[h.j].hp=h.hp;const c=cardOf(def.s,h.j),b=c&&c.querySelector('.bar i');if(b)b.style.width=Math.max(0,h.hp/def.m[h.j].mx*100)+'%'};
  const A=cardOf(att.s,h.i),T=cardOf(def.s,h.j);
  if(!A||!T||bt.skip){apply();return}
  const ar=A.getBoundingClientRect(),tr=T.getBoundingClientRect();
- const ax=ar.left+ar.width/2,ay=ar.top+ar.height/2,tx=tr.left+tr.width/2,ty=tr.top+tr.height/2;
+ const ax=ar.left+ar.width/2,ay=ar.top+ar.height/2,tx=tr.left+tr.width/2+(((h.n||0)%5)-2)*16,ty=tr.top+tr.height/2+(((h.n||0)%3)-1)*10;
  const angle=Math.atan2(ty-ay,tx-ax)*180/Math.PI;
 
  // 攻撃側カードの前進アクション
@@ -609,7 +609,7 @@ async function battle(a,d){
   def.m.forEach((x,j)=>{x.hp=snap[j]});att.m.forEach((x,j)=>{x.hp=snapA[j]});
   $('bmsg').textContent='';drawBt();
   bt.anim=true;bt.skip=false;
-  await Promise.all(hits.map((h,n)=>sleep2(n*70).then(()=>playHit(att,def,h))));
+  await Promise.all(hits.map((h,n)=>{h.n=n;return sleep2(n*90).then(()=>playHit(att,def,h))}));
   bt.anim=false;def.m.forEach((x,j)=>{x.hp=fin[j]});att.m.forEach((x,j)=>{x.hp=finA[j]});
   $('bmsg').innerHTML=hits.map(h=>KM[h.k].e+'→'+KM[def.m[h.j].k].e+(h.dg?' 回避':' '+h.v)).join('　')+'<br>合計 '+dm+' ダメージ';
   drawBt();
