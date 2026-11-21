@@ -56,8 +56,11 @@ button{font-family:inherit;color:var(--fg)}
 .bar{height:5px;background:var(--cell);border-radius:3px;margin:3px 0}
 .bar i{display:block;height:100%;background:var(--ok);border-radius:3px}
 .gh{background:transparent!important;border:2px dashed}
-.fxp{position:fixed;z-index:60;font-size:26px;pointer-events:none}
-.fxf{position:fixed;z-index:61;font-weight:800;pointer-events:none;transform:translate(-50%,-50%);text-shadow:0 1px 3px rgba(0,0,0,.45);white-space:nowrap}
+.fxp{position:fixed;z-index:60;font-size:28px;pointer-events:none;filter:drop-shadow(0 2px 8px rgba(0,0,0,.6))}
+.fxf{position:fixed;z-index:61;font-weight:900;pointer-events:none;transform:translate(-50%,-50%);text-shadow:0 2px 6px rgba(0,0,0,.7),0 0 10px rgba(0,0,0,.5);white-space:nowrap}
+.fx-slash{position:fixed;z-index:62;pointer-events:none;transform:translate(-50%,-50%);border-radius:4px;box-shadow:0 0 12px currentColor}
+.fx-spark{position:fixed;z-index:63;pointer-events:none;width:5px;height:5px;border-radius:50%;box-shadow:0 0 6px currentColor}
+.fx-ring{position:fixed;z-index:62;pointer-events:none;transform:translate(-50%,-50%);border-radius:50%;border:3px solid currentColor;box-shadow:0 0 16px currentColor}
 @keyframes bob{50%{transform:translateY(-3px)}}
 .npt{background:var(--card);border:2px solid #d9a21b;border-radius:8px;padding:2px 6px;font-size:10px;color:var(--fg);margin-right:4px}
 .mc.np{border-color:#d9a21b;box-shadow:0 0 6px #d9a21b}
@@ -437,7 +440,41 @@ function pop(txt,x,y,color,size,dy){
  const e=document.createElement('div');e.className='fxf';e.textContent=txt;
  e.style.left=x+'px';e.style.top=y+'px';e.style.color=color;e.style.fontSize=size+'px';
  document.body.appendChild(e);
- e.animate([{transform:'translate(-50%,-50%) scale(.6)',opacity:0},{transform:'translate(-50%,-70%) scale(1.15)',opacity:1,offset:.25},{transform:'translate(-50%,calc(-50% - '+dy+'px))',opacity:0}],{duration:900,easing:'ease-out'}).finished.then(()=>e.remove());
+ e.animate([{transform:'translate(-50%,-50%) scale(.6)',opacity:0},{transform:'translate(-50%,-70%) scale(1.25)',opacity:1,offset:.2},{transform:'translate(-50%,calc(-50% - '+dy+'px)) scale(.95)',opacity:0}],{duration:850,easing:'cubic-bezier(.16,1,.3,1)'}).finished.then(()=>e.remove());
+}
+function spawnSparks(x,y,color,count=7){
+ for(let n=0;n<count;n++){
+  const sp=document.createElement('div');sp.className='fx-spark';
+  sp.style.left=x+'px';sp.style.top=y+'px';sp.style.color=color;sp.style.backgroundColor=color;
+  document.body.appendChild(sp);
+  const ang=Math.random()*Math.PI*2,dist=16+Math.random()*34;
+  const dx=Math.cos(ang)*dist,dy=Math.sin(ang)*dist;
+  sp.animate([
+   {transform:'translate(-50%,-50%) scale(1.4)',opacity:1},
+   {transform:'translate(calc(-50% + '+dx+'px),calc(-50% + '+dy+'px)) scale(0)',opacity:0}
+  ],{duration:360+Math.random()*200,easing:'ease-out'}).finished.then(()=>sp.remove());
+ }
+}
+function spawnSlash(x,y,color,angle,w=70,h=4){
+ const sl=document.createElement('div');sl.className='fx-slash';
+ sl.style.left=x+'px';sl.style.top=y+'px';sl.style.width=w+'px';sl.style.height=h+'px';
+ sl.style.color=color;sl.style.backgroundColor='#fff';
+ document.body.appendChild(sl);
+ sl.animate([
+  {transform:'translate(-50%,-50%) rotate('+angle+'deg) scaleX(.1)',opacity:1},
+  {transform:'translate(-50%,-50%) rotate('+angle+'deg) scaleX(1.3) scaleY(1.4)',opacity:.9,offset:.4},
+  {transform:'translate(-50%,-50%) rotate('+angle+'deg) scaleX(1.6) scaleY(0)',opacity:0}
+ ],{duration:260,easing:'ease-out'}).finished.then(()=>sl.remove());
+}
+function spawnRing(x,y,color,sz=60){
+ const rg=document.createElement('div');rg.className='fx-ring';
+ rg.style.left=x+'px';rg.style.top=y+'px';rg.style.width=sz+'px';rg.style.height=sz+'px';
+ rg.style.color=color;
+ document.body.appendChild(rg);
+ rg.animate([
+  {transform:'translate(-50%,-50%) scale(.2)',opacity:1,borderWidth:'5px'},
+  {transform:'translate(-50%,-50%) scale(1.4)',opacity:0,borderWidth:'1px'}
+ ],{duration:380,easing:'ease-out'}).finished.then(()=>rg.remove());
 }
 async function playHit(att,def,h){
  const apply=()=>{def.m[h.j].hp=h.hp;drawBt()};
@@ -445,23 +482,96 @@ async function playHit(att,def,h){
  if(!A||!T||bt.skip){apply();return}
  const ar=A.getBoundingClientRect(),tr=T.getBoundingClientRect();
  const ax=ar.left+ar.width/2,ay=ar.top+ar.height/2,tx=tr.left+tr.width/2,ty=tr.top+tr.height/2;
- A.animate([{transform:'none'},{transform:'translate('+(tx-ax)*.25+'px,'+(ty-ay)*.25+'px) scale(1.1)'},{transform:'none'}],{duration:380,easing:'ease-out'});
- const p=document.createElement('div');p.className='fxp';p.textContent=h.np?'🌟':KM[h.k].e;
- p.style.left=ax+'px';p.style.top=ay+'px';document.body.appendChild(p);
- await p.animate([{transform:'translate(-50%,-50%) scale(.8) rotate(0deg)'},{transform:'translate(calc(-50% + '+(tx-ax)+'px),calc(-50% + '+(ty-ay)+'px)) scale(1.5) rotate(360deg)'}],{duration:300,easing:'ease-in'}).finished;
+ const angle=Math.atan2(ty-ay,tx-ax)*180/Math.PI;
+
+ // 攻撃側カードの前進アクション
+ A.animate([
+  {transform:'scale(1)'},
+  {transform:'translate('+(tx-ax)*.32+'px,'+(ty-ay)*.32+'px) scale(1.18)',boxShadow:'0 0 14px #ffd700',offset:.4},
+  {transform:'scale(1)'}
+ ],{duration:340,easing:'cubic-bezier(.22,1,.36,1)'});
+
+ // 弾・オーラエフェクト
+ const p=document.createElement('div');p.className='fxp';
+ p.textContent=h.np?'🌟':KM[h.k].e;
+ p.style.left=ax+'px';p.style.top=ay+'px';
+ document.body.appendChild(p);
+
+ const flightTime=h.np?350:240;
+ await p.animate([
+  {transform:'translate(-50%,-50%) scale(.7) rotate(0deg)',opacity:1},
+  {transform:'translate(calc(-50% + '+(tx-ax)*.5+'px),calc(-50% + '+(ty-ay)*.5-18+'px)) scale('+(h.np?2:1.4)+') rotate(180deg)',offset:.5},
+  {transform:'translate(calc(-50% + '+(tx-ax)+'px),calc(-50% + '+(ty-ay)+'px)) scale('+(h.np?2.4:1.6)+') rotate(360deg)',opacity:1}
+ ],{duration:flightTime,easing:'ease-in'}).finished;
  p.remove();
  apply();
+
  const T2=cardOf(def.s,h.j)||T;
- if(h.dg){pop('MISS',tx,ty,'#9aa0b3',20,40)}
- else{
-  T2.animate([{transform:'translateX(0)'},{transform:'translateX(-7px)'},{transform:'translateX(7px)'},{transform:'translateX(-4px)'},{transform:'none'}],{duration:300});
-  T2.animate([{backgroundColor:'#ff8a8a'}],{duration:400});
-  pop(h.mu>1?'💥':'✨',tx,ty,'#fff',h.mu>1?40:28,10);
-  pop('-'+h.v+(h.mu>1?'!':''),tx,ty-8,h.mu>1?'#ff4d4d':'#e8e6e0',h.mu>1?28:21,46);
-  if(h.hp<=0)pop('撃破',tx,ty+16,'#ffd34d',20,50);
-  if(h.np)pop('宝具!',tx,ty-34,'#ffd34d',22,60);
+ if(h.dg){
+  pop('MISS',tx,ty,'#9aa0b3',22,40);
+  T2.animate([{transform:'scale(1)'},{transform:'translate('+(Math.random()<.5?-12:12)+'px,-4px) scale(.92)',offset:.4},{transform:'scale(1)'}],{duration:260});
+ }else{
+  // クラス別＆宝具別ヒット演出
+  const fxColor=h.np?'#ffd700':h.mu>1?'#ff3333':(h.k==='caster'?'#a855f7':h.k==='archer'?'#38bdf8':h.k==='lancer'?'#f59e0b':h.k==='assassin'?'#ec4899':'#ef4444');
+  
+  if(h.np){
+   spawnRing(tx,ty,'#ffd700',80);
+   spawnSlash(tx,ty,'#ffd700',-30,90,6);
+   spawnSlash(tx,ty,'#fff',30,90,5);
+   spawnSparks(tx,ty,'#ffd700',14);
+   T2.animate([
+    {transform:'scale(1)'},
+    {transform:'scale(1.22) rotate(4deg)',backgroundColor:'#fff',offset:.2},
+    {transform:'translate(-10px,4px) scale(.85) rotate(-5deg)',backgroundColor:'#ff4444',offset:.5},
+    {transform:'translate(8px,-3px) scale(.95)',offset:.75},
+    {transform:'scale(1)'}
+   ],{duration:450});
+  }else if(h.k==='saber'||h.k==='berserker'||h.k==='assassin'){
+   spawnSlash(tx,ty,fxColor,angle+(h.k==='assassin'?90:45),70,4);
+   spawnSparks(tx,ty,fxColor,h.mu>1?10:6);
+   T2.animate([
+    {transform:'scale(1)'},
+    {transform:'translateX('+(ax<tx?12:-12)+'px) scale(.9)',backgroundColor:'#ff6666',offset:.3},
+    {transform:'translateX('+(ax<tx?-6:6)+'px)',offset:.6},
+    {transform:'scale(1)'}
+   ],{duration:320});
+  }else if(h.k==='lancer'){
+   spawnSlash(tx,ty,'#f59e0b',angle,85,5);
+   spawnSparks(tx,ty,'#fbbf24',8);
+   T2.animate([
+    {transform:'scale(1)'},
+    {transform:'translate('+(ax<tx?14:-14)+'px,2px)',backgroundColor:'#ff7777',offset:.35},
+    {transform:'scale(1)'}
+   ],{duration:300});
+  }else{
+   // 遠距離(アーチャー/キャスター)など
+   spawnRing(tx,ty,fxColor,50);
+   spawnSparks(tx,ty,fxColor,h.mu>1?10:6);
+   T2.animate([
+    {transform:'scale(1)'},
+    {transform:'translateY(-6px) scale(1.08)',backgroundColor:'#ff8a8a',offset:.3},
+    {transform:'translateY(4px) scale(.95)',offset:.6},
+    {transform:'scale(1)'}
+   ],{duration:320});
+  }
+
+  // 画面シェイク（会心や宝具時）
+  if(h.mu>1||h.np||h.v>=10){
+   $('bt').animate([
+    {transform:'translate(0,0)'},
+    {transform:'translate(-4px,3px)',offset:.25},
+    {transform:'translate(4px,-3px)',offset:.5},
+    {transform:'translate(-2px,1px)',offset:.75},
+    {transform:'translate(0,0)'}
+   ],{duration:180});
+  }
+
+  pop(h.np?'🌟BOOM!':(h.mu>1?'💥CRITICAL!':'✨HIT!'),tx,ty-12,h.np?'#ffd700':(h.mu>1?'#ff4d4d':'#fff'),h.np?30:(h.mu>1?26:20),16);
+  pop('-'+h.v+(h.mu>1?'!':''),tx,ty-30,h.np?'#ffd700':(h.mu>1?'#ff3333':'#fff'),h.np?34:(h.mu>1?30:23),48);
+  if(h.hp<=0)pop('💀撃破!',tx,ty+18,'#facc15',22,50);
+  if(h.np)pop('🌟宝具発動!!',tx,ty-52,'#ffd700',24,64);
  }
- await sleep2(h.mu>1?420:320);
+ await sleep2(h.np?500:(h.mu>1?380:260));
 }
 async function battle(a,d){
  const ds=dist(a.y,a.x,d.y,d.x);
