@@ -567,7 +567,7 @@ async function playHit(att,def,h){
   }
 
   pop(h.np?'🌟BOOM!':(h.mu>1?'💥CRITICAL!':'✨HIT!'),tx,ty-12,h.np?'#ffd700':(h.mu>1?'#ff4d4d':'#fff'),h.np?30:(h.mu>1?26:20),16);
-  pop('-'+h.v+(h.mu>1?'!':''),tx,ty-30,h.np?'#ffd700':(h.mu>1?'#ff3333':'#fff'),h.np?34:(h.mu>1?30:23),48);
+  pop('-'+h.v+(h.mu>1?'!':''),tx+(Math.random()-.5)*36,ty-30,h.np?'#ffd700':(h.mu>1?'#ff3333':'#fff'),h.np?34:(h.mu>1?30:23),48);
   if(h.hp<=0)pop('💀撃破!',tx,ty+18,'#facc15',22,50);
   if(h.np)pop('🌟宝具発動!!',tx,ty-52,'#ffd700',24,64);
  }
@@ -609,7 +609,7 @@ async function battle(a,d){
   def.m.forEach((x,j)=>{x.hp=snap[j]});att.m.forEach((x,j)=>{x.hp=snapA[j]});
   $('bmsg').textContent='';drawBt();
   bt.anim=true;bt.skip=false;
-  for(const h of hits)await playHit(att,def,h);
+  await Promise.all(hits.map((h,n)=>sleep2(n*70).then(()=>playHit(att,def,h))));
   bt.anim=false;def.m.forEach((x,j)=>{x.hp=fin[j]});att.m.forEach((x,j)=>{x.hp=finA[j]});
   $('bmsg').innerHTML=hits.map(h=>KM[h.k].e+'→'+KM[def.m[h.j].k].e+(h.dg?' 回避':' '+h.v)).join('　')+'<br>合計 '+dm+' ダメージ';
   drawBt();
