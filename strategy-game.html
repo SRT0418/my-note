@@ -137,7 +137,7 @@ body.pc .msg{font-size:14px}
  <div class="rule">
  <b>①部隊を選ぶ ②移動先をタップ ③「決定」</b>（その場に残るなら決定のみ）。赤枠の敵部隊をタップすると<b>戦闘画面</b>へ。自軍の兵→狙う敵の順にタップして割り当て、「決定」で攻撃。敵の攻撃を受けたときの<b>反撃の目標</b>も自分で選べます（威力6割）。止まったマスが自陣です。<br>
  ⚔️＞🔱＞🏹＞⚔️ ／ 🐎＞🔮＞🗡️＞🐎 ／ 💢は全クラスに2倍（被ダメ1.5倍）。🏹は射程3、🔮は射程2で、遠くから先に撃てます。<br>
- <b>地形（毎回ランダム配置）</b>：🪨岩＝通行不可／⛰️高台＝射程+1・被ダメ-1／💧沼＝移動コスト×2。敵も同じ条件です。<br>
+ <b>地形（毎回ランダム配置）</b>：🪨岩＝通行不可＆<b>射線遮断</b>（山・高台からの攻撃以外、岩の裏へは遠距離攻撃が届かない）／⛰️高台＝射程+1・被ダメ-1・岩越し射撃可能／💧沼＝移動コスト×2。敵も同じ条件です。<br>
  <b>自軍の本隊が全滅すると敗北、敵本隊を倒せば勝利。</b>12ターン経過時は「陣地＋生存人数」で判定。
  </div>
  <div class="row" style="margin-top:10px"><button class="btn g" id="bk">編成に戻る</button></div>
@@ -305,7 +305,32 @@ const mvOf=q=>2+(has(q,'rider')?1:0)+(q.role==='先行隊'?1:0);
 const rgOf=(q,m,y=q.y,x=q.x)=>KM[m.k].rg+(q.role==='後衛隊'?1:0)+(TR&&TR[y]&&TR[y][x]==='hill'?1:0);
 const mult=(a,d)=>a==='berserker'?2:d==='berserker'?1.5:B[a]===d?1.5:B[d]===a?.7:1;
 const support=q=>sq.some(o=>o!==q&&o.s===q.s&&o.role==='副隊'&&alive(o)&&dist(o.y,o.x,q.y,q.x)<=2);
-const canHit=(a,y,x,d)=>a.m.some(m=>m.hp>0&&rgOf(a,m,y,x)>=dist(y,x,d.y,d.x));
+const onHill=(y,x)=>!!(TR&&TR[y]&&TR[y][x]==='hill');
+function rockBlocked(y1,x1,y2,x2){
+ if(dist(y1,x1,y2,x2)<=1)return false;
+ if(onHill(y1,x1))return false;
+ const dy=y2-y1,dx=x2-x1;
+ const steps=Math.max(Math.abs(dy),Math.abs(dx));
+ if(!steps)return false;
+ for(let s=1;s<steps;s++){
+  const ty=y1+dy*(s/steps),tx=x1+dx*(s/steps);
+  const cy=Math.round(ty),cx=Math.round(tx);
+  if(Math.abs(ty-cy)<0.48&&Math.abs(tx-cx)<0.48){
+   if(TR&&TR[cy]&&TR[cy][cx]==='rock')return true;
+  }
+  const iy=Math.floor(ty),ix=Math.floor(tx);
+  if(iy!==cy||ix!==cx){
+   if(Math.abs(ty-(iy+0.5))<0.35&&Math.abs(tx-(ix+0.5))<0.35){
+    if(TR&&TR[iy]&&TR[iy][ix]==='rock')return true;
+   }
+  }
+ }
+ return false;
+}
+const canHit=(a,y,x,d)=>{
+ if(rockBlocked(y,x,d.y,d.x))return false;
+ return a.m.some(m=>m.hp>0&&rgOf(a,m,y,x)>=dist(y,x,d.y,d.x));
+};
 const targets=(a,y,x)=>sq.filter(e=>alive(e)&&e.s!==a.s&&canHit(a,y,x,e));
 const tot=q=>q.m.reduce((s,m)=>s+m.hp,0);
 const cnt=q=>q.m.filter(m=>m.hp>0).length;
@@ -484,10 +509,15 @@ async function battle(a,d){
  let s=SN[a.s]+a.role+'→'+SN[d.s]+d.role+' '+x+'ダメージ'+(bt.npTxt||'');
  if(!alive(d)||bt.noCounter){s+=!alive(d)?' 全滅！':' 反撃封じ';await waitBt('閉じる',false)}
  else{
-  await waitBt('次へ（反撃）',false);
-  const c=await phase(d,a,.6);
-  if(c)s+=' 反撃'+c;if(!alive(a))s+=' 相討ち';
-  await waitBt('閉じる',false);
+  if(rockBlocked(d.y,d.x,a.y,a.x)){
+   s+='（岩に遮られ反撃不可）';
+   await waitBt('閉じる',false);
+  }else{
+   await waitBt('次へ（反撃）',false);
+   const c=await phase(d,a,.6);
+   if(c)s+=' 反撃'+c;if(!alive(a))s+=' 相討ち';
+   await waitBt('閉じる',false);
+  }
  }
  $('bt').classList.add('hide');log(s);rec.log.push('T'+round+' '+s);
 }
@@ -546,8 +576,17 @@ function render(){
   if(phase==='sel')mv=reach(selU).filter(p=>!(p[0]===selU.y&&p[1]===selU.x));
   tg=targets(selU,pend?pend[0]:selU.y,pend?pend[1]:selU.x);
   const oy=pend?pend[0]:selU.y,ox=pend?pend[1]:selU.x,RG=maxRg(selU,oy,ox);
-  for(let yy=0;yy<N;yy++)for(let xx=0;xx<N;xx++){const dd=dist(oy,ox,yy,xx);if(dd>=1&&dd<=RG)rz[yy][xx]=2}
-  if(phase==='sel'&&!pend)reach(selU).forEach(([ry,rx])=>{const R2=maxRg(selU,ry,rx);for(let yy=0;yy<N;yy++)for(let xx=0;xx<N;xx++){const dd=dist(ry,rx,yy,xx);if(dd>=1&&dd<=R2&&!rz[yy][xx])rz[yy][xx]=1}});
+  for(let yy=0;yy<N;yy++)for(let xx=0;xx<N;xx++){
+   const dd=dist(oy,ox,yy,xx);
+   if(dd>=1&&dd<=RG&&!rockBlocked(oy,ox,yy,xx))rz[yy][xx]=2;
+  }
+  if(phase==='sel'&&!pend)reach(selU).forEach(([ry,rx])=>{
+   const R2=maxRg(selU,ry,rx);
+   for(let yy=0;yy<N;yy++)for(let xx=0;xx<N;xx++){
+    const dd=dist(ry,rx,yy,xx);
+    if(dd>=1&&dd<=R2&&!rz[yy][xx]&&!rockBlocked(ry,rx,yy,xx))rz[yy][xx]=1;
+   }
+  });
  }
  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
   const b=document.createElement('button'),o=own[y][x],q=at(y,x);
