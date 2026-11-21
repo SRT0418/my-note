@@ -1040,34 +1040,45 @@
         }
 
         // fit モード（用紙全体表示：PCと同じレイアウトのまま画面にピッタリ縮小フィット）
-        // 1. 正確な高さを計測するため、一旦 transform を解除
+        // 1. transformをリセットして実寸の高さを正確に計測
         paper.style.transform = "none";
-        paper.style.transformOrigin = "top center";
+        paper.style.transformOrigin = "top left";
         paper.style.width = "740px";
         wrap.style.height = "auto";
+        wrap.style.overflow = "visible";
 
-        // 2. コンテナ内部の描画領域と余白（左右マージン）を計算
-        const cs = window.getComputedStyle(container);
-        const padLeft = parseFloat(cs.paddingLeft) || 0;
-        const padRight = parseFloat(cs.paddingRight) || 0;
-        // コンテナの有効幅から、用紙左右に適度な余白（合計24px）を確保
-        const innerWidth = container.clientWidth - padLeft - padRight;
-        const targetWidth = Math.max(100, innerWidth - 24);
+        // 2. ブラウザのリフローを待ってから計測・適用（2段階RAF）
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                const cs = window.getComputedStyle(container);
+                const padLeft = parseFloat(cs.paddingLeft) || 0;
+                const padRight = parseFloat(cs.paddingRight) || 0;
+                // コンテナの有効幅から用紙左右に適度な余白（合計16px）を確保
+                const innerWidth = container.clientWidth - padLeft - padRight;
+                const targetWidth = Math.max(100, innerWidth - 16);
 
-        if (targetWidth < 740) {
-            const scale = Math.max(0.2, targetWidth / 740);
-            paper.style.transform = `scale(${scale})`;
-            paper.style.transformOrigin = "top center";
-            // 縮小後の視覚的な高さ（scrollHeightとoffsetHeightの大きい方を採用）
-            const fullHeight = Math.max(paper.scrollHeight, paper.offsetHeight);
-            const scaledHeight = Math.ceil(fullHeight * scale);
-            // 上下の余白（16px）を加えてラッパー高さを指定し、はみ出しや余分な空白を完全防止
-            wrap.style.height = `${scaledHeight + 16}px`;
-        } else {
-            paper.style.transform = "";
-            paper.style.transformOrigin = "";
-            wrap.style.height = "auto";
-        }
+                if (targetWidth < 740) {
+                    const scale = Math.max(0.2, targetWidth / 740);
+                    // 実寸高さを計測（transform=none の状態で正確に取得）
+                    const naturalHeight = paper.scrollHeight;
+                    // 縮小後の視覚高さ
+                    const scaledHeight = Math.ceil(naturalHeight * scale);
+
+                    paper.style.transform = `scale(${scale})`;
+                    paper.style.transformOrigin = "top left";
+                    paper.style.marginLeft = "0";
+
+                    // wrapの高さ＝縮小後の視覚高さ（余白8px追加）
+                    wrap.style.height = `${scaledHeight + 8}px`;
+                    wrap.style.overflow = "hidden";
+                } else {
+                    paper.style.transform = "";
+                    paper.style.transformOrigin = "";
+                    wrap.style.height = "auto";
+                    wrap.style.overflow = "visible";
+                }
+            });
+        });
     }
 
     function applyDirectEditMode() {

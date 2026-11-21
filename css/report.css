@@ -854,10 +854,10 @@ select.form-control {
 /* スケーリングラッパー */
 .report-preview-scaler-wrap {
     width: 100%;
-    display: flex;
-    justify-content: center;
+    display: block;
     position: relative;
     box-sizing: border-box;
+    overflow: hidden;
 }
 
 .report-preview-scaler-wrap.mode-scroll {

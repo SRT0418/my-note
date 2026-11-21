@@ -1562,6 +1562,15 @@
                             <p class="node-desc">年齢・残り日数カウント、うるう年補正アルゴリズム</p>
                             <span class="node-tech">birthdays.js</span>
                         </div>
+                        <div id="node-eng-strategygame" class="node-box" onclick="openNodeModal('eng-strategygame')">
+                            <div class="node-header">
+                                <span class="node-icon">⚔️</span>
+                                <span class="node-status-dot"></span>
+                            </div>
+                            <h3 class="node-title">五部隊戦略ゲーム</h3>
+                            <p class="node-desc">ターン制AI・先攻後攻判定・勝利条件スコアリング</p>
+                            <span class="node-tech">strategy-game.html</span>
+                        </div>
                         <div id="node-eng-wish" class="node-box" onclick="openNodeModal('eng-wish')">
                             <div class="node-header">
                                 <span class="node-icon">✨</span>
@@ -2251,6 +2260,18 @@ const blob = new Blob([htmlDoc], { type: "application/msword" });`
                 ],
                 code: `let nextBday = new Date(today.getFullYear(), bMonth - 1, bDay);
 if (nextBday < today) nextBday.setFullYear(today.getFullYear() + 1);`
+            },
+            'eng-strategygame': {
+                title: '五部隊戦略ゲーム エンジン',
+                badge: 'STRATEGY-GAME.HTML // GAME',
+                desc: '自軍・敵軍それぞれ5部隊×5人を編成してヘックス風盤面で戦うターン制ストラテジー。先攻後攻はランダム判定（Math.random）でモーダル表示→OK確認後に開始。CPU は攻撃・移動・防御の行動選択をスコアリングで自動判断。',
+                specs: [
+                    ['先攻後攻', 'Math.random() < 0.5 で自軍/敵軍を決定、モーダル確認後に開始'],
+                    ['CPUロジック', '各ターンで攻撃可否・移動先・防御をスコア評価して最適行動を選択'],
+                    ['勝利判定', '敵全滅 or 自軍全滅で勝敗決定、結果モーダルを表示']
+                ],
+                code: `const first = Math.random() < 0.5 ? 'player' : 'cpu';
+showOrderModal(first === 'player');`
             },
             'eng-wish': {
                 title: 'やりたいことリストエンジン',

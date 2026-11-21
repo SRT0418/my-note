@@ -75,6 +75,14 @@
             url: "birthdays.html",
             desc: "大切な人の誕生日や年齢・日数をカウント管理できます",
             category: "記念日"
+        },
+        {
+            id: "strategyGame",
+            name: "五部隊戦略ゲーム",
+            icon: "⚔️",
+            url: "strategy-game.html",
+            desc: "5部隊×5人を編成し、盤面の陣取りと戦闘で勝利を目指す戦略シミュレーション",
+            category: "ゲーム・息抜き"
         }
     ];
 
@@ -89,6 +97,9 @@
             if (raw) {
                 const parsed = JSON.parse(raw);
                 if (Array.isArray(parsed) && parsed.length > 0) {
+                    if (!parsed.includes("strategyGame") && !localStorage.getItem("strategyGame_disabled")) {
+                        parsed.push("strategyGame");
+                    }
                     return parsed;
                 }
             }
@@ -100,7 +111,11 @@
         if (window.MyNoteAuth && typeof window.MyNoteAuth.getCurrentUserInfo === "function") {
             const info = window.MyNoteAuth.getCurrentUserInfo();
             if (info && Array.isArray(info.custom_features) && info.custom_features.length > 0) {
-                return info.custom_features;
+                const list = [...info.custom_features];
+                if (!list.includes("strategyGame") && !localStorage.getItem("strategyGame_disabled")) {
+                    list.push("strategyGame");
+                }
+                return list;
             }
         }
 
@@ -229,6 +244,19 @@
             visibleCount++;
         }
 
+        // 五部隊戦略ゲームカードが index.html になければ動的に追加可能にする
+        const hasGameCard = Array.from(menuGrid.querySelectorAll(".menu-item")).some(
+            el => (el.getAttribute("onclick") || "").includes("strategy-game.html")
+        );
+        if (!hasGameCard && enabledIds.has("strategyGame")) {
+            const gCard = document.createElement("div");
+            gCard.className = "card menu-item dynamic-feature-card";
+            gCard.onclick = () => location.href = "strategy-game.html";
+            gCard.innerHTML = `<h2>⚔️ 五部隊戦略ゲーム</h2><p>5部隊×5人を編成し、盤面の陣取りと戦闘で勝利を目指す戦略シミュレーション</p>`;
+            menuGrid.appendChild(gCard);
+            visibleCount++;
+        }
+
         // カスタマイズ追加用カードを末尾に追加
         let addCard = document.getElementById("home-customize-add-card");
         if (!addCard) {
@@ -241,6 +269,9 @@
                 <h2 style="color: #3b82f6;">機能のカスタマイズ</h2>
                 <p>使いたい機能の追加・非表示をいつでも変更できます</p>
             `;
+            menuGrid.appendChild(addCard);
+        } else {
+            // 常にグリッド末尾に配置
             menuGrid.appendChild(addCard);
         }
 
